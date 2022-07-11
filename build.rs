@@ -16,13 +16,13 @@ use std::process::Command;
 use lazy_static::lazy_static;
 
 #[cfg(target_os = "macos")]
-const RDFOX_OS_NAME: &'static str = "macOS";
+const RDFOX_OS_NAME: &str = "macOS";
 #[cfg(target_os = "linux")]
-const RDFOX_OS_NAME: &'static str = "linux";
+const RDFOX_OS_NAME: &str = "linux";
 #[cfg(target_os = "windows")]
-const RDFOX_OS_NAME: &'static str = "win64";
+const RDFOX_OS_NAME: &str = "win64";
 
-const ARCH: &'static str = env::consts::ARCH;
+const ARCH: &str = env::consts::ARCH;
 
 lazy_static! {
     static ref RDFOX_DOWNLOAD_HOST: &'static str = option_env!("RDFOX_DOWNLOAD_HOST")
@@ -87,9 +87,9 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
     }
     {
         let mut file = File::create(file_name.to_str().unwrap())
-            .expect(&*format!("cargo:warning=\"Could not create {}\"", file_name.to_str().unwrap()));
+            .expect(format!("cargo:warning=\"Could not create {}\"", file_name.to_str().unwrap()).as_str());
         file.write_all(buffer.as_slice())
-            .expect(&*format!("cargo:warning=\"Could not write to {}\"", file_name.to_str().unwrap()));
+            .expect(format!("cargo:warning=\"Could not write to {}\"", file_name.to_str().unwrap()).as_str());
         println!("cargo:warning=\"Downloaded RDFox: {}\"", file_name.to_str().unwrap());
     }
     Ok(file_name)
@@ -101,10 +101,10 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     let reader = BufReader::new(file);
 
     let mut zip = zip::ZipArchive::new(reader)
-        .expect(&*format!("cargo:warning=\"Could not open zip archive: {}\"", zip_file.to_str().unwrap()));
+        .expect(format!("cargo:warning=\"Could not open zip archive: {}\"", zip_file.to_str().unwrap()).as_str());
 
     zip.extract(dir.clone())
-        .expect(&*format!("cargo:warning=\"Could not unzip {}\"", zip_file.to_str().unwrap()));
+        .expect(format!("cargo:warning=\"Could not unzip {}\"", zip_file.to_str().unwrap()).as_str());
 
     let unpacked_dir = dir.join(archive_name);
 

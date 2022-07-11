@@ -54,6 +54,20 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Cache LLVM and Clang
+        id: cache-llvm
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:/Program Files/LLVM
+            ./llvm
+          key: llvm-14
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "14"
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
+
       - name: Release build
         uses: actions-rs/cargo@v1
         with:
