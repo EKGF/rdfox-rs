@@ -5,19 +5,15 @@ use std::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
-use crate::{
-    Connection,
-    RoleCreds,
-    root::{
-        CException,
-        CParameters_getEmptyParameters,
-        CServer_createFirstLocalServerRole,
-        CServer_startLocalServer,
-        CServerConnection,
-        CServerConnection_newServerConnection,
-    },
-};
 use crate::exception::Error;
+use crate::{
+    root::{
+        CException, CParameters_getEmptyParameters, CServerConnection,
+        CServerConnection_newServerConnection, CServer_createFirstLocalServerRole,
+        CServer_startLocalServer,
+    },
+    Connection, RoleCreds,
+};
 
 pub struct Server {}
 

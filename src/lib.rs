@@ -26,17 +26,17 @@ lazy_static! {
     pub static ref TEXT_TURTLE: Mime = Mime::from_str("text/turtle").unwrap();
 }
 
-mod prefixes;
-mod graph;
-mod tests;
-mod data_store_connection;
-mod server_connection;
-mod server;
-mod role_creds;
-mod exception;
-mod parameters;
 mod cursor;
+mod data_store_connection;
+mod exception;
+mod graph;
+mod parameters;
+mod prefixes;
+mod role_creds;
+mod server;
+mod server_connection;
 mod statement;
+mod tests;
 mod transaction;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

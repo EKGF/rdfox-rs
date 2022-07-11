@@ -9,12 +9,8 @@ use std::panic::catch_unwind;
 use std::ptr;
 use std::str::Utf8Error;
 
+use crate::root::{CException, CException_getExceptionName, CException_what};
 use crate::Error::UNKNOWN;
-use crate::root::{
-    CException,
-    CException_getExceptionName,
-    CException_what,
-};
 
 #[derive(Debug)]
 pub enum Error {
@@ -25,8 +21,10 @@ pub enum Error {
 }
 
 impl CException {
-
-    pub fn handle<F>(f: F) -> Result<(), Error> where F: FnOnce() -> *const CException + std::panic::UnwindSafe {
+    pub fn handle<F>(f: F) -> Result<(), Error>
+    where
+        F: FnOnce() -> *const CException + std::panic::UnwindSafe,
+    {
         unsafe {
             let did_panic = catch_unwind(|| {
                 let exception = f();
@@ -45,16 +43,12 @@ impl CException {
     }
 
     pub fn name(&self) -> Result<&'static str, Utf8Error> {
-        let name = unsafe {
-            CStr::from_ptr(CException_getExceptionName(self))
-        };
+        let name = unsafe { CStr::from_ptr(CException_getExceptionName(self)) };
         name.to_str()
     }
 
     pub fn what(&self) -> Result<&'static str, Utf8Error> {
-        let what = unsafe {
-            CStr::from_ptr(CException_what(self))
-        };
+        let what = unsafe { CStr::from_ptr(CException_what(self)) };
         what.to_str()
     }
 }

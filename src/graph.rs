@@ -15,9 +15,11 @@ impl Display for Graph {
 }
 
 impl Graph {
-
-    pub fn define(local_name: &str) -> Self { // TODO: Find a class for URI/IRIs that has separate base + local name and use that as param instead
-        Self { local_name: local_name.to_string() }
+    pub fn define(local_name: &str) -> Self {
+        // TODO: Find a class for URI/IRIs that has separate base + local name and use that as param instead
+        Self {
+            local_name: local_name.to_string(),
+        }
     }
 
     pub fn as_c_string(&self) -> CString {

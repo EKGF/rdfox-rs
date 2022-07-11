@@ -6,19 +6,13 @@ use std::panic::AssertUnwindSafe;
 use std::ptr;
 
 use crate::{
-    DataStoreConnection,
-    Error,
-    RoleCreds,
     root::{
-        CException,
-        CParameters_getEmptyParameters,
-        CServerConnection,
-        CServerConnection_createDataStore,
-        CServerConnection_destroy,
-        CServerConnection_getNumberOfThreads,
-        CServerConnection_newDataStoreConnection,
+        CException, CParameters_getEmptyParameters, CServerConnection,
+        CServerConnection_createDataStore, CServerConnection_destroy,
+        CServerConnection_getNumberOfThreads, CServerConnection_newDataStoreConnection,
         CServerConnection_setNumberOfThreads,
     },
+    DataStoreConnection, Error, RoleCreds,
 };
 
 pub struct Connection {
@@ -34,7 +28,10 @@ impl Drop for Connection {
 }
 
 impl Connection {
-    pub(crate) fn new(role_creds: &RoleCreds, server_connection_ptr: *mut CServerConnection) -> Self {
+    pub(crate) fn new(
+        role_creds: &RoleCreds,
+        server_connection_ptr: *mut CServerConnection,
+    ) -> Self {
         assert!(!server_connection_ptr.is_null());
         Self {
             role_creds: role_creds.clone(),
@@ -51,7 +48,10 @@ impl Connection {
         Ok(number_of_threads)
     }
 
-    pub fn set_number_of_threads(&self, number_of_threads: std::os::raw::c_ulong) -> Result<(), Error> {
+    pub fn set_number_of_threads(
+        &self,
+        number_of_threads: std::os::raw::c_ulong,
+    ) -> Result<(), Error> {
         log::debug!("Setting the number of threads to {}", number_of_threads);
         CException::handle(|| unsafe {
             CServerConnection_setNumberOfThreads(self.inner, number_of_threads)
@@ -75,7 +75,7 @@ impl Connection {
     pub fn connect_to_data_store(&self, name: &str) -> Result<DataStoreConnection, Error> {
         log::debug!("Connecting to data store [{}]", name);
         let mut ds_connection = DataStoreConnection {
-            inner: ptr::null_mut()
+            inner: ptr::null_mut(),
         };
         let c_name = CString::new(name).unwrap();
         CException::handle(AssertUnwindSafe(|| unsafe {

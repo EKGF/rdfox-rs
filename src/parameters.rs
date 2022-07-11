@@ -3,26 +3,23 @@
 
 extern crate alloc;
 
+use crate::root::{
+    CException, CParameters, CParameters_destroy, CParameters_newEmptyParameters,
+    CParameters_setString,
+};
+use crate::Error;
 use alloc::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
-use crate::Error;
-use crate::root::{
-    CException,
-    CParameters,
-    CParameters_setString,
-    CParameters_newEmptyParameters,
-    CParameters_destroy
-};
 
 pub struct Parameters {
-    pub(crate) inner: *mut CParameters
+    pub(crate) inner: *mut CParameters,
 }
 
 impl Drop for Parameters {
     fn drop(&mut self) {
         unsafe {
-            if ! self.inner.is_null() {
+            if !self.inner.is_null() {
                 CParameters_destroy(self.inner);
                 self.inner = ptr::null_mut();
                 log::debug!("Destroyed params");
@@ -32,7 +29,6 @@ impl Drop for Parameters {
 }
 
 impl Parameters {
-
     pub fn empty() -> Result<Self, Error> {
         let mut parameters: *mut CParameters = ptr::null_mut();
         CException::handle(AssertUnwindSafe(|| unsafe {
@@ -45,11 +41,7 @@ impl Parameters {
         let c_key = CString::new(key).unwrap();
         let c_value = CString::new(value).unwrap();
         CException::handle(AssertUnwindSafe(|| unsafe {
-            CParameters_setString(
-                self.inner,
-                c_key.as_ptr(),
-                c_value.as_ptr()
-            )
+            CParameters_setString(self.inner, c_key.as_ptr(), c_value.as_ptr())
         }))?;
         log::debug!("param {key}={value}");
         Ok(())

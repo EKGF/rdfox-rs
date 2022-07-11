@@ -8,21 +8,11 @@ use std::path::Path;
 use std::ptr;
 
 use crate::{
-    Error,
-    Graph,
-    Parameters,
-    Prefixes,
     root::{
-        CDataStoreConnection,
-        CDataStoreConnection_getID,
-        CDataStoreConnection_getUniqueID,
-        CDataStoreConnection_importDataFromFile,
-        CException,
-        CUpdateType,
+        CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
+        CDataStoreConnection_importDataFromFile, CException, CUpdateType,
     },
-    Statement,
-    TEXT_TURTLE,
-    Transaction,
+    Error, Graph, Parameters, Prefixes, Statement, Transaction, TEXT_TURTLE,
 };
 
 pub struct DataStoreConnection {
@@ -34,11 +24,12 @@ impl Display for DataStoreConnection {
         f.write_str("data store connection").unwrap();
         match self.get_id() {
             Ok(id) => write!(f, " id={}", id),
-            Err(error) => write!(f, " id=({:?})", error)
-        }.unwrap();
+            Err(error) => write!(f, " id=({:?})", error),
+        }
+        .unwrap();
         match self.get_unique_id() {
             Ok(id) => write!(f, " unique-id={}", id),
-            Err(_error) => write!(f, " unique-id=(error could not get id)")
+            Err(_error) => write!(f, " unique-id=(error could not get id)"),
         }
     }
 }
@@ -61,8 +52,16 @@ impl DataStoreConnection {
         Ok(c_str.to_str().unwrap().into())
     }
 
-    pub fn import_data_from_file<P>(&mut self, file: P, graph: &Graph) -> Result<(), Error> where P: AsRef<Path> {
-        log::debug!("Importing file {} into graph {:} of {:}", file.as_ref().display(), graph, self);
+    pub fn import_data_from_file<P>(&mut self, file: P, graph: &Graph) -> Result<(), Error>
+    where
+        P: AsRef<Path>,
+    {
+        log::debug!(
+            "Importing file {} into graph {:} of {:}",
+            file.as_ref().display(),
+            graph,
+            self
+        );
 
         let c_graph_name = graph.as_c_string();
         let prefixes = Prefixes::default()?;
@@ -81,7 +80,11 @@ impl DataStoreConnection {
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
         })?;
-        log::info!("Imported file {} into graph {:}", file.as_ref().display(), graph);
+        log::info!(
+            "Imported file {} into graph {:}",
+            file.as_ref().display(),
+            graph
+        );
         Ok(())
     }
 
@@ -112,17 +115,17 @@ impl DataStoreConnection {
         let cursor = Statement::query(
             &prefixes,
             "SELECT ?G ?X ?Y ?Z WHERE { GRAPH ?G { ?X ?Y ?Z }}",
-        )?.cursor(&self, &parameters)?;
+        )?
+        .cursor(&self, &parameters)?;
 
-        Transaction::begin_read_only(self)?
-            .execute_and_rollback(|| {
-                let mut result = 0 as std::os::raw::c_ulong;
-                let mut multiplicity = cursor.open()?;
-                while multiplicity > 0 {
-                    multiplicity = cursor.advance()?;
-                    result += multiplicity;
-                };
-                Ok(result)
-            })
+        Transaction::begin_read_only(self)?.execute_and_rollback(|| {
+            let mut result = 0 as std::os::raw::c_ulong;
+            let mut multiplicity = cursor.open()?;
+            while multiplicity > 0 {
+                multiplicity = cursor.advance()?;
+                result += multiplicity;
+            }
+            Ok(result)
+        })
     }
 }

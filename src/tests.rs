@@ -22,7 +22,9 @@ mod tests {
 
         let mut ds_connection = connection.connect_to_data_store("example")?;
 
-        let test_graph = Graph { local_name: "test".to_string() };
+        let test_graph = Graph {
+            local_name: "test".to_string(),
+        };
         ds_connection.import_data_from_file("test.ttl", &test_graph)?;
 
         let count = ds_connection.get_triples_count();

@@ -7,15 +7,11 @@ use alloc::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
-use crate::{DataStoreConnection, Error, Parameters, Statement};
 use crate::root::{
-    CCursor,
-    CCursor_advance,
-    CCursor_destroy,
-    CCursor_open,
-    CDataStoreConnection_createCursor,
+    CCursor, CCursor_advance, CCursor_destroy, CCursor_open, CDataStoreConnection_createCursor,
     CException,
 };
+use crate::{DataStoreConnection, Error, Parameters, Statement};
 
 pub struct Cursor {
     #[allow(dead_code)]

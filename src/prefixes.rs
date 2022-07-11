@@ -4,12 +4,8 @@
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
+use crate::root::{CException, CPrefixes, CPrefixes_newDefaultPrefixes};
 use crate::Error;
-use crate::root::{
-    CException,
-    CPrefixes,
-    CPrefixes_newDefaultPrefixes,
-};
 
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
@@ -17,7 +13,9 @@ pub struct Prefixes {
 
 impl Prefixes {
     pub fn default() -> Result<Self, Error> {
-        let mut prefixes = Self { inner: ptr::null_mut() };
+        let mut prefixes = Self {
+            inner: ptr::null_mut(),
+        };
         CException::handle(AssertUnwindSafe(|| unsafe {
             CPrefixes_newDefaultPrefixes(&mut prefixes.inner)
         }))?;
