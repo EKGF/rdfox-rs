@@ -1,0 +1,43 @@
+@base <https://placeholder.kg/id/> .
+@prefix rdf:                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:                 <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix use-case:             <https://ekgf.org/ontology/use-case/> .
+@prefix concept:              <https://ekgf.org/ontology/concept/> .
+@prefix story:                <https://ekgf.org/ontology/user-story/> .
+@prefix persona:              <https://ekgf.org/ontology/persona/> .
+@prefix story-svc:            <https://ekgf.org/ontology/ekg-platform-story-service/> .
+@prefix prov:                 <http://www.w3.org/ns/prov#> .
+@prefix lem:                  <https://placeholder.kg/ontology/legal-entity-management/> .
+@prefix xsd:                  <http://www.w3.org/2001/XMLSchema#> .
+@prefix raw:                  <https://ekgf.org/ontology/raw/> .
+@prefix dct:                  <http://purl.org/dc/terms/> .
+@prefix gleif-base:           <https://www.gleif.org/ontology/Base/> .
+@prefix wfi:                  <https://ekgf.org/ontology/workflow-instance/> .
+@prefix auth:                 <https://ekgf.org/ontology/authorization/> .
+@prefix file:                 <https://ekgf.org/ontology/file/> .
+@prefix fibo-fnd-plc-loc:     <https://spec.edmcouncil.org/fibo/ontology/FND/Places/Locations/> .
+@prefix gleif-base:           <https://www.gleif.org/ontology/Base/> .
+@prefix temporality:          <https://ekgf.org/ontology/temporality/> .
+@prefix organization:         <https://ekgf.org/ontology/organization/> .
+@prefix legal-entity:         <https://ekgf.org/ontology/legal-entity/> .
+@prefix user-account:         <https://ekgf.org/ontology/user-account/> .
+@prefix event:                <https://ekgf.org/ontology/event/> .
+@prefix employment:           <https://ekgf.org/ontology/employment/> .
+@prefix document:             <https://ekgf.org/ontology/document/> .
+@prefix id:                   <https://ekgf.org/ontology/identifier/> .
+@prefix fin-reg:              <https://ekgf.org/ontology/financial-regulation/> .
+@prefix data-mig:             <https://ekgf.org/ontology/data-migration/> .
+@prefix vcard:                <http://www.w3.org/2006/vcard/ns#> .
+@prefix enum:                 <https://ekgf.org/ontology/enum/> .
+
+<concept-legacy-id>
+    a                        concept:PropertyConcept ;
+    rdfs:label               "Legacy ID" ;
+    rdfs:comment             "Represents the primary key that is being used in the original data source" ;
+    concept:key              "legacyId" ;
+    concept:type             xsd:string ;
+    concept:raw              raw:legacyId ;
+    concept:raw              raw:referenceId ;
+    prov:editorialNote       "TODO: Link to the appropriate property" ;
+    use-case:isUsedInUseCase <use-case-identity> ;
+.

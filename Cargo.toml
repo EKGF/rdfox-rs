@@ -1,0 +1,33 @@
+[package]
+name = "rdfox"
+description = "RDFox for Rust, a high-performance in-memory semantic graph database"
+version = "5.6.0"
+edition = "2021"
+links = "RDFox"
+authors = [
+    "Jacobus Geluk <jacobus.geluk@ekgf.org>",
+    "Marcelo Barbieri <marcelo.barbieri@agnos.ai"
+]
+publish = false
+repository = "https://github.com/EKGF/rdfox-rs"
+keywords = [ "rdf", "sparql", "database", "graph-database", "datalog"]
+categories = [ "database", "api-bindings"
+]
+license-file = "LICENSE"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.1"
+mime = "0.3.16"
+lazy_static = "1.4.0"
+
+[dev-dependencies]
+env_logger = "0.9.0"
+
+[build-dependencies]
+curl = "0.4.43"
+lazy_static = "1.4.0"
+zip = "0.6.2"
+bindgen = "0.60.1"
+
