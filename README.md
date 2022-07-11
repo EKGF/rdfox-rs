@@ -1,4 +1,4 @@
-# rustrdf-rs
+# rdfox-rs
 
 Embedded [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/product) database for Rust programs.
 

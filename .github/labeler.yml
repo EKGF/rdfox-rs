@@ -1,0 +1,9 @@
+documentation:
+  - '**/*.md'
+
+rdf:
+  - '**/*.ttl'
+  - '**/*.nt'
+
+sparql:
+  - '**/*.sparql'

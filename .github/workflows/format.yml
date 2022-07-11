@@ -1,0 +1,40 @@
+name: format
+on:
+  push:
+    branches:
+      - '**'
+
+env:
+  RUSTUP_TOOLCHAIN: nightly
+  RUSTUP_HOME: /home/runner/.cargo
+  CARGO_TERM_COLOR: always
+
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          all_but_latest: true
+          access_token: ${{ github.token }}
+
+      - name: Checkout nirvana repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          components: rustfmt
+          override: true
+          default: true
+
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
