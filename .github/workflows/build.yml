@@ -5,6 +5,7 @@ on:
       - '**'
     tags:
       - '*'
+  pull_request:
 
 env:
   RUSTUP_TOOLCHAIN: nightly

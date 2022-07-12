@@ -218,10 +218,7 @@ fn write_workaround_header<P: AsRef<Path>>(workaround_h: P) -> io::Result<()> {
         file,
         "namespace std {{ typedef decltype(nullptr) nullptr_t; }}"
     )?;
-    writeln!(
-        file,
-        "typedef decltype(nullptr) nullptr_t;"
-    )?;
+    writeln!(file, "typedef decltype(nullptr) nullptr_t;")?;
 
     Ok(())
 }
