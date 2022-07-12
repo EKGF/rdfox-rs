@@ -5,13 +5,13 @@
 
 extern crate core;
 
-use std::env;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::{BufReader, Write};
 use std::option_env;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
+use std::{env, io};
 
 use lazy_static::lazy_static;
 
@@ -104,13 +104,13 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
         transfer.perform().unwrap();
     }
     {
-        let mut file = File::create(file_name.to_str().unwrap()).unwrap_or_else(|| {
+        let mut file = File::create(file_name.to_str().unwrap()).unwrap_or_else(|_err| {
             panic!(
                 "cargo:warning=\"Could not create {}\"",
                 file_name.to_str().unwrap()
             )
         });
-        file.write_all(buffer.as_slice()).unwrap_or_else(|| {
+        file.write_all(buffer.as_slice()).unwrap_or_else(|_err| {
             panic!(
                 "cargo:warning=\"Could not write to {}\"",
                 file_name.to_str().unwrap()
@@ -129,14 +129,14 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     let file = File::open(zip_file.clone()).unwrap();
     let reader = BufReader::new(file);
 
-    let mut zip = zip::ZipArchive::new(reader).unwrap_or_else(|| {
+    let mut zip = zip::ZipArchive::new(reader).unwrap_or_else(|_err| {
         panic!(
             "cargo:warning=\"Could not open zip archive: {}\"",
             zip_file.to_str().unwrap()
         )
     });
 
-    zip.extract(dir.clone()).unwrap_or_else(|| {
+    zip.extract(dir.clone()).unwrap_or_else(|_err| {
         panic!(
             "cargo:warning=\"Could not unzip {}\"",
             zip_file.to_str().unwrap()
@@ -197,8 +197,37 @@ fn add_llvm_path() {
     println!("cargo:rustc-env=LLVM_CONFIG_PATH={}", llvm_config_path);
 }
 
+//
+// The CRDFox.h file misses the `#include <cstddef>` statement which is
+// needed to define the symbol `nullptr_t`. This is only an issue on Linux,
+// things compile fine on Darwin.
+//
+fn write_workaround_header<P: AsRef<Path>>(workaround_h: P) -> io::Result<()> {
+    fn create_file<P: AsRef<Path>>(path: P) -> io::Result<File> {
+        let file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(path.as_ref())?;
+        Ok(file)
+    }
+
+    let mut file = create_file(workaround_h)?;
+
+    write!(
+        file,
+        "namespace std {{ typedef decltype(nullptr) nullptr_t; }}"
+    )?;
+
+    Ok(())
+}
+
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+
+    let workaround_h = PathBuf::from(format!("{}/workaround.h", out_path.display()));
+
+    write_workaround_header(&workaround_h).expect("cargo:warning=Could not generate workaround.h");
 
     println!("cargo:rerun-if-changed=build.rs");
 
@@ -225,6 +254,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
+        .header(workaround_h.to_str().unwrap())
         .header(format!(
             "{}/{}/include/CRDFox.h",
             out_path.display(),
@@ -236,7 +266,7 @@ fn main() {
         .clang_arg("-v")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        // .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .rustfmt_bindings(true)
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: true,

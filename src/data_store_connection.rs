@@ -116,7 +116,7 @@ impl DataStoreConnection {
             &prefixes,
             "SELECT ?G ?X ?Y ?Z WHERE { GRAPH ?G { ?X ?Y ?Z }}",
         )?
-        .cursor(&self, &parameters)?;
+        .cursor(self, &parameters)?;
 
         Transaction::begin_read_only(self)?.execute_and_rollback(|| {
             let mut result = 0 as std::os::raw::c_ulong;

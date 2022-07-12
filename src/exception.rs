@@ -6,7 +6,6 @@
 use std::ffi::CStr;
 use std::fmt::{Display, Formatter};
 use std::panic::catch_unwind;
-use std::ptr;
 use std::str::Utf8Error;
 
 use crate::root::{CException, CException_getExceptionName, CException_what};
@@ -28,11 +27,11 @@ impl CException {
         unsafe {
             let did_panic = catch_unwind(|| {
                 let exception = f();
-                if exception == ptr::null() {
+                if exception.is_null() {
                     return Ok(());
                 }
                 log::error!("{:}", *exception);
-                return Err(UNKNOWN);
+                Err(UNKNOWN)
             });
             if did_panic.is_err() {
                 log::error!("RDFox panicked");
@@ -57,7 +56,7 @@ impl Display for CException {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if let Ok(name) = self.name() {
             if let Ok(what) = self.what() {
-                return write!(f, "{:}: {:}\n", name, what);
+                return writeln!(f, "{:}: {:}", name, what);
             };
         };
         f.write_str("Could not show exception, unicode error")

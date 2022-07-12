@@ -18,7 +18,7 @@ license-file = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4.1"
+log = "0.4.17"
 mime = "0.3.16"
 lazy_static = "1.4.0"
 

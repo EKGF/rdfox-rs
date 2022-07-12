@@ -31,6 +31,6 @@ impl<'a> Statement<'a> {
         connection: &DataStoreConnection,
         parameters: &Parameters,
     ) -> Result<Cursor, Error> {
-        Cursor::create(connection, &parameters, &self)
+        Cursor::create(connection, parameters, self)
     }
 }
