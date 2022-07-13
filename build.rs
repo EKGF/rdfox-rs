@@ -5,13 +5,13 @@
 
 extern crate core;
 
-use std::{env, io};
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, Write};
 use std::option_env;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
+use std::{env, io};
 
 use lazy_static::lazy_static;
 
@@ -50,7 +50,7 @@ fn rdfox_download_file() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-        .into()
+    .into()
 }
 
 fn rdfox_dylib_dir() -> PathBuf {
@@ -59,7 +59,7 @@ fn rdfox_dylib_dir() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-        .into()
+    .into()
 }
 
 fn rdfox_header_dir() -> PathBuf {
@@ -68,7 +68,7 @@ fn rdfox_header_dir() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-        .into()
+    .into()
 }
 
 fn download_rdfox() -> Result<PathBuf, curl::Error> {
@@ -175,7 +175,6 @@ fn set_llvm_path(llvm_config_path: &Path) -> PathBuf {
 }
 
 fn add_llvm_path() {
-
     let path = env!("PATH");
     let brew_llvm_dir = PathBuf::from("/usr/local/opt/llvm");
 
