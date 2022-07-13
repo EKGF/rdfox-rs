@@ -5,13 +5,13 @@
 
 extern crate core;
 
+use std::{env, io};
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, Write};
 use std::option_env;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
-use std::{env, io};
 
 use lazy_static::lazy_static;
 
@@ -50,7 +50,7 @@ fn rdfox_download_file() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-    .into()
+        .into()
 }
 
 fn rdfox_dylib_dir() -> PathBuf {
@@ -59,7 +59,7 @@ fn rdfox_dylib_dir() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-    .into()
+        .into()
 }
 
 fn rdfox_header_dir() -> PathBuf {
@@ -68,7 +68,7 @@ fn rdfox_header_dir() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-    .into()
+        .into()
 }
 
 fn download_rdfox() -> Result<PathBuf, curl::Error> {
@@ -155,7 +155,8 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     unpacked_dir
 }
 
-fn set_llvm_path(llvm_config_path: &Path) {
+fn set_llvm_path(llvm_config_path: &Path) -> PathBuf {
+    assert!(llvm_config_path.exists());
     env::set_var(
         "LLVM_CONFIG_PATH",
         format!("{:}", llvm_config_path.display()),
@@ -164,26 +165,32 @@ fn set_llvm_path(llvm_config_path: &Path) {
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
         llvm_config_path.display()
     );
-    if let Some(path) = option_env!("PATH") {
-        env::set_var(
-            "PATH",
-            format!("{}:{}/bin", path, llvm_config_path.display()),
-        );
-    }
+    // if let Some(path) = option_env!("PATH") {
+    //     env::set_var(
+    //         "PATH",
+    //         format!("{}:{}/bin", path, llvm_config_path.display()),
+    //     );
+    // }
+    llvm_config_path.into()
 }
 
 fn add_llvm_path() {
-    if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
-        set_llvm_path(PathBuf::from(llvm_config_path.trim()).as_path());
-        return;
-    }
 
+    let path = env!("PATH");
     let brew_llvm_dir = PathBuf::from("/usr/local/opt/llvm");
-    if brew_llvm_dir.exists() {
-        set_llvm_path(brew_llvm_dir.as_path());
-    }
+
+    let llvm_path = if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
+        set_llvm_path(PathBuf::from(llvm_config_path.trim()).as_path())
+    } else if let Some(llvm_path) = option_env!("LLVM_PATH") {
+        set_llvm_path(PathBuf::from(llvm_path).as_path())
+    } else if brew_llvm_dir.exists() {
+        set_llvm_path(brew_llvm_dir.as_path())
+    } else {
+        panic!("Could not find the LLVM path")
+    };
 
     let llvm_config_path = Command::new("llvm-config")
+        .env("PATH", format!("{}:{}/bin", path, llvm_path.display()))
         .args(["--prefix"])
         .output()
         .expect("`llvm-config` must be in PATH")
@@ -231,6 +238,7 @@ fn main() {
     write_workaround_header(&workaround_h).expect("cargo:warning=Could not generate workaround.h");
 
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=src/lib.rs");
 
     let file_name = download_rdfox().expect("cargo:warning=Could not download RDFox");
     unzip_rdfox(file_name, rdfox_archive_name());

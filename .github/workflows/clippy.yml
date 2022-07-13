@@ -5,6 +5,7 @@ env:
   RUSTUP_TOOLCHAIN: nightly
   RUSTUP_HOME: /home/runner/.cargo
   CARGO_TERM_COLOR: always
+  LLVM_VERSION: 14.0.0
 
 jobs:
   clippy_check:
@@ -28,6 +29,20 @@ jobs:
           components: clippy
           override: true
           default: true
+
+      - name: Cache LLVM and Clang
+        id: cache-llvm
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:/Program Files/LLVM
+            ./llvm
+          key: llvm-14
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "14"
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Check formatting
         uses: actions-rs/cargo@v1

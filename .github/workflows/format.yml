@@ -5,6 +5,7 @@ env:
   RUSTUP_TOOLCHAIN: nightly
   RUSTUP_HOME: /home/runner/.cargo
   CARGO_TERM_COLOR: always
+  LLVM_VERSION: 14.0.0
 
 jobs:
   format:

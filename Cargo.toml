@@ -31,3 +31,5 @@ lazy_static = "1.4.0"
 zip = "0.6.2"
 bindgen = "0.60.1"
 
+[package.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs"]
