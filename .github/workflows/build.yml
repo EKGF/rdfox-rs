@@ -74,7 +74,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          LLVM_PATH=C:\Program Files\LLVM
+          export LLVM_PATH="C:\Program Files\LLVM"
           ${LLVM_PATH}\bin\clang -v
           ## already done inside install-llvm-action
           # echo "PATH="$LLVM_PATH:$PATH"
@@ -91,7 +91,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          LLVM_PATH=$(brew --prefix llvm)
+          export LLVM_PATH="$(brew --prefix llvm)"
           $(brew --prefix llvm)/bin/clang -v
           ## already done inside install-llvm-action
           # echo "PATH="$LLVM_PATH:$PATH"

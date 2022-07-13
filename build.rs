@@ -155,35 +155,42 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     unpacked_dir
 }
 
-fn set_llvm_path(llvm_config_path: &Path) -> PathBuf {
-    assert!(llvm_config_path.exists());
+fn set_llvm_path<P>(llvm_config_path: P) -> PathBuf
+where
+    P: AsRef<Path>,
+{
+    let path = llvm_config_path.as_ref();
+    println!("cargo:warning={}", path.display());
+    assert!(llvm_config_path.as_ref().exists());
     env::set_var(
         "LLVM_CONFIG_PATH",
-        format!("{:}", llvm_config_path.display()),
+        format!("{:}", llvm_config_path.as_ref().display()),
     );
     println!(
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
-        llvm_config_path.display()
+        llvm_config_path.as_ref().display()
     );
     // if let Some(path) = option_env!("PATH") {
     //     env::set_var(
     //         "PATH",
-    //         format!("{}:{}/bin", path, llvm_config_path.display()),
+    //         format!("{}a:{}/bin", path, llvm_config_path.display()),
     //     );
     // }
-    llvm_config_path.into()
+    llvm_config_path.as_ref().into()
 }
 
 fn add_llvm_path() {
     let path = env!("PATH");
-    let brew_llvm_dir = PathBuf::from("/usr/local/opt/llvm");
+    let opt_llvm_dir = PathBuf::from("/usr/local/opt/llvm");
 
     let llvm_path = if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
         set_llvm_path(PathBuf::from(llvm_config_path.trim()).as_path())
     } else if let Some(llvm_path) = option_env!("LLVM_PATH") {
         set_llvm_path(PathBuf::from(llvm_path).as_path())
-    } else if brew_llvm_dir.exists() {
-        set_llvm_path(brew_llvm_dir.as_path())
+    } else if opt_llvm_dir.exists() {
+        set_llvm_path(opt_llvm_dir.as_path())
+    } else if let Some(brew_llvm_dir) = check_llvm_via_brew() {
+        set_llvm_path(brew_llvm_dir)
     } else {
         panic!("Could not find the LLVM path")
     };
@@ -201,6 +208,22 @@ fn add_llvm_path() {
         format!("{}/bin/llvm-config", llvm_config_path.trim()),
     );
     println!("cargo:rustc-env=LLVM_CONFIG_PATH={}", llvm_config_path);
+}
+
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+fn check_llvm_via_brew() -> Option<PathBuf> {
+    if let Ok(output) = Command::new("brew").args(["--prefix", "llvm"]).output() {
+        let llvm_path =
+            String::from_utf8(output.stdout).expect("`brew --prefix llvm` output must be UTF-8");
+        Some(PathBuf::from(llvm_path))
+    } else {
+        None
+    }
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+fn check_llvm_via_brew() -> Option<PathBuf> {
+    None
 }
 
 //
