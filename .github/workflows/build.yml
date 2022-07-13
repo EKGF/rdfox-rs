@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           export LLVM_PATH="C:\Program Files\LLVM"
-          ${LLVM_PATH}\bin\clang -v
+          "${LLVM_PATH}\bin\clang" -v
           ## already done inside install-llvm-action
           # echo "PATH="$LLVM_PATH:$PATH"
           # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib/:$LD_LIBRARY_PATH" >> $GITHUB_ENV
@@ -92,7 +92,7 @@ jobs:
         run: |
           set -x
           export LLVM_PATH="$(brew --prefix llvm)"
-          $(brew --prefix llvm)/bin/clang -v
+          "$(brew --prefix llvm)/bin/clang" -v
           ## already done inside install-llvm-action
           # echo "PATH="$LLVM_PATH:$PATH"
           # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib/:$LD_LIBRARY_PATH" >> $GITHUB_ENV
