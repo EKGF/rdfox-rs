@@ -76,10 +76,6 @@ jobs:
         run: |
           export LLVM_PATH="C:\Program Files\LLVM"
           "${LLVM_PATH}\bin\clang" -v
-          ## already done inside install-llvm-action
-          # echo "PATH="$LLVM_PATH:$PATH"
-          # echo "LD_LIBRARY_PATH=$LLVM_PATH/lib/:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-          # echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib/:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "CPATH=$LLVM_PATH\lib\clang\$LLVM_VERSION\include\" >> $GITHUB_ENV
           echo "LDFLAGS=-L$LLVM_PATH\lib" >> $GITHUB_ENV
           echo "CPPFLAGS=-I$LLVM_PATH\include" >> $GITHUB_ENV
