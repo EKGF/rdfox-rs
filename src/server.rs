@@ -6,27 +6,36 @@ use std::panic::AssertUnwindSafe;
 use std::ptr;
 
 use crate::exception::Error;
+use crate::Error::CouldNotConnectToServer;
 use crate::{
     root::{
-        CException, CParameters_getEmptyParameters, CServerConnection,
-        CServerConnection_newServerConnection, CServer_createFirstLocalServerRole,
-        CServer_startLocalServer,
+        CException, CServerConnection, CServerConnection_newServerConnection,
+        CServer_createFirstLocalServerRole, CServer_startLocalServer,
     },
-    Connection, RoleCreds,
+    Parameters, RoleCreds, ServerConnection,
 };
 
-pub struct Server {}
+pub struct Server {
+    default_role_creds: RoleCreds,
+}
 
 impl Server {
-    pub fn start(role_creds: &RoleCreds) -> Result<Self, Error> {
-        log::debug!("Starting local RDFox server");
-        CException::handle(|| unsafe {
-            CServer_startLocalServer(CParameters_getEmptyParameters())
-        })?;
+    pub fn start(role_creds: RoleCreds) -> Result<Self, Error> {
+        Self::start_with_parameters(role_creds, &Parameters::empty()?)
+    }
 
-        let server = Server {};
+    pub fn start_with_parameters(
+        role_creds: RoleCreds,
+        params: &Parameters,
+    ) -> Result<Self, Error> {
+        log::debug!("Starting local RDFox server with {params}");
+        CException::handle(|| unsafe { CServer_startLocalServer(params.inner) })?;
 
-        server.create_role(role_creds)?;
+        let server = Server {
+            default_role_creds: role_creds,
+        };
+
+        server.create_role(&server.default_role_creds)?;
 
         log::debug!("Local RDFox server has been started");
         Ok(server)
@@ -43,7 +52,11 @@ impl Server {
         Ok(())
     }
 
-    pub fn connection(&self, role_creds: &RoleCreds) -> Result<Connection, Error> {
+    pub fn connection_with_default_role(&self) -> Result<ServerConnection, Error> {
+        self.connection(&self.default_role_creds)
+    }
+
+    pub fn connection(&self, role_creds: &RoleCreds) -> Result<ServerConnection, Error> {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         let mut server_connection_ptr: *mut CServerConnection = ptr::null_mut();
@@ -54,7 +67,12 @@ impl Server {
                 &mut server_connection_ptr,
             )
         }))?;
-        log::debug!("Established connection");
-        Ok(Connection::new(role_creds, server_connection_ptr))
+        if server_connection_ptr.is_null() {
+            log::error!("Could not establish connection to server");
+            Err(CouldNotConnectToServer)
+        } else {
+            log::debug!("Established connection to server");
+            Ok(ServerConnection::new(role_creds, server_connection_ptr))
+        }
     }
 }

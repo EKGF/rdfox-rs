@@ -12,22 +12,22 @@ use crate::{
         CServerConnection_getNumberOfThreads, CServerConnection_newDataStoreConnection,
         CServerConnection_setNumberOfThreads,
     },
-    DataStoreConnection, Error, RoleCreds,
+    DataStore, DataStoreConnection, Error, RoleCreds,
 };
 
-pub struct Connection {
+pub struct ServerConnection {
     #[allow(dead_code)]
     role_creds: RoleCreds,
     inner: *mut CServerConnection,
 }
 
-impl Drop for Connection {
+impl Drop for ServerConnection {
     fn drop(&mut self) {
         self.destroy()
     }
 }
 
-impl Connection {
+impl ServerConnection {
     pub(crate) fn new(
         role_creds: &RoleCreds,
         server_connection_ptr: *mut CServerConnection,
@@ -58,9 +58,9 @@ impl Connection {
         })
     }
 
-    pub fn create_data_store(&self, name: &str) -> Result<(), Error> {
-        log::debug!("Creating data store [{}]", name);
-        let c_name = CString::new(name).unwrap();
+    pub fn create_data_store(&self, data_store: DataStore) -> Result<DataStore, Error> {
+        log::debug!("Creating {data_store}");
+        let c_name = CString::new(data_store.name.as_str()).unwrap();
         CException::handle(|| unsafe {
             CServerConnection_createDataStore(
                 self.inner,
@@ -68,16 +68,17 @@ impl Connection {
                 CParameters_getEmptyParameters(),
             )
         })?;
-        log::info!("Created data store [{}]", name);
-        Ok(())
+        log::info!("Created {data_store}");
+        Ok(data_store)
     }
 
-    pub fn connect_to_data_store(&self, name: &str) -> Result<DataStoreConnection, Error> {
-        log::debug!("Connecting to data store [{}]", name);
-        let mut ds_connection = DataStoreConnection {
-            inner: ptr::null_mut(),
-        };
-        let c_name = CString::new(name).unwrap();
+    pub fn connect_to_data_store(
+        &self,
+        data_store: DataStore,
+    ) -> Result<DataStoreConnection, Error> {
+        log::debug!("Connecting to {}", data_store);
+        let mut ds_connection = DataStoreConnection::new(data_store.clone(), ptr::null_mut());
+        let c_name = CString::new(data_store.name.as_str()).unwrap();
         CException::handle(AssertUnwindSafe(|| unsafe {
             CServerConnection_newDataStoreConnection(
                 self.inner,
@@ -85,7 +86,7 @@ impl Connection {
                 &mut ds_connection.inner,
             )
         }))?;
-        log::debug!("Connected to data store [{}]", name);
+        log::debug!("Connected to {}", data_store);
         Ok(ds_connection)
     }
 

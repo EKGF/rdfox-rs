@@ -3,38 +3,58 @@
 
 use std::ffi::{CStr, CString};
 use std::fmt::{Display, Formatter};
+use std::os::unix::ffi::OsStrExt;
 use std::panic::AssertUnwindSafe;
 use std::path::Path;
 use std::ptr;
+use std::time::Instant;
 
 use crate::{
     root::{
         CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
         CDataStoreConnection_importDataFromFile, CException, CUpdateType,
     },
-    Error, Graph, Parameters, Prefixes, Statement, Transaction, TEXT_TURTLE,
+    DataStore, Error, Graph, Parameters, Prefixes, Statement, Transaction, TEXT_TURTLE,
 };
 
 pub struct DataStoreConnection {
+    pub data_store: DataStore,
     pub(crate) inner: *mut CDataStoreConnection,
+    started_at: Instant,
 }
 
 impl Display for DataStoreConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str("data store connection").unwrap();
-        match self.get_id() {
-            Ok(id) => write!(f, " id={}", id),
-            Err(error) => write!(f, " id=({:?})", error),
+        f.write_str("connection").unwrap();
+        // match self.get_id() {
+        //     Ok(id) => write!(f, " id={}", id),
+        //     Err(error) => write!(f, " id=({:?})", error)
+        // }.unwrap();
+        match self.get_unique_id() {
+            Ok(id) => write!(f, " {}", id),
+            Err(_error) => write!(f, " (error could not get unique-id)"),
         }
         .unwrap();
-        match self.get_unique_id() {
-            Ok(id) => write!(f, " unique-id={}", id),
-            Err(_error) => write!(f, " unique-id=(error could not get id)"),
-        }
+        write!(f, " to {}", self.data_store)
+    }
+}
+
+impl Drop for DataStoreConnection {
+    fn drop(&mut self) {
+        let duration = self.started_at.elapsed();
+        log::info!("dropped {self} after {:?}", duration)
     }
 }
 
 impl DataStoreConnection {
+    pub(crate) fn new(data_store: DataStore, inner: *mut CDataStoreConnection) -> Self {
+        Self {
+            data_store,
+            inner,
+            started_at: Instant::now(),
+        }
+    }
+
     pub fn get_id(&self) -> Result<u32, Error> {
         let mut id: u32 = 0;
         CException::handle(AssertUnwindSafe(|| unsafe {
@@ -56,7 +76,10 @@ impl DataStoreConnection {
     where
         P: AsRef<Path>,
     {
-        log::debug!(
+        assert!(!self.inner.is_null(), "invalid datastore connection");
+
+        let rdf_file = file.as_ref().as_os_str().as_bytes();
+        log::trace!(
             "Importing file {} into graph {:} of {:}",
             file.as_ref().display(),
             graph,
@@ -65,10 +88,8 @@ impl DataStoreConnection {
 
         let c_graph_name = graph.as_c_string();
         let prefixes = Prefixes::default()?;
-        let file_name = CString::new(file.as_ref().file_name().unwrap().to_str().unwrap()).unwrap();
+        let file_name = CString::new(rdf_file).unwrap();
         let format_name = CString::new(TEXT_TURTLE.as_ref()).unwrap();
-
-        assert!(!self.inner.is_null());
 
         CException::handle(|| unsafe {
             CDataStoreConnection_importDataFromFile(
@@ -107,8 +128,7 @@ impl DataStoreConnection {
         //     CDataStoreConnection_rollbackTransaction(dataStoreConnection);
         //     return result;
         // }
-        let parameters = Parameters::empty()?;
-        parameters.fact_domain_all()?;
+        let parameters = Parameters::empty()?.fact_domain_all()?;
 
         let prefixes = Prefixes::default()?;
 

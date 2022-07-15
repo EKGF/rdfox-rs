@@ -9,6 +9,7 @@ use crate::root::{
 };
 use crate::Error;
 use alloc::ffi::CString;
+use std::fmt::{Display, Formatter};
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
@@ -16,14 +17,17 @@ pub struct Parameters {
     pub(crate) inner: *mut CParameters,
 }
 
+impl Display for Parameters {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Parameters[]") // TODO: show keys and values (currently not possible)
+    }
+}
+
 impl Drop for Parameters {
     fn drop(&mut self) {
         unsafe {
-            if !self.inner.is_null() {
-                CParameters_destroy(self.inner);
-                self.inner = ptr::null_mut();
-                log::debug!("Destroyed params");
-            }
+            CParameters_destroy(self.inner);
+            log::debug!("Destroyed params");
         }
     }
 }
@@ -47,7 +51,13 @@ impl Parameters {
         Ok(())
     }
 
-    pub fn fact_domain_all(&self) -> Result<(), Error> {
-        self.set_string("fact-domain", "all")
+    pub fn fact_domain_all(self) -> Result<Self, Error> {
+        self.set_string("fact-domain", "all")?;
+        Ok(self)
+    }
+
+    pub fn switch_off_file_access_sandboxing(self) -> Result<Self, Error> {
+        self.set_string("sandbox-directory", "")?;
+        Ok(self)
     }
 }

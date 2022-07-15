@@ -11,6 +11,7 @@ use lazy_static::lazy_static;
 pub use mime::Mime;
 
 pub use cursor::Cursor;
+pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
 pub use exception::Error;
 pub use graph::Graph;
@@ -18,7 +19,7 @@ pub use parameters::Parameters;
 pub use prefixes::Prefixes;
 pub use role_creds::RoleCreds;
 pub use server::Server;
-pub use server_connection::Connection;
+pub use server_connection::ServerConnection;
 pub use statement::Statement;
 pub use transaction::Transaction;
 
@@ -27,6 +28,7 @@ lazy_static! {
 }
 
 mod cursor;
+mod data_store;
 mod data_store_connection;
 mod exception;
 mod graph;
@@ -36,7 +38,6 @@ mod role_creds;
 mod server;
 mod server_connection;
 mod statement;
-mod tests;
 mod transaction;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

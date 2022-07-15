@@ -17,6 +17,7 @@ pub enum Error {
     UNKNOWN,
     #[allow(dead_code)]
     UnknownResourceException,
+    CouldNotConnectToServer,
 }
 
 impl CException {
