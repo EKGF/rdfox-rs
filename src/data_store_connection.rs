@@ -14,7 +14,7 @@ use crate::{
     Error, Graph, Parameters, Prefixes, root::{
         CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
         CDataStoreConnection_importDataFromFile, CException, CUpdateType,
-    }, Statement, TEXT_TURTLE, Transaction,
+    }, Statement, TEXT_TURTLE,
 };
 
 pub struct DataStoreConnection {
@@ -110,7 +110,7 @@ impl DataStoreConnection {
     }
 
     pub fn get_triples_count(&self) -> Result<std::os::raw::c_ulong, Error> {
-        let cursor = Statement::query(
+        Statement::query(
             &Prefixes::default()?,
             "SELECT ?G ?X ?Y ?Z WHERE { GRAPH ?G { ?X ?Y ?Z }}",
         )?
@@ -119,7 +119,7 @@ impl DataStoreConnection {
     }
 
     pub fn get_subjects_count(&self) -> Result<std::os::raw::c_ulong, Error> {
-        let cursor = Statement::query(
+        Statement::query(
             &Prefixes::default()?,
             "SELECT DISTINCT ?subject WHERE { GRAPH ?G { ?subject ?Y ?Z }}",
         )?
