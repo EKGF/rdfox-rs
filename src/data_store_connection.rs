@@ -10,11 +10,11 @@ use std::ptr;
 use std::time::Instant;
 
 use crate::{
-    root::{
+    DataStore,
+    Error, Graph, Parameters, Prefixes, root::{
         CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
         CDataStoreConnection_importDataFromFile, CException, CUpdateType,
-    },
-    DataStore, Error, Graph, Parameters, Prefixes, Statement, Transaction, TEXT_TURTLE,
+    }, Statement, TEXT_TURTLE, Transaction,
 };
 
 pub struct DataStoreConnection {
@@ -34,7 +34,7 @@ impl Display for DataStoreConnection {
             Ok(id) => write!(f, " {}", id),
             Err(_error) => write!(f, " (error could not get unique-id)"),
         }
-        .unwrap();
+            .unwrap();
         write!(f, " to {}", self.data_store)
     }
 }
@@ -72,9 +72,9 @@ impl DataStoreConnection {
         Ok(c_str.to_str().unwrap().into())
     }
 
-    pub fn import_data_from_file<P>(&mut self, file: P, graph: &Graph) -> Result<(), Error>
-    where
-        P: AsRef<Path>,
+    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
+        where
+            P: AsRef<Path>,
     {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
@@ -110,42 +110,29 @@ impl DataStoreConnection {
     }
 
     pub fn get_triples_count(&self) -> Result<std::os::raw::c_ulong, Error> {
-        // getTriplesCount(dataStoreConnection, "all", emptyPrefixes)
-        // static size_t getTriplesCount(CDataStoreConnection* dataStoreConnection, const char* queryDomain, CPrefixes* prefixes) {
-        //     CParameters* parameters = NULL;
-        //     CParameters_newEmptyParameters(&parameters);
-        //     CParameters_setString(parameters, "fact-domain", queryDomain);
-        //
-        //     CCursor* cursor = NULL;
-        //     CDataStoreConnection_createCursor(dataStoreConnection, NULL, prefixes, "SELECT ?X ?Y ?Z WHERE { ?X ?Y ?Z }", 34, parameters, &cursor);
-        //     CParameters_destroy(parameters);
-        //     CDataStoreConnection_beginTransaction(dataStoreConnection, TRANSACTION_TYPE_READ_ONLY);
-        //     size_t result = 0;
-        //     size_t multiplicity;
-        //     for (CCursor_open(cursor, &multiplicity); multiplicity != 0; CCursor_advance(cursor, &multiplicity))
-        //     result += multiplicity;
-        //     CCursor_destroy(cursor);
-        //     CDataStoreConnection_rollbackTransaction(dataStoreConnection);
-        //     return result;
-        // }
-        let parameters = Parameters::empty()?.fact_domain_all()?;
-
-        let prefixes = Prefixes::default()?;
-
         let cursor = Statement::query(
-            &prefixes,
+            &Prefixes::default()?,
             "SELECT ?G ?X ?Y ?Z WHERE { GRAPH ?G { ?X ?Y ?Z }}",
         )?
-        .cursor(self, &parameters)?;
+            .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+            .count()
+    }
 
-        Transaction::begin_read_only(self)?.execute_and_rollback(|| {
-            let mut result = 0 as std::os::raw::c_ulong;
-            let mut multiplicity = cursor.open()?;
-            while multiplicity > 0 {
-                multiplicity = cursor.advance()?;
-                result += multiplicity;
-            }
-            Ok(result)
-        })
+    pub fn get_subjects_count(&self) -> Result<std::os::raw::c_ulong, Error> {
+        let cursor = Statement::query(
+            &Prefixes::default()?,
+            "SELECT DISTINCT ?subject WHERE { GRAPH ?G { ?subject ?Y ?Z }}",
+        )?
+            .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+            .count()
+    }
+
+    pub fn get_predicates_count(&self) -> Result<std::os::raw::c_ulong, Error> {
+        Statement::query(
+            &Prefixes::default()?,
+            "SELECT DISTINCT ?predicate WHERE { GRAPH ?G { ?X ?predicate ?Z }}",
+        )?
+            .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+            .count()
     }
 }

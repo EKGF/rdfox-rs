@@ -27,10 +27,10 @@ impl<'a> Statement<'a> {
     }
 
     pub fn cursor(
-        &self,
-        connection: &DataStoreConnection,
+        self,
+        connection: &'a DataStoreConnection,
         parameters: &Parameters,
-    ) -> Result<Cursor, Error> {
-        Cursor::create(connection, &parameters, &self)
+    ) -> Result<Cursor<'a>, Error> {
+        Cursor::create(connection, &parameters, self)
     }
 }

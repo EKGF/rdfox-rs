@@ -7,18 +7,19 @@ use alloc::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
+use crate::{DataStoreConnection, Error, Parameters, Statement, Transaction};
 use crate::root::{
     CCursor, CCursor_advance, CCursor_destroy, CCursor_open, CDataStoreConnection_createCursor,
     CException,
 };
-use crate::{DataStoreConnection, Error, Parameters, Statement};
 
-pub struct Cursor {
+pub struct Cursor<'a> {
+    connection: &'a DataStoreConnection,
     #[allow(dead_code)]
     pub(crate) inner: *mut CCursor,
 }
 
-impl Drop for Cursor {
+impl<'a> Drop for Cursor<'a> {
     fn drop(&mut self) {
         unsafe {
             if !self.inner.is_null() {
@@ -30,11 +31,11 @@ impl Drop for Cursor {
     }
 }
 
-impl Cursor {
+impl<'a> Cursor<'a> {
     pub fn create(
-        connection: &DataStoreConnection,
+        connection: &'a DataStoreConnection,
         parameters: &Parameters,
-        statement: &Statement,
+        statement: Statement,
     ) -> Result<Self, Error> {
         assert!(!connection.inner.is_null());
         assert!(!statement.prefixes.inner.is_null());
@@ -56,7 +57,7 @@ impl Cursor {
             )
         }))?;
         log::debug!("Created cursor for {:}", statement);
-        Ok(Cursor { inner: cursor })
+        Ok(Cursor { connection, inner: cursor })
     }
 
     pub fn open(&self) -> Result<std::os::raw::c_ulong, Error> {
@@ -74,5 +75,21 @@ impl Cursor {
             CCursor_advance(self.inner, &mut multiplicity)
         }))?;
         Ok(multiplicity)
+    }
+
+    pub fn count(&self) -> Result<u64, Error> {
+        self.execute_and_rollback(|| {
+            let mut result = 0 as std::os::raw::c_ulong;
+            let mut multiplicity = self.open()?;
+            while multiplicity > 0 {
+                multiplicity = self.advance()?;
+                result += multiplicity;
+            }
+            Ok(result)
+        })
+    }
+
+    pub fn execute_and_rollback<T, U>(&self, f: T) -> Result<U, Error> where T: FnOnce() -> Result<U, Error> {
+        Transaction::begin_read_only(self.connection)?.execute_and_rollback(f)
     }
 }
