@@ -17,7 +17,7 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
 
     let data_store = connection.create_data_store(rdfox::DataStore::define("example"))?;
 
-    let mut ds_connection = connection.connect_to_data_store(data_store)?;
+    let ds_connection = connection.connect_to_data_store(data_store)?;
 
     let test_graph = rdfox::Graph::define("test");
     ds_connection.import_data_from_file("test.ttl", &test_graph)?;

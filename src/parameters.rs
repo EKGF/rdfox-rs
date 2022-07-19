@@ -3,11 +3,11 @@
 
 extern crate alloc;
 
+use crate::error::Error;
 use crate::root::{
     CException, CParameters, CParameters_destroy, CParameters_newEmptyParameters,
     CParameters_setString,
 };
-use crate::Error;
 use alloc::ffi::CString;
 use std::fmt::{Display, Formatter};
 use std::panic::AssertUnwindSafe;

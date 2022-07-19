@@ -1,12 +1,13 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
+use crate::error::Error;
 use crate::{
     root::{
         CDataStoreConnection_beginTransaction, CDataStoreConnection_rollbackTransaction,
         CException, CTransactionType,
     },
-    DataStoreConnection, Error,
+    DataStoreConnection,
 };
 
 pub struct Transaction<'a> {

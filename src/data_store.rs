@@ -1,4 +1,5 @@
-use crate::{Error, ServerConnection};
+use crate::error::Error;
+use crate::ServerConnection;
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone)]

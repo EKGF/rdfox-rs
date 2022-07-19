@@ -1,7 +1,8 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use crate::{Cursor, DataStoreConnection, Error, Parameters, Prefixes};
+use crate::error::Error;
+use crate::{Cursor, DataStoreConnection, Parameters, Prefixes};
 use core::fmt::{Display, Formatter};
 
 /// SPARQL Statement
@@ -31,6 +32,6 @@ impl<'a> Statement<'a> {
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
     ) -> Result<Cursor<'a>, Error> {
-        Cursor::create(connection, &parameters, self)
+        Cursor::create(connection, parameters, self)
     }
 }

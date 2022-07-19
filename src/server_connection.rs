@@ -5,6 +5,7 @@ use std::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
+use crate::error::Error;
 use crate::{
     root::{
         CException, CParameters_getEmptyParameters, CServerConnection,
@@ -12,7 +13,7 @@ use crate::{
         CServerConnection_getNumberOfThreads, CServerConnection_newDataStoreConnection,
         CServerConnection_setNumberOfThreads,
     },
-    DataStore, DataStoreConnection, Error, RoleCreds,
+    DataStore, DataStoreConnection, RoleCreds,
 };
 
 pub struct ServerConnection {
