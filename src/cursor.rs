@@ -7,11 +7,12 @@ use alloc::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
-use crate::{DataStoreConnection, Error, Parameters, Statement, Transaction};
+use crate::error::Error;
 use crate::root::{
     CCursor, CCursor_advance, CCursor_destroy, CCursor_open, CDataStoreConnection_createCursor,
     CException,
 };
+use crate::{DataStoreConnection, Parameters, Statement, Transaction};
 
 pub struct Cursor<'a> {
     connection: &'a DataStoreConnection,
@@ -57,7 +58,10 @@ impl<'a> Cursor<'a> {
             )
         }))?;
         log::debug!("Created cursor for {:}", statement);
-        Ok(Cursor { connection, inner: cursor })
+        Ok(Cursor {
+            connection,
+            inner: cursor,
+        })
     }
 
     pub fn open(&self) -> Result<std::os::raw::c_ulong, Error> {
@@ -89,7 +93,10 @@ impl<'a> Cursor<'a> {
         })
     }
 
-    pub fn execute_and_rollback<T, U>(&self, f: T) -> Result<U, Error> where T: FnOnce() -> Result<U, Error> {
+    pub fn execute_and_rollback<T, U>(&self, f: T) -> Result<U, Error>
+    where
+        T: FnOnce() -> Result<U, Error>,
+    {
         Transaction::begin_read_only(self.connection)?.execute_and_rollback(f)
     }
 }

@@ -9,12 +9,18 @@ use std::path::Path;
 use std::ptr;
 use std::time::Instant;
 
+use colored::Colorize;
+use ignore::types::TypesBuilder;
+use ignore::WalkBuilder;
+use regex::Regex;
+
+use crate::error::Error;
 use crate::{
-    DataStore,
-    Error, Graph, Parameters, Prefixes, root::{
+    root::{
         CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
         CDataStoreConnection_importDataFromFile, CException, CUpdateType,
-    }, Statement, TEXT_TURTLE,
+    },
+    DataStore, Graph, Parameters, Prefixes, Statement, TEXT_TURTLE,
 };
 
 pub struct DataStoreConnection {
@@ -34,7 +40,7 @@ impl Display for DataStoreConnection {
             Ok(id) => write!(f, " {}", id),
             Err(_error) => write!(f, " (error could not get unique-id)"),
         }
-            .unwrap();
+        .unwrap();
         write!(f, " to {}", self.data_store)
     }
 }
@@ -73,8 +79,8 @@ impl DataStoreConnection {
     }
 
     pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
-        where
-            P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
     {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
@@ -109,13 +115,65 @@ impl DataStoreConnection {
         Ok(())
     }
 
+    /// Read all RDF files (currently it supports .ttl and .nt files) from
+    /// the given directory, applying ignore files like `.gitignore`.
+    ///
+    /// TODO: Support all the types that RDFox supports (and more)
+    /// TODO: Support '*.gz' files
+    /// TODO: Parallelize appropriately in sync with number of threads that RDFox uses
+    pub fn import_rdf_from_directory(&self, root: &Path, graph: Graph) -> Result<(), Error> {
+        let regex = Regex::new(r"^.*.ttl$").unwrap();
+
+        log::info!(
+            "Read all RDF files from directory {}",
+            format!("{:?}", &root).green()
+        );
+        log::debug!("WalkBuilder::new({:?}), searching for {:?}", root, regex);
+
+        let mut builder = TypesBuilder::new();
+        builder.add("rdf", "*.nt").unwrap();
+        builder.add("rdf", "*.ttl").unwrap();
+        let file_types = builder.select("rdf").build().unwrap();
+
+        let iter = WalkBuilder::new(root)
+            .standard_filters(true)
+            .ignore(false)
+            .git_global(true)
+            .git_ignore(true)
+            .git_exclude(true)
+            .follow_links(false)
+            .parents(false)
+            .threads(6)
+            .types(file_types)
+            .build();
+
+        for rdf_file in iter {
+            match rdf_file {
+                Ok(dir_entry) => {
+                    let file_type = dir_entry.file_type().unwrap();
+                    if file_type.is_dir() {
+                        continue;
+                    }
+                    let rdf_file = dir_entry.path();
+                    // log::debug!("entry {:?}", dir_entry);
+                    self.import_data_from_file(rdf_file, &graph)?;
+                }
+                Err(error) => {
+                    log::error!("error {:?}", error);
+                    return Err(Error::WalkError(error));
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn get_triples_count(&self) -> Result<std::os::raw::c_ulong, Error> {
         Statement::query(
             &Prefixes::default()?,
             "SELECT ?G ?X ?Y ?Z WHERE { GRAPH ?G { ?X ?Y ?Z }}",
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+        .count()
     }
 
     pub fn get_subjects_count(&self) -> Result<std::os::raw::c_ulong, Error> {
@@ -123,8 +181,8 @@ impl DataStoreConnection {
             &Prefixes::default()?,
             "SELECT DISTINCT ?subject WHERE { GRAPH ?G { ?subject ?Y ?Z }}",
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+        .count()
     }
 
     pub fn get_predicates_count(&self) -> Result<std::os::raw::c_ulong, Error> {
@@ -132,7 +190,7 @@ impl DataStoreConnection {
             &Prefixes::default()?,
             "SELECT DISTINCT ?predicate WHERE { GRAPH ?G { ?X ?predicate ?Z }}",
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+        .count()
     }
 }

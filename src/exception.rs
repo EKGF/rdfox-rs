@@ -9,16 +9,8 @@ use std::panic::catch_unwind;
 use std::str::Utf8Error;
 
 use crate::root::{CException, CException_getExceptionName, CException_what};
+use crate::Error;
 use crate::Error::UNKNOWN;
-
-#[derive(Debug)]
-pub enum Error {
-    #[allow(dead_code)]
-    UNKNOWN,
-    #[allow(dead_code)]
-    UnknownResourceException,
-    CouldNotConnectToServer,
-}
 
 impl CException {
     pub fn handle<F>(f: F) -> Result<(), Error>

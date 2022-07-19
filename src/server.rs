@@ -5,8 +5,8 @@ use std::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
-use crate::exception::Error;
-use crate::Error::CouldNotConnectToServer;
+use crate::error::Error;
+use crate::error::Error::CouldNotConnectToServer;
 use crate::{
     root::{
         CException, CServerConnection, CServerConnection_newServerConnection,
