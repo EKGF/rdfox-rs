@@ -2,6 +2,7 @@
 //---------------------------------------------------------------
 
 use env_logger::init;
+use rdfox::FactDomain;
 
 #[test]
 fn load_rdfox() -> Result<(), rdfox::Error> {
@@ -22,7 +23,7 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
     let test_graph = rdfox::Graph::define("test");
     ds_connection.import_data_from_file("test.ttl", &test_graph)?;
 
-    let count = ds_connection.get_triples_count();
+    let count = ds_connection.get_triples_count(FactDomain::ALL);
     assert!(count.is_ok());
     assert_eq!(count.unwrap(), 8);
 
