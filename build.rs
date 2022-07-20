@@ -1,3 +1,4 @@
+#![feature(absolute_path)]
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
@@ -5,7 +6,7 @@
 
 extern crate core;
 
-use std::fs::{File, OpenOptions};
+use std::fs::{canonicalize, File, OpenOptions};
 use std::io::{BufReader, Write};
 use std::option_env;
 use std::path::Path;
@@ -32,11 +33,11 @@ lazy_static! {
 }
 
 fn rdfox_download_url() -> String {
-    let host = *RDFOX_DOWNLOAD_HOST;
-    let version = *RDFOX_VERSION_EXPECTED;
-    let os = RDFOX_OS_NAME;
+    let _host = *RDFOX_DOWNLOAD_HOST;
+    let _version = *RDFOX_VERSION_EXPECTED;
+    let _os = RDFOX_OS_NAME;
 
-    format!("{host}/v{version}/RDFox-{os}-{ARCH}-{version}.zip")
+    format!("{_host}/v{_version}/RDFox-{_os}-{ARCH}-{_version}.zip")
 }
 
 fn rdfox_archive_name() -> String {
@@ -47,13 +48,7 @@ fn rdfox_archive_name() -> String {
 fn rdfox_download_file() -> PathBuf {
     let mut dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     dir.push(format!("../../{}.zip", rdfox_archive_name()));
-    dir
-    // format!(
-    //     "{}/../../{}.zip",
-    //     env::var("OUT_DIR").unwrap(),
-    //     rdfox_archive_name()
-    // )
-    // .into().
+    canonicalize(dir).unwrap()
 }
 
 fn rdfox_dylib_dir() -> PathBuf {

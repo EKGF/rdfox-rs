@@ -108,7 +108,7 @@ impl DataStoreConnection {
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
         })?;
-        log::info!(
+        log::debug!(
             "Imported file {} into graph {:}",
             file.as_ref().display(),
             graph
@@ -125,7 +125,7 @@ impl DataStoreConnection {
     pub fn import_rdf_from_directory(&self, root: &Path, graph: Graph) -> Result<(), Error> {
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
-        log::info!(
+        log::debug!(
             "Read all RDF files from directory {}",
             format!("{:?}", &root).green()
         );
@@ -227,5 +227,26 @@ impl DataStoreConnection {
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
         .count()
+    }
+
+    pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+        Statement::query(
+            &Prefixes::default()?,
+            indoc! {r##"
+                SELECT DISTINCT ?ontology
+                WHERE {
+                    {
+                        GRAPH ?graph {
+                            ?ontology a <http://www.w3.org/2002/07/owl#Ontology>
+                        }
+                    } UNION {
+                            ?ontology a <http://www.w3.org/2002/07/owl#Ontology>
+                        BIND("default" AS ?graph)
+                    }
+                }
+            "##},
+        )?
+            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+            .count()
     }
 }
