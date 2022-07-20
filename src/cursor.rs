@@ -45,7 +45,7 @@ impl<'a> Cursor<'a> {
         // let base_iri: *const std::os::raw::c_char = ptr::null();
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len: u64 = c_query.as_bytes().len() as u64;
-        log::debug!("Starting cursor for {:?} ({} bytes)", c_query, c_query_len);
+        log::trace!("Starting cursor for {:?}", c_query);
         CException::handle(AssertUnwindSafe(|| unsafe {
             CDataStoreConnection_createCursor(
                 connection.inner,
