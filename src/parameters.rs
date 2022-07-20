@@ -13,6 +13,12 @@ use std::fmt::{Display, Formatter};
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
+pub enum FactDomain {
+    ASSERTED,
+    INFERRED,
+    ALL
+}
+
 pub struct Parameters {
     pub(crate) inner: *mut CParameters,
 }
@@ -51,8 +57,12 @@ impl Parameters {
         Ok(())
     }
 
-    pub fn fact_domain_all(self) -> Result<Self, Error> {
-        self.set_string("fact-domain", "all")?;
+    pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, Error> {
+        match fact_domain {
+            FactDomain::ASSERTED=> self.set_string("fact-domain", "explicit")?,
+            FactDomain::INFERRED=> self.set_string("fact-domain", "derived")?,
+            FactDomain::ALL=> self.set_string("fact-domain", "all")?,
+        };
         Ok(self)
     }
 

@@ -13,6 +13,7 @@ use colored::Colorize;
 use ignore::types::TypesBuilder;
 use ignore::WalkBuilder;
 use regex::Regex;
+use indoc::indoc;
 
 use crate::error::Error;
 use crate::{
@@ -20,7 +21,7 @@ use crate::{
         CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
         CDataStoreConnection_importDataFromFile, CException, CUpdateType,
     },
-    DataStore, Graph, Parameters, Prefixes, Statement, TEXT_TURTLE,
+    DataStore, Graph, Parameters, FactDomain, Prefixes, Statement, TEXT_TURTLE,
 };
 
 pub struct DataStoreConnection {
@@ -167,30 +168,64 @@ impl DataStoreConnection {
         Ok(())
     }
 
-    pub fn get_triples_count(&self) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
         Statement::query(
             &Prefixes::default()?,
-            "SELECT ?G ?X ?Y ?Z WHERE { GRAPH ?G { ?X ?Y ?Z }}",
+            indoc! {r##"
+                SELECT ?graph ?s ?p ?o
+                WHERE {
+                    {
+                        GRAPH ?graph { ?s ?p ?o }
+                    } UNION {
+                        ?s ?p ?o .
+                        BIND("default" AS ?graph)
+                    }
+                }
+            "##},
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
         .count()
     }
 
-    pub fn get_subjects_count(&self) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
         Statement::query(
             &Prefixes::default()?,
-            "SELECT DISTINCT ?subject WHERE { GRAPH ?G { ?subject ?Y ?Z }}",
+            indoc! {r##"
+                SELECT DISTINCT ?subject
+                WHERE {
+                    {
+                        GRAPH ?graph {
+                            ?subject ?p ?o
+                        }
+                    } UNION {
+                        ?subject ?p ?o .
+                        BIND("default" AS ?graph)
+                    }
+                }
+            "##},
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
         .count()
     }
 
-    pub fn get_predicates_count(&self) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
         Statement::query(
             &Prefixes::default()?,
-            "SELECT DISTINCT ?predicate WHERE { GRAPH ?G { ?X ?predicate ?Z }}",
+            indoc! {r##"
+                SELECT DISTINCT ?predicate
+                WHERE {
+                    {
+                        GRAPH ?graph {
+                            ?s ?predicate ?o
+                        }
+                    } UNION {
+                        ?s ?predicate ?o .
+                        BIND("default" AS ?graph)
+                    }
+                }
+            "##},
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain_all()?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
         .count()
     }
 }

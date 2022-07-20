@@ -13,7 +13,7 @@ pub struct Statement<'a> {
 
 impl Display for Statement<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "SPARQL Statement: {}", self.text)
+        write!(f, "SPARQL Statement:\n{}", self.text)
     }
 }
 
@@ -21,9 +21,9 @@ impl<'a> Statement<'a> {
     pub fn query(prefixes: &'a Prefixes, statement: &str) -> Result<Self, Error> {
         let s = Self {
             prefixes,
-            text: statement.into(),
+            text: statement.trim().into(),
         };
-        log::debug!("{:}", s);
+        log::trace!("{:}", s);
         Ok(s)
     }
 

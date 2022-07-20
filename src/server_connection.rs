@@ -23,9 +23,7 @@ pub struct ServerConnection {
 }
 
 impl Drop for ServerConnection {
-    fn drop(&mut self) {
-        self.destroy()
-    }
+    fn drop(&mut self) { self.destroy() }
 }
 
 impl ServerConnection {
@@ -91,7 +89,7 @@ impl ServerConnection {
         Ok(ds_connection)
     }
 
-    pub fn destroy(&mut self) {
+    fn destroy(&mut self) {
         unsafe {
             CServerConnection_destroy(self.inner);
         }

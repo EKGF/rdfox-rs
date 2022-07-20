@@ -45,12 +45,15 @@ fn rdfox_archive_name() -> String {
 }
 
 fn rdfox_download_file() -> PathBuf {
-    format!(
-        "{}/{}.zip",
-        env::var("OUT_DIR").unwrap(),
-        rdfox_archive_name()
-    )
-    .into()
+    let mut dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    dir.push(format!("../../{}.zip", rdfox_archive_name()));
+    dir
+    // format!(
+    //     "{}/../../{}.zip",
+    //     env::var("OUT_DIR").unwrap(),
+    //     rdfox_archive_name()
+    // )
+    // .into().
 }
 
 fn rdfox_dylib_dir() -> PathBuf {
@@ -159,8 +162,8 @@ fn set_llvm_path<P>(llvm_config_path: P) -> PathBuf
 where
     P: AsRef<Path>,
 {
-    let path = llvm_config_path.as_ref();
-    println!("cargo:warning={}", path.display());
+    // let path = llvm_config_path.as_ref();
+    // println!("cargo:warning={}", path.display());
     assert!(llvm_config_path.as_ref().exists());
     env::set_var(
         "LLVM_CONFIG_PATH",
