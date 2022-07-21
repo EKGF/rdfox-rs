@@ -4,6 +4,7 @@
 use std::ffi::CString;
 use std::panic::AssertUnwindSafe;
 use std::ptr;
+use indoc::formatdoc;
 
 use iref::IriRef;
 
@@ -15,6 +16,7 @@ use crate::root::{
     CPrefixes_DeclareResult as PrefixDeclareResult,
     CPrefixes_newDefaultPrefixes,
 };
+use crate::{DataStoreConnection, FactDomain, Parameters, Statement};
 
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
@@ -72,8 +74,8 @@ impl Prefixes {
 
 #[derive(Debug, Clone)]
 pub struct Prefix<'a> {
-    name: String,
-    iri: IriRef<'a>,
+    name: String,       // assumed to end with ':'
+    iri: IriRef<'a>,    // assumed to end with either '/' or '#'
 }
 
 impl<'a> std::fmt::Display for Prefix<'a> {
@@ -118,3 +120,73 @@ impl<'a> PrefixesBuilder<'a> {
         Ok(to_build)
     }
 }
+
+
+#[derive(Debug, Clone)]
+pub struct Class<'a> {
+    pub prefix: Prefix<'a>,
+    pub local_name: String
+}
+
+impl<'a> std::fmt::Display for Class<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}{}", self.prefix.name.as_str(), self.local_name.as_str())
+    }
+}
+
+impl<'a> Class<'a> {
+    pub fn declare(prefix: Prefix<'a>, local_name: &str) -> Self {
+        Self {
+            prefix,
+            local_name: local_name.to_string()
+        }
+    }
+
+    pub fn number_of_individuals(&self, ds_connection: &DataStoreConnection) -> Result<u64, Error> {
+        let prefixes = Prefixes::builder()
+            .declare(self.prefix.clone())
+            .build()?;
+        let count_result = Statement::query(
+            &prefixes,
+            (formatdoc! {r##"
+                SELECT DISTINCT ?thing
+                WHERE {{
+                    {{
+                        GRAPH ?graph {{
+                            ?thing a {class}
+                        }}
+                    }} UNION {{
+                            ?thing a {class}
+                        BIND("default" AS ?graph)
+                    }}
+                }}
+                "##,
+                class = self
+            }).as_str(),
+        )?
+            .cursor(
+                ds_connection,
+                &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
+            )?
+            .count();
+        #[allow(clippy::let_and_return)]
+        count_result
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use iref::Iri;
+    use crate::{Class, Prefix};
+
+    #[test]
+    fn test_a_class() {
+        let prefix = Prefix::declare("test:", &Iri::new("http://whatever.com/test#").unwrap());
+        let class = Class::declare(prefix, "SomeClass");
+        let s = format!("{:}", class);
+        assert_eq!(s, "test:SomeClass")
+    }
+}
+

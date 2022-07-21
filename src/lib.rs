@@ -15,7 +15,7 @@ pub use data_store_connection::DataStoreConnection;
 pub use error::Error;
 pub use graph::Graph;
 pub use parameters::{FactDomain, Parameters};
-pub use prefixes::{Prefixes, Prefix, PrefixesBuilder};
+pub use prefixes::{Class, Prefixes, Prefix, PrefixesBuilder};
 pub use role_creds::RoleCreds;
 pub use server::Server;
 pub use server_connection::ServerConnection;
