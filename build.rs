@@ -6,7 +6,7 @@
 
 extern crate core;
 
-use std::fs::{canonicalize, File, OpenOptions};
+use std::fs::{File, OpenOptions};
 use std::io::{BufReader, Write};
 use std::option_env;
 use std::path::Path;
@@ -46,9 +46,8 @@ fn rdfox_archive_name() -> String {
 }
 
 fn rdfox_download_file() -> PathBuf {
-    let mut dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    dir.push(format!("../../{}.zip", rdfox_archive_name()));
-    canonicalize(dir).unwrap()
+    let dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    dir.parent().unwrap().parent().unwrap().join(format!("{}.zip", rdfox_archive_name()))
 }
 
 fn rdfox_dylib_dir() -> PathBuf {
