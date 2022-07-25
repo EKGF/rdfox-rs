@@ -1,6 +1,8 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
+extern crate alloc;
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -25,5 +27,7 @@ pub enum Error {
     #[error(transparent)]
     WalkError(#[from] ignore::Error),
     #[error(transparent)]
-    IriParseError(#[from] iref::Error)
+    IriParseError(#[from] iref::Error),
+    #[error(transparent)]
+    CApiError(#[from] std::ffi::NulError)
 }

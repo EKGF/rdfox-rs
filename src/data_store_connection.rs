@@ -93,7 +93,7 @@ impl DataStoreConnection {
             self
         );
 
-        let c_graph_name = graph.as_c_string();
+        let c_graph_name = graph.as_c_string()?;
         let prefixes = Prefixes::default()?;
         let file_name = CString::new(rdf_file).unwrap();
         let format_name = CString::new(TEXT_TURTLE.as_ref()).unwrap();
@@ -122,7 +122,8 @@ impl DataStoreConnection {
     /// TODO: Support all the types that RDFox supports (and more)
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that RDFox uses
-    pub fn import_rdf_from_directory(&self, root: &Path, graph: Graph) -> Result<(), Error> {
+    pub fn import_rdf_from_directory(&self, root: &Path, graph: Graph) -> Result<u16, Error> {
+        let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
         log::debug!(
@@ -158,6 +159,7 @@ impl DataStoreConnection {
                     let rdf_file = dir_entry.path();
                     // log::debug!("entry {:?}", dir_entry);
                     self.import_data_from_file(rdf_file, &graph)?;
+                    count += 1;
                 }
                 Err(error) => {
                     log::error!("error {:?}", error);
@@ -165,7 +167,7 @@ impl DataStoreConnection {
                 }
             }
         }
-        Ok(())
+        Ok(count)
     }
 
     pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
