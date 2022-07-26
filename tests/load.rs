@@ -3,8 +3,9 @@
 
 use env_logger::init;
 use iref::Iri;
-use rdfox::{FactDomain, Prefix};
+use rdfox::{FactDomain, GraphConnection, Prefix};
 
+/// TODO: Add test for "import axioms" (add test ontology)
 #[test]
 fn load_rdfox() -> Result<(), rdfox::Error> {
     init();
@@ -25,9 +26,15 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
     let graph_base_iri =
         Prefix::declare("kggraph:", Iri::new("http://whatever.kom/graph/").unwrap());
     let test_graph = rdfox::Graph::declare(graph_base_iri, "test");
-    ds_connection.import_data_from_file("test.ttl", &test_graph)?;
+
+    let graph_connection = GraphConnection::new(&ds_connection, test_graph, None);
+    graph_connection.import_data_from_file("test.ttl")?;
 
     let count = ds_connection.get_triples_count(FactDomain::ALL);
+    assert!(count.is_ok());
+    assert_eq!(count.unwrap(), 8);
+
+    let count = graph_connection.get_triples_count(FactDomain::ALL);
     assert!(count.is_ok());
     assert_eq!(count.unwrap(), 8);
 

@@ -14,6 +14,7 @@ pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
 pub use error::Error;
 pub use graph::Graph;
+pub use graph_connection::GraphConnection;
 pub use parameters::{FactDomain, Parameters};
 pub use prefixes::{Class, Prefixes, Prefix, PrefixesBuilder};
 pub use role_creds::RoleCreds;
@@ -39,5 +40,6 @@ mod server;
 mod server_connection;
 mod statement;
 mod transaction;
+mod graph_connection;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

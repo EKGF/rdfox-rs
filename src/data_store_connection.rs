@@ -157,7 +157,7 @@ impl DataStoreConnection {
     /// TODO: Support all the types that RDFox supports (and more)
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that RDFox uses
-    pub fn import_rdf_from_directory(&self, root: &Path, graph: Graph) -> Result<u16, Error> {
+    pub fn import_rdf_from_directory(&self, root: &Path, graph: &Graph) -> Result<u16, Error> {
         let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
