@@ -150,7 +150,6 @@ impl DataStoreConnection {
         Ok(())
     }
 
-
     /// Read all RDF files (currently it supports .ttl and .nt files) from
     /// the given directory, applying ignore files like `.gitignore`.
     ///
