@@ -19,6 +19,7 @@ use crate::error::Error;
 use crate::{
     root::{
         CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
+        CDataStoreConnection_importAxiomsFromTriples,
         CDataStoreConnection_importDataFromFile, CException, CUpdateType,
     },
     DataStore, Graph, Parameters, FactDomain, Prefixes, Statement, TEXT_TURTLE,
@@ -130,8 +131,8 @@ impl DataStoreConnection {
     ) -> Result<(), Error> {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
-        let c_source_graph_name = source_graph.as_c_string();
-        let c_target_graph_name = target_graph.as_c_string();
+        let c_source_graph_name = source_graph.as_c_string()?;
+        let c_target_graph_name = target_graph.as_c_string()?;
 
         CException::handle(|| unsafe {
             CDataStoreConnection_importAxiomsFromTriples(
