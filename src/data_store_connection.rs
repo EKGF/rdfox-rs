@@ -41,7 +41,7 @@ impl Display for DataStoreConnection {
             Ok(id) => write!(f, " {}", id),
             Err(_error) => write!(f, " (error could not get unique-id)"),
         }
-        .unwrap();
+            .unwrap();
         write!(f, " to {}", self.data_store)
     }
 }
@@ -80,8 +80,8 @@ impl DataStoreConnection {
     }
 
     pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
-    where
-        P: AsRef<Path>,
+        where
+            P: AsRef<Path>,
     {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
@@ -115,6 +115,41 @@ impl DataStoreConnection {
         );
         Ok(())
     }
+
+    /// CRDFOX const CException* CDataStoreConnection_importAxiomsFromTriples (
+    ///     CDataStoreConnection* dataStoreConnection,
+    ///     const char* sourceGraphName,
+    ///     bool translateAssertions,
+    ///     const char* destinationGraphName,
+    ///     CUpdateType updateType
+    /// );
+    pub fn import_axioms_from_triples(
+        &self,
+        source_graph: &Graph,
+        target_graph: &Graph,
+    ) -> Result<(), Error> {
+        assert!(!self.inner.is_null(), "invalid datastore connection");
+
+        let c_source_graph_name = source_graph.as_c_string();
+        let c_target_graph_name = target_graph.as_c_string();
+
+        CException::handle(|| unsafe {
+            CDataStoreConnection_importAxiomsFromTriples(
+                self.inner,
+                c_source_graph_name.as_ptr() as *const std::os::raw::c_char,
+                false,
+                c_target_graph_name.as_ptr() as *const std::os::raw::c_char,
+                CUpdateType::UPDATE_TYPE_ADDITION,
+            )
+        })?;
+        log::debug!(
+            "Imported axioms from {:} into graph {:}",
+            source_graph,
+            target_graph
+        );
+        Ok(())
+    }
+
 
     /// Read all RDF files (currently it supports .ttl and .nt files) from
     /// the given directory, applying ignore files like `.gitignore`.
@@ -185,8 +220,8 @@ impl DataStoreConnection {
                 }
             "##},
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+            .count()
     }
 
     pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
@@ -206,8 +241,8 @@ impl DataStoreConnection {
                 }
             "##},
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+            .count()
     }
 
     pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
@@ -227,8 +262,8 @@ impl DataStoreConnection {
                 }
             "##},
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+            .count()
     }
 
     pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
