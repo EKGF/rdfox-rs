@@ -1,0 +1,24 @@
+tag_prefix = ""
+ignore_merge_commits = true
+branch_whitelist = ["main"]
+pre_bump_hooks = [
+    "cargo set-version --workspace {{version}}",
+]
+post_bump_hooks = [
+    "git push",
+    "git push origin {{version}}",
+]
+
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+repository = "rdfox-rs"
+owner = "EKGF"
+authors = [
+    { username = "jgeluk", signature = "Jacobus Geluk" },
+    { username = "gisellecole", signature = "Giselle Cole" },
+    { username = "mbarbieri77", signature = "Marcelo Barbieri" }
+]
+
+[bump_profiles]
