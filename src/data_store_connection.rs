@@ -3,6 +3,7 @@
 
 use std::ffi::{CStr, CString};
 use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 use std::os::unix::ffi::OsStrExt;
 use std::panic::AssertUnwindSafe;
 use std::path::Path;
@@ -12,18 +13,15 @@ use std::time::Instant;
 use colored::Colorize;
 use ignore::types::TypesBuilder;
 use ignore::WalkBuilder;
+use indoc::formatdoc;
 use regex::Regex;
-use indoc::indoc;
 
+use crate::{DataStore, DEFAULT_GRAPH, FactDomain, Graph, Parameters, Prefixes, root::{
+    CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
+    CDataStoreConnection_importAxiomsFromTriples,
+    CDataStoreConnection_importDataFromFile, CException, CUpdateType,
+}, Statement, TEXT_TURTLE};
 use crate::error::Error;
-use crate::{
-    root::{
-        CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
-        CDataStoreConnection_importAxiomsFromTriples,
-        CDataStoreConnection_importDataFromFile, CException, CUpdateType,
-    },
-    DataStore, Graph, Parameters, FactDomain, Prefixes, Statement, TEXT_TURTLE,
-};
 
 pub struct DataStoreConnection {
     pub data_store: DataStore,
@@ -206,82 +204,91 @@ impl DataStoreConnection {
     }
 
     pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            indoc! {r##"
+            formatdoc! (
+                r##"
                 SELECT ?graph ?s ?p ?o
-                WHERE {
-                    {
-                        GRAPH ?graph { ?s ?p ?o }
-                    } UNION {
+                WHERE {{
+                    {{
+                        GRAPH ?graph {{ ?s ?p ?o }}
+                    }} UNION {{
                         ?s ?p ?o .
-                        BIND("default" AS ?graph)
-                    }
-                }
-            "##},
+                        BIND({default_graph} AS ?graph)
+                    }}
+                }}
+            "##).as_str(),
         )?
             .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
             .count()
     }
 
     pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            indoc! {r##"
+            formatdoc! (
+                r##"
                 SELECT DISTINCT ?subject
-                WHERE {
-                    {
-                        GRAPH ?graph {
+                WHERE {{
+                    {{
+                        GRAPH ?graph {{
                             ?subject ?p ?o
-                        }
-                    } UNION {
+                        }}
+                    }} UNION {{
                         ?subject ?p ?o .
-                        BIND("default" AS ?graph)
-                    }
-                }
-            "##},
+                        BIND({default_graph} AS ?graph)
+                    }}
+                }}
+            "##).as_str(),
         )?
             .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
             .count()
     }
 
     pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            indoc! {r##"
+            formatdoc! (
+                r##"
                 SELECT DISTINCT ?predicate
-                WHERE {
-                    {
-                        GRAPH ?graph {
+                WHERE {{
+                    {{
+                        GRAPH ?graph {{
                             ?s ?predicate ?o
-                        }
-                    } UNION {
+                        }}
+                    }} UNION {{
                         ?s ?predicate ?o .
-                        BIND("default" AS ?graph)
-                    }
-                }
-            "##},
+                        BIND({default_graph} AS ?graph)
+                    }}
+                }}
+            "##).as_str(),
         )?
             .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
             .count()
     }
 
     pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            indoc! {r##"
+            formatdoc! (
+                r##"
                 SELECT DISTINCT ?ontology
-                WHERE {
-                    {
-                        GRAPH ?graph {
+                WHERE {{
+                    {{
+                        GRAPH ?graph {{
                             ?ontology a <http://www.w3.org/2002/07/owl#Ontology>
-                        }
-                    } UNION {
-                            ?ontology a <http://www.w3.org/2002/07/owl#Ontology>
-                        BIND("default" AS ?graph)
-                    }
-                }
-            "##},
+                        }}
+                    }} UNION {{
+                        ?ontology a <http://www.w3.org/2002/07/owl#Ontology>
+                        BIND({default_graph} AS ?graph)
+                    }}
+                }}
+                "##
+            ).as_str()
         )?
             .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
             .count()
