@@ -2,9 +2,7 @@
 //---------------------------------------------------------------
 
 use std::{ffi::CString, panic::AssertUnwindSafe, ptr};
-use std::ops::Deref;
 
-use indoc::formatdoc;
 use iref::{Iri, IriBuf};
 
 use crate::{
@@ -12,15 +10,10 @@ use crate::{
     root::{
         CException,
         CPrefixes,
-        CPrefixes_DeclareResult as PrefixDeclareResult,
         CPrefixes_declarePrefix,
+        CPrefixes_DeclareResult as PrefixDeclareResult,
         CPrefixes_newDefaultPrefixes,
     },
-    DataStoreConnection,
-    FactDomain,
-    Parameters,
-    Statement,
-    graph::DEFAULT_GRAPH
 };
 
 pub struct Prefixes {
@@ -65,19 +58,19 @@ impl Prefixes {
                     prefix.iri.as_str()
                 );
                 Err(Error::InvalidPrefixName)
-            },
+            }
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
                 log::warn!("Registered {prefix} twice");
                 Ok(result)
-            },
+            }
             _ => {
                 log::error!(
                     "Result of registering prefix {prefix} is {:?}",
                     result
                 );
                 Ok(result)
-            },
+            }
         }
     }
 
@@ -95,7 +88,7 @@ pub struct Prefix {
     /// assumed to end with ':'
     pub name: String,
     /// assumed to end with either '/' or '#'
-    pub iri:  IriBuf,
+    pub iri: IriBuf,
 }
 
 impl std::fmt::Display for Prefix {
@@ -111,15 +104,15 @@ impl Prefix {
             '/' | '#' => {
                 Self {
                     name: name.to_string(),
-                    iri:  IriBuf::from(iri),
+                    iri: IriBuf::from(iri),
                 }
-            },
+            }
             _ => {
                 Self {
                     name: name.to_string(),
-                    iri:  IriBuf::from_string(format!("{}/", iri)).unwrap(),
+                    iri: IriBuf::from_string(format!("{}/", iri)).unwrap(),
                 }
-            },
+            }
         }
     }
 
@@ -167,71 +160,12 @@ impl<'a> PrefixesBuilder {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Class {
-    pub prefix:     Prefix,
-    pub local_name: String,
-}
-
-impl std::fmt::Display for Class {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}{}",
-            self.prefix.name.as_str(),
-            self.local_name.as_str()
-        )
-    }
-}
-
-impl Class {
-    pub fn declare(prefix: Prefix, local_name: &str) -> Self {
-        Self {
-            prefix,
-            local_name: local_name.to_string(),
-        }
-    }
-
-    pub fn number_of_individuals(
-        &self,
-        ds_connection: &DataStoreConnection,
-    ) -> Result<u64, Error> {
-        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        let prefixes =
-            Prefixes::builder().declare(self.prefix.clone()).build()?;
-        let count_result = Statement::query(
-            &prefixes,
-            (formatdoc! {r##"
-                SELECT DISTINCT ?thing
-                WHERE {{
-                    {{
-                        GRAPH ?graph {{
-                            ?thing a {self}
-                        }}
-                    }} UNION {{
-                            ?thing a {self}
-                        BIND({default_graph} AS ?graph)
-                    }}
-                }}
-                "##
-            })
-            .as_str(),
-        )?
-        .cursor(
-            ds_connection,
-            &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
-        )?
-        .count();
-        #[allow(clippy::let_and_return)]
-        count_result
-    }
-}
 
 #[cfg(test)]
 mod tests {
     use iref::Iri;
 
-    use crate::{Class, Prefix};
+    use crate::Prefix;
 
     #[test]
     fn test_a_prefix() -> Result<(), iref::Error> {
@@ -243,16 +177,5 @@ mod tests {
 
         assert_eq!(x.as_str(), "http://whatever.kom/test#abc");
         Ok(())
-    }
-
-    #[test]
-    fn test_a_class() {
-        let prefix = Prefix::declare(
-            "test:",
-            Iri::new("http://whatever.com/test#").unwrap(),
-        );
-        let class = Class::declare(prefix, "SomeClass");
-        let s = format!("{:}", class);
-        assert_eq!(s, "test:SomeClass")
     }
 }
