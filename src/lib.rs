@@ -40,5 +40,6 @@ mod server;
 mod server_connection;
 mod statement;
 mod transaction;
+mod class;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
