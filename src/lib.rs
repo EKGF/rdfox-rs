@@ -6,17 +6,16 @@ extern crate core;
 
 use core::str::FromStr;
 
-use lazy_static::lazy_static;
-pub use mime::Mime;
-
 pub use cursor::Cursor;
 pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
 pub use error::Error;
-pub use graph::Graph;
+pub use graph::{Graph, DEFAULT_GRAPH, NS_RDFOX};
 pub use graph_connection::GraphConnection;
+use lazy_static::lazy_static;
+pub use mime::Mime;
 pub use parameters::{FactDomain, Parameters};
-pub use prefixes::{Class, Prefixes, Prefix, PrefixesBuilder};
+pub use prefixes::{Class, Prefix, Prefixes, PrefixesBuilder};
 pub use role_creds::RoleCreds;
 pub use server::Server;
 pub use server_connection::ServerConnection;
@@ -33,6 +32,7 @@ mod data_store_connection;
 mod error;
 mod exception;
 mod graph;
+mod graph_connection;
 mod parameters;
 mod prefixes;
 mod role_creds;
@@ -40,6 +40,5 @@ mod server;
 mod server_connection;
 mod statement;
 mod transaction;
-mod graph_connection;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

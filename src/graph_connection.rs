@@ -95,12 +95,12 @@ impl<'a> GraphConnection<'a> {
                     ?s ?p ?o .
                 }}
             "##,
-                self.graph
+                self.graph.as_display_iri()
             )
             .as_str(),
         )?
         .cursor(
-            &self.data_store_connection,
+            self.data_store_connection,
             &Parameters::empty()?.fact_domain(fact_domain)?,
         )?
         .count()

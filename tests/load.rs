@@ -15,19 +15,29 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
 
     assert!(connection.get_number_of_threads()? > 0);
 
-    // We next specify how many threads the server should use during import of data
-    // and reasoning.
+    // We next specify how many threads the server should use during import of
+    // data and reasoning.
     connection.set_number_of_threads(2)?;
 
-    let data_store = connection.create_data_store(rdfox::DataStore::define("example"))?;
+    let data_store =
+        connection.create_data_store(rdfox::DataStore::define("example"))?;
 
     let ds_connection = connection.connect_to_data_store(data_store)?;
 
-    let graph_base_iri =
-        Prefix::declare("kggraph:", Iri::new("http://whatever.kom/graph/").unwrap());
+    let graph_base_iri = Prefix::declare(
+        "graph:",
+        Iri::new("http://whatever.kom/graph/").unwrap(),
+    );
     let test_graph = rdfox::Graph::declare(graph_base_iri, "test");
 
-    let graph_connection = GraphConnection::new(&ds_connection, test_graph, None);
+    assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
+    assert_eq!(
+        format!("{:}", test_graph.as_display_iri()).as_str(),
+        "<http://whatever.kom/graph/test>"
+    );
+
+    let graph_connection =
+        GraphConnection::new(&ds_connection, test_graph, None);
     graph_connection.import_data_from_file("test.ttl")?;
 
     let count = ds_connection.get_triples_count(FactDomain::ALL);
