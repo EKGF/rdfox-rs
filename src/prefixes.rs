@@ -2,6 +2,7 @@
 //---------------------------------------------------------------
 
 use std::{ffi::CString, panic::AssertUnwindSafe, ptr};
+use std::ops::Deref;
 
 use indoc::formatdoc;
 use iref::{Iri, IriBuf};
@@ -19,6 +20,7 @@ use crate::{
     FactDomain,
     Parameters,
     Statement,
+    graph::DEFAULT_GRAPH
 };
 
 pub struct Prefixes {
@@ -194,6 +196,7 @@ impl Class {
         &self,
         ds_connection: &DataStoreConnection,
     ) -> Result<u64, Error> {
+        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let prefixes =
             Prefixes::builder().declare(self.prefix.clone()).build()?;
         let count_result = Statement::query(
@@ -203,15 +206,14 @@ impl Class {
                 WHERE {{
                     {{
                         GRAPH ?graph {{
-                            ?thing a {class}
+                            ?thing a {self}
                         }}
                     }} UNION {{
-                            ?thing a {class}
-                        BIND("default" AS ?graph)
+                            ?thing a {self}
+                        BIND({default_graph} AS ?graph)
                     }}
                 }}
-                "##,
-                class = self
+                "##
             })
             .as_str(),
         )?
