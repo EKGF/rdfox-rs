@@ -1,22 +1,29 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::fmt::{Display, Formatter};
-use std::path::Path;
-use std::time::Instant;
+use std::{
+    fmt::{Display, Formatter},
+    path::Path,
+    time::Instant,
+};
 
 use indoc::formatdoc;
 
 use crate::{
-    DataStoreConnection, FactDomain, Graph, Parameters, Prefixes, Statement,
+    error::Error,
+    DataStoreConnection,
+    FactDomain,
+    Graph,
+    Parameters,
+    Prefixes,
+    Statement,
 };
-use crate::error::Error;
 
 pub struct GraphConnection<'a> {
     pub data_store_connection: &'a DataStoreConnection,
-    started_at: Instant,
-    pub graph: Graph,
-    pub ontology_graph: Option<Graph>
+    started_at:                Instant,
+    pub graph:                 Graph,
+    pub ontology_graph:        Option<Graph>,
 }
 
 impl<'a> Display for GraphConnection<'a> {
@@ -28,7 +35,7 @@ impl<'a> Display for GraphConnection<'a> {
 impl<'a> Drop for GraphConnection<'a> {
     fn drop(&mut self) {
         let duration = self.started_at.elapsed();
-        log::info!("dropped {self} after {:?}", duration)
+        log::trace!("Dropped {self} after {:?}", duration)
     }
 }
 
@@ -36,30 +43,29 @@ impl<'a> GraphConnection<'a> {
     pub fn new(
         data_store_connection: &'a DataStoreConnection,
         graph: Graph,
-        ontology_graph: Option<Graph>
+        ontology_graph: Option<Graph>,
     ) -> Self {
-        Self {
+        let result = Self {
             data_store_connection,
             started_at: Instant::now(),
             graph,
-            ontology_graph
-        }
+            ontology_graph,
+        };
+        log::trace!("Created {result:}");
+        result
     }
 
     pub fn import_data_from_file<P>(&self, file: P) -> Result<(), Error>
-        where
-            P: AsRef<Path>,
-    {
-        self.data_store_connection.import_data_from_file(file, &self.graph)
+    where P: AsRef<Path> {
+        self.data_store_connection
+            .import_data_from_file(file, &self.graph)
     }
 
-    pub fn import_axioms(
-        &self,
-    ) -> Result<(), Error> {
-        assert!(self.ontology_graph.is_some(),"no ontology graph specified");
+    pub fn import_axioms(&self) -> Result<(), Error> {
+        assert!(self.ontology_graph.is_some(), "no ontology graph specified");
         self.data_store_connection.import_axioms_from_triples(
             self.ontology_graph.as_ref().unwrap(),
-            &self.graph
+            &self.graph,
         )
     }
 
@@ -68,29 +74,40 @@ impl<'a> GraphConnection<'a> {
     ///
     /// TODO: Support all the types that RDFox supports (and more)
     /// TODO: Support '*.gz' files
-    /// TODO: Parallelize appropriately in sync with number of threads that RDFox uses
+    /// TODO: Parallelize appropriately in sync with number of threads that
+    /// RDFox uses
     pub fn import_rdf_from_directory(&self, root: &Path) -> Result<u16, Error> {
-        self.data_store_connection.import_rdf_from_directory(root, &self.graph)
+        self.data_store_connection
+            .import_rdf_from_directory(root, &self.graph)
     }
 
-    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_triples_count(
+        &self,
+        fact_domain: FactDomain,
+    ) -> Result<std::os::raw::c_ulong, Error> {
         Statement::query(
             &Prefixes::default()?,
-            formatdoc! (r##"
+            formatdoc!(
+                r##"
                 SELECT ?s ?p ?o
                 FROM {:}
                 WHERE {{
                     ?s ?p ?o .
                 }}
-            "##, self.graph
-            ).as_str(),
+            "##,
+                self.graph
+            )
+            .as_str(),
         )?
-            .cursor(&self.data_store_connection, &Parameters::empty()?.fact_domain(fact_domain)?)?
-            .count()
+        .cursor(
+            &self.data_store_connection,
+            &Parameters::empty()?.fact_domain(fact_domain)?,
+        )?
+        .count()
     }
 
-    // pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
-    //     Statement::query(
+    // pub fn get_subjects_count(&self, fact_domain: FactDomain) ->
+    // Result<std::os::raw::c_ulong, Error> {     Statement::query(
     //         &Prefixes::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?subject
@@ -110,8 +127,8 @@ impl<'a> GraphConnection<'a> {
     //         .count()
     // }
     //
-    // pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
-    //     Statement::query(
+    // pub fn get_predicates_count(&self, fact_domain: FactDomain) ->
+    // Result<std::os::raw::c_ulong, Error> {     Statement::query(
     //         &Prefixes::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?predicate
@@ -131,8 +148,8 @@ impl<'a> GraphConnection<'a> {
     //         .count()
     // }
     //
-    // pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
-    //     Statement::query(
+    // pub fn get_ontologies_count(&self, fact_domain: FactDomain) ->
+    // Result<std::os::raw::c_ulong, Error> {     Statement::query(
     //         &Prefixes::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?ontology

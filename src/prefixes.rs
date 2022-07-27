@@ -38,18 +38,27 @@ impl Prefixes {
         Ok(prefixes)
     }
 
-    pub fn declare_prefix<'a>(&self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
+    pub fn declare_prefix<'a>(
+        &self,
+        prefix: &Prefix,
+    ) -> Result<PrefixDeclareResult, Error> {
         log::trace!("Register prefix {prefix}");
         let c_name = CString::new(prefix.name.as_str()).unwrap();
         let c_iri = CString::new(prefix.iri.as_str()).unwrap();
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
         CException::handle(AssertUnwindSafe(|| unsafe {
-            CPrefixes_declarePrefix(self.inner, c_name.as_ptr(), c_iri.as_ptr(), &mut result)
+            CPrefixes_declarePrefix(
+                self.inner,
+                c_name.as_ptr(),
+                c_iri.as_ptr(),
+                &mut result,
+            )
         }))?;
         match result {
             PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
                 log::error!(
-                    "Invalid prefix name \"{}\" while registering namespace <{}>",
+                    "Invalid prefix name \"{}\" while registering namespace \
+                     <{}>",
                     prefix.name.as_str(),
                     prefix.iri.as_str()
                 );
@@ -61,7 +70,10 @@ impl Prefixes {
                 Ok(result)
             },
             _ => {
-                log::error!("Result of registering prefix {prefix} is {:?}", result);
+                log::error!(
+                    "Result of registering prefix {prefix} is {:?}",
+                    result
+                );
                 Ok(result)
             },
         }
@@ -78,22 +90,34 @@ impl Prefixes {
 
 #[derive(Debug, Clone)]
 pub struct Prefix {
+    /// assumed to end with ':'
     pub name: String,
-    // assumed to end with ':'
-    pub iri:  IriBuf, // assumed to end with either '/' or '#'
+    /// assumed to end with either '/' or '#'
+    pub iri:  IriBuf,
 }
 
 impl std::fmt::Display for Prefix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}: <{}>", self.name.as_str(), self.iri.as_str())
+        write!(f, "{} <{}>", self.name.as_str(), self.iri.as_str())
     }
 }
 
 impl Prefix {
     pub fn declare<'a, Base: Into<Iri<'a>>>(name: &str, iri: Base) -> Self {
-        Self {
-            name: name.to_string(),
-            iri:  IriBuf::from(iri.into()),
+        let iri = iri.into();
+        match iri.as_str().chars().last().unwrap() {
+            '/' | '#' => {
+                Self {
+                    name: name.to_string(),
+                    iri:  IriBuf::from(iri),
+                }
+            },
+            _ => {
+                Self {
+                    name: name.to_string(),
+                    iri:  IriBuf::from_string(format!("{}/", iri)).unwrap(),
+                }
+            },
         }
     }
 
@@ -118,7 +142,11 @@ impl<'a> PrefixesBuilder {
         }
     }
 
-    pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
+    pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(
+        mut self,
+        name: &str,
+        iri: Base,
+    ) -> Self {
         self.prefixes.push(Prefix::declare(name, iri));
         self
     }
@@ -162,8 +190,12 @@ impl Class {
         }
     }
 
-    pub fn number_of_individuals(&self, ds_connection: &DataStoreConnection) -> Result<u64, Error> {
-        let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
+    pub fn number_of_individuals(
+        &self,
+        ds_connection: &DataStoreConnection,
+    ) -> Result<u64, Error> {
+        let prefixes =
+            Prefixes::builder().declare(self.prefix.clone()).build()?;
         let count_result = Statement::query(
             &prefixes,
             (formatdoc! {r##"
@@ -201,7 +233,10 @@ mod tests {
 
     #[test]
     fn test_a_prefix() -> Result<(), iref::Error> {
-        let prefix = Prefix::declare("test:", Iri::new("http://whatever.kom/test#").unwrap());
+        let prefix = Prefix::declare(
+            "test:",
+            Iri::new("http://whatever.kom/test#").unwrap(),
+        );
         let x = prefix.with_local_name("abc")?;
 
         assert_eq!(x.as_str(), "http://whatever.kom/test#abc");
@@ -210,7 +245,10 @@ mod tests {
 
     #[test]
     fn test_a_class() {
-        let prefix = Prefix::declare("test:", Iri::new("http://whatever.com/test#").unwrap());
+        let prefix = Prefix::declare(
+            "test:",
+            Iri::new("http://whatever.com/test#").unwrap(),
+        );
         let class = Class::declare(prefix, "SomeClass");
         let s = format!("{:}", class);
         assert_eq!(s, "test:SomeClass")
