@@ -4,18 +4,26 @@
 extern crate alloc;
 
 use alloc::ffi::CString;
-use std::panic::AssertUnwindSafe;
-use std::ptr;
+use std::{panic::AssertUnwindSafe, ptr};
 
-use crate::error::Error;
-use crate::root::{
-    CCursor, CCursor_advance, CCursor_destroy, CCursor_open, CDataStoreConnection_createCursor,
-    CException,
+use crate::{
+    error::Error,
+    root::{
+        CCursor,
+        CCursor_advance,
+        CCursor_destroy,
+        CCursor_open,
+        CDataStoreConnection_createCursor,
+        CException,
+    },
+    DataStoreConnection,
+    Parameters,
+    Statement,
+    Transaction,
 };
-use crate::{DataStoreConnection, Parameters, Statement, Transaction};
 
 pub struct Cursor<'a> {
-    connection: &'a DataStoreConnection,
+    connection:       &'a DataStoreConnection,
     #[allow(dead_code)]
     pub(crate) inner: *mut CCursor,
 }
@@ -93,10 +101,13 @@ impl<'a> Cursor<'a> {
         })
     }
 
+    pub fn update_and_commit<T, U>(&self, f: T) -> Result<U, Error>
+    where T: FnOnce() -> Result<U, Error> {
+        Transaction::begin_read_write(self.connection)?.update_and_commit(f)
+    }
+
     pub fn execute_and_rollback<T, U>(&self, f: T) -> Result<U, Error>
-    where
-        T: FnOnce() -> Result<U, Error>,
-    {
+    where T: FnOnce() -> Result<U, Error> {
         Transaction::begin_read_only(self.connection)?.execute_and_rollback(f)
     }
 }
