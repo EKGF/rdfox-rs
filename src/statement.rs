@@ -2,10 +2,15 @@
 //---------------------------------------------------------------
 
 use crate::error::Error;
-use crate::{Cursor, DataStoreConnection, Parameters, Prefixes};
+use crate::{DataStoreConnection, DEFAULT_GRAPH, Parameters, Prefixes};
 use core::fmt::{Display, Formatter};
+use std::ffi::{ CString};
+use std::ops::Deref;
+use indoc::formatdoc;
+use crate::Cursor;
 
 /// SPARQL Statement
+#[derive(Debug,Clone)]
 pub struct Statement<'a> {
     pub prefixes: &'a Prefixes,
     pub(crate) text: String,
@@ -27,11 +32,37 @@ impl<'a> Statement<'a> {
         Ok(s)
     }
 
-    pub fn cursor(
+    pub fn cursor<'b>(
         self,
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
     ) -> Result<Cursor<'a>, Error> {
         Cursor::create(connection, parameters, self)
+    }
+
+    pub(crate) fn as_c_string(&self) -> Result<CString, Error> {
+        Ok(CString::new(self.text.as_str())?)
+    }
+
+    /// Return a Statement that can be used to export all data in `application/nquads` format
+    pub fn nquads_query(prefixes: &'a Prefixes) -> Result<Statement<'a>, Error> {
+
+        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
+        let statement = Statement::query(
+            prefixes,
+            formatdoc! (
+                r##"
+                SELECT ?S ?P ?O ?G
+                WHERE {{
+                    {{
+                        GRAPH ?G {{ ?S ?P ?O }}
+                    }} UNION {{
+                        ?S ?P ?P .
+                        BIND({default_graph} AS ?G)
+                    }}
+                }}
+            "##).as_str(),
+        )?;
+        Ok(statement)
     }
 }

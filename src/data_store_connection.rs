@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ffi::{CStr, CString};
+use std::ffi::{c_ulong, CStr, CString};
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::os::unix::ffi::OsStrExt;
@@ -17,12 +17,14 @@ use indoc::formatdoc;
 use regex::Regex;
 
 use crate::{DataStore, DEFAULT_GRAPH, FactDomain, Graph, Parameters, Prefixes, root::{
-    CDataStoreConnection, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
-    CDataStoreConnection_importAxiomsFromTriples,
-    CDataStoreConnection_importDataFromFile, CException, CUpdateType,
+    CDataStoreConnection,
+    CDataStoreConnection_evaluateStatementToBuffer, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
+    CDataStoreConnection_importAxiomsFromTriples, CDataStoreConnection_importDataFromFile,
+    CException, CUpdateType, size_t,
 }, Statement, TEXT_TURTLE};
 use crate::error::Error;
 
+#[derive(Debug)]
 pub struct DataStoreConnection {
     pub data_store: DataStore,
     pub(crate) inner: *mut CDataStoreConnection,
@@ -203,7 +205,54 @@ impl DataStoreConnection {
         Ok(count)
     }
 
-    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+    // pub fn CDataStoreConnection_evaluateStatementToBuffer(
+    //     dataStoreConnection: *mut root::CDataStoreConnection,
+    //     baseIRI: *const ::std::os::raw::c_char,
+    //     prefixes: *mut root::CPrefixes,
+    //     statementText: *const ::std::os::raw::c_char,
+    //     statementTextLength: root::size_t,
+    //     compilationParameters: *const root::CParameters,
+    //     buffer: *mut ::std::os::raw::c_char,
+    //     bufferSize: root::size_t,
+    //     resultSize: *mut root::size_t,
+    //     queryAnswerFormatName: *const ::std::os::raw::c_char,
+    //     statementResult: *mut root::size_t,
+    // ) -> *const root::CException;
+    pub fn evaluate_to_buffer(&self, statement: Statement) -> Result<(), Error> {
+        let base_iri = ptr::null_mut();
+        let prefixes = Prefixes::default()?;
+        let statement_text = statement.as_c_string()?;
+        let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
+        let parameters = Parameters::empty()?;
+        let mut buffer = [0u8; 10240];
+        let mut result_size = 0 as size_t;
+        let query_answer_format_name = CString::new("application/n-quads")?;
+        let mut statement_result = 0 as size_t;
+        log::trace!("CDataStoreConnection_evaluateStatementToBuffer:");
+        CException::handle(AssertUnwindSafe(|| unsafe {
+            CDataStoreConnection_evaluateStatementToBuffer(
+                self.inner,
+                base_iri,
+                prefixes.inner,
+                statement_text.as_ptr(),
+                statement_text_len,
+                parameters.inner,
+                buffer.as_mut_ptr() as *mut i8,
+                buffer.len() as c_ulong,
+                &mut result_size,
+                query_answer_format_name.as_ptr(),
+                &mut statement_result
+            )
+        }))?;
+
+        let slice = unsafe {std::slice::from_raw_parts(buffer.as_ptr(), result_size as usize)};
+        let c_str = unsafe { CStr::from_bytes_with_nul_unchecked(slice) };
+
+        log::info!("buffer=\n{}", c_str.to_str().unwrap());
+        Ok(())
+    }
+
+    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
@@ -224,7 +273,7 @@ impl DataStoreConnection {
             .count()
     }
 
-    pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
@@ -247,7 +296,7 @@ impl DataStoreConnection {
             .count()
     }
 
-    pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
@@ -270,7 +319,7 @@ impl DataStoreConnection {
             .count()
     }
 
-    pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,

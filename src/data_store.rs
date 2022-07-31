@@ -1,8 +1,9 @@
-use crate::error::Error;
-use crate::ServerConnection;
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone)]
+use crate::error::Error;
+use crate::ServerConnection;
+
+#[derive(Debug, Clone)]
 pub struct DataStore {
     pub(crate) name: String,
 }

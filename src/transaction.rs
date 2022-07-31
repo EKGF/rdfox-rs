@@ -13,6 +13,7 @@ use crate::{
     DataStoreConnection,
 };
 
+#[derive(Debug)]
 pub struct Transaction<'a> {
     pub(crate) connection: &'a DataStoreConnection,
     committed:             bool,
@@ -89,15 +90,27 @@ impl<'a> Transaction<'a> {
     }
 
     pub fn update_and_commit<T, F>(&mut self, f: F) -> Result<T, Error>
-    where F: FnOnce() -> Result<T, Error> {
-        let result = f();
-        self.commit()?;
+    where F: FnOnce(&mut Transaction) -> Result<T, Error> {
+        let result = f(self);
+        if result.is_ok() {
+            self.commit()?;
+        } else {
+            self.rollback()?;
+        }
         result
     }
 
     pub fn execute_and_rollback<T, F>(&mut self, f: F) -> Result<T, Error>
-    where F: FnOnce() -> Result<T, Error> {
-        let result = f();
+    where F: FnOnce(&mut Transaction) -> Result<T, Error> {
+        let result = f(self);
+        match &result {
+            Err(err) => {
+                log::error!("Error occurred during transaction: {err}");
+            },
+            Ok(..) => {
+                log::info!("Readonly-transaction was successful");
+            }
+        }
         self.rollback()?;
         result
     }

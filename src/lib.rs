@@ -1,20 +1,24 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 #![feature(rustc_private)]
+#![feature(cstr_from_bytes_until_nul)]
 
 extern crate core;
 
 use core::str::FromStr;
 
-pub use cursor::Cursor;
+use lazy_static::lazy_static;
+pub use mime::Mime;
+
+pub use class::Class;
+pub use cursor::{Cursor,OpenedCursor,CursorRow,ResourceValue};
 pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
+pub use data_type::DataType;
+pub use data_value::DataValue;
 pub use error::Error;
 pub use graph::{DEFAULT_GRAPH, Graph, NS_RDFOX};
 pub use graph_connection::GraphConnection;
-use lazy_static::lazy_static;
-pub use mime::Mime;
-pub use class::Class;
 pub use parameters::{FactDomain, Parameters};
 pub use prefixes::{Prefix, Prefixes, PrefixesBuilder};
 pub use role_creds::RoleCreds;
@@ -42,5 +46,7 @@ mod server_connection;
 mod statement;
 mod transaction;
 mod class;
+mod data_type;
+mod data_value;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

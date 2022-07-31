@@ -16,6 +16,7 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
 }

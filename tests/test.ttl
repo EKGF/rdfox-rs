@@ -1,0 +1,75 @@
+@base <https://placeholder.kg/id/> .
+@prefix auth:                 <https://ekgf.org/ontology/authorization/> .
+@prefix concept:              <https://ekgf.org/ontology/concept/> .
+@prefix data-mig:             <https://ekgf.org/ontology/data-migration/> .
+@prefix dct:                  <http://purl.org/dc/terms/> .
+@prefix document:             <https://ekgf.org/ontology/document/> .
+@prefix employment:           <https://ekgf.org/ontology/employment/> .
+@prefix enum:                 <https://ekgf.org/ontology/enum/> .
+@prefix event:                <https://ekgf.org/ontology/event/> .
+@prefix fibo-fnd-plc-loc:     <https://spec.edmcouncil.org/fibo/ontology/FND/Places/Locations/> .
+@prefix file:                 <https://ekgf.org/ontology/file/> .
+@prefix fin-reg:              <https://ekgf.org/ontology/financial-regulation/> .
+@prefix gleif-base:           <https://www.gleif.org/ontology/Base/> .
+@prefix id:                   <https://ekgf.org/ontology/identifier/> .
+@prefix legal-entity:         <https://ekgf.org/ontology/legal-entity/> .
+@prefix lem:                  <https://placeholder.kg/ontology/legal-entity-management/> .
+@prefix organization:         <https://ekgf.org/ontology/organization/> .
+@prefix persona:              <https://ekgf.org/ontology/persona/> .
+@prefix prov:                 <http://www.w3.org/ns/prov#> .
+@prefix raw:                  <https://ekgf.org/ontology/raw/> .
+@prefix rdf:                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:                 <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sdlc:                 <https://ekgf.org/ontology/software-development-life-cycle/> .
+@prefix story-svc:            <https://ekgf.org/ontology/ekg-platform-story-service/> .
+@prefix story:                <https://ekgf.org/ontology/user-story/> .
+@prefix temporality:          <https://ekgf.org/ontology/temporality/> .
+@prefix use-case:             <https://ekgf.org/ontology/use-case/> .
+@prefix user-account:         <https://ekgf.org/ontology/user-account/> .
+@prefix vcard:                <http://www.w3.org/2006/vcard/ns#> .
+@prefix wfi:                  <https://ekgf.org/ontology/workflow-instance/> .
+@prefix xsd:                  <http://www.w3.org/2001/XMLSchema#> .
+
+<concept-legacy-id>
+    a                        concept:PropertyConcept ;
+    rdfs:label               "Legacy ID" ;
+    rdfs:comment             "Represents the primary key that is being used in the original data source" ;
+    concept:key              "legacyId" ;
+    concept:type             xsd:string ;
+    concept:raw              raw:legacyId ;
+    concept:raw              raw:referenceId ;
+    prov:editorialNote       "TODO: Link to the appropriate property" ;
+    use-case:isUsedInUseCase <use-case-identity> ;
+.
+<story-get-user-groups-emails>
+  a                                 story:UserStory ;
+  sdlc:developmentLifecycleStatus   sdlc:Development ;
+  story:key                         "get-user-groups-emails" ;
+  rdfs:label                        "Get user groups and email for notifications service emailing " ;
+  use-case:usedIn                   <use-case-identity> ;
+  story:hasPersona                  <persona-named-user> ;
+  story-svc:sparqlStatementFileName "user-story.sparql" ;
+  story-svc:shouldBeSuppliedBy      <ekg-platform-story-service> ;
+  story:isSingular                  false ;
+  story:isUpdate                    false ;
+  story:hasInput                    [ concept:hasConcept <concept-user-group> ;
+                                      a                  story:OptionalParameter ; ] ;
+  story:hasOutput                   [ concept:hasConcept <concept-graph> ] ;
+  story:hasOutput                   [ concept:hasConcept <concept-user-group> ] ;
+  story:hasOutput                   [ concept:hasConcept <concept-user-group-label> ;
+                                      a                  story:OptionalStoryOutput ; ] ;
+  story:hasOutput                   [ concept:hasConcept <concept-user-group-email> ;
+                                      a                  story:OptionalStoryOutput ; ] ;
+  .
+
+<use-case-identity>
+  a                      use-case:UseCase ;
+  rdfs:label             "Identity" ;
+  rdfs:comment           """
+  The Identity use cases focuses on all the various identifiers that any object in the EKG can have
+  such as a Legal Entity with its LEI, its various primary keys from various legacy systems,
+  its commercial registry number and so forth.
+  """ ;
+  use-case:isComponentOf <use-case-legal-entity-management> ;
+  use-case:usesConcept   <concept-legacy-id> ;
+  .

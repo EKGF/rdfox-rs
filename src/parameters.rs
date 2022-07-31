@@ -11,6 +11,7 @@ use crate::root::{
 use alloc::ffi::CString;
 use std::fmt::{Display, Formatter};
 use std::panic::AssertUnwindSafe;
+use std::path::Path;
 use std::ptr;
 
 pub enum FactDomain {
@@ -68,6 +69,25 @@ impl Parameters {
 
     pub fn switch_off_file_access_sandboxing(self) -> Result<Self, Error> {
         self.set_string("sandbox-directory", "")?;
+        Ok(self)
+    }
+
+    /// If true, all API calls are recorded in a script that
+    /// the shell can replay later. later.
+    /// The default value is false.
+    pub fn api_log(self, on: bool) -> Result<Self, Error> {
+        if on {
+            self.set_string("api-log", "on")?;
+        } else {
+            self.set_string("api-log", "off")?;
+        }
+        Ok(self)
+    }
+
+    /// Specifies the directory into which API logs will be written.
+    /// Default is directory api-log within the configured server directory.
+    pub fn api_log_directory(self, dir: &Path) -> Result<Self, Error> {
+        self.set_string("api-log.directory", dir.to_str().unwrap())?;
         Ok(self)
     }
 }
