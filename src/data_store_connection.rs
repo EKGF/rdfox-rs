@@ -14,13 +14,14 @@ use colored::Colorize;
 use ignore::types::TypesBuilder;
 use ignore::WalkBuilder;
 use indoc::formatdoc;
+use mime::Mime;
 use regex::Regex;
 
 use crate::{DataStore, DEFAULT_GRAPH, FactDomain, Graph, Parameters, Prefixes, root::{
     CDataStoreConnection,
     CDataStoreConnection_evaluateStatementToBuffer, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
     CDataStoreConnection_importAxiomsFromTriples, CDataStoreConnection_importDataFromFile,
-    CException, CUpdateType, size_t,
+    CException, CUpdateType,
 }, Statement, TEXT_TURTLE};
 use crate::error::Error;
 
@@ -117,13 +118,6 @@ impl DataStoreConnection {
         Ok(())
     }
 
-    /// CRDFOX const CException* CDataStoreConnection_importAxiomsFromTriples (
-    ///     CDataStoreConnection* dataStoreConnection,
-    ///     const char* sourceGraphName,
-    ///     bool translateAssertions,
-    ///     const char* destinationGraphName,
-    ///     CUpdateType updateType
-    /// );
     pub fn import_axioms_from_triples(
         &self,
         source_graph: &Graph,
@@ -218,16 +212,20 @@ impl DataStoreConnection {
     //     queryAnswerFormatName: *const ::std::os::raw::c_char,
     //     statementResult: *mut root::size_t,
     // ) -> *const root::CException;
-    pub fn evaluate_to_buffer(&self, statement: Statement) -> Result<(), Error> {
+    pub fn evaluate_to_buffer(
+        &self,
+        statement: Statement,
+        buffer: &mut [u8],
+        number_of_solutions: &mut u64,
+        result_size: &mut u64,
+        mime_type: &Mime
+    ) -> Result<(), Error> {
         let base_iri = ptr::null_mut();
         let prefixes = Prefixes::default()?;
         let statement_text = statement.as_c_string()?;
         let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
         let parameters = Parameters::empty()?;
-        let mut buffer = [0u8; 10240];
-        let mut result_size = 0 as size_t;
-        let query_answer_format_name = CString::new("application/n-quads")?;
-        let mut statement_result = 0 as size_t;
+        let query_answer_format_name = CString::new(mime_type.as_ref())?;
         log::trace!("CDataStoreConnection_evaluateStatementToBuffer:");
         CException::handle(AssertUnwindSafe(|| unsafe {
             CDataStoreConnection_evaluateStatementToBuffer(
@@ -239,13 +237,15 @@ impl DataStoreConnection {
                 parameters.inner,
                 buffer.as_mut_ptr() as *mut i8,
                 buffer.len() as c_ulong,
-                &mut result_size,
+                result_size,
                 query_answer_format_name.as_ptr(),
-                &mut statement_result
+                number_of_solutions
             )
         }))?;
 
-        let slice = unsafe {std::slice::from_raw_parts(buffer.as_ptr(), result_size as usize)};
+        log::info!("number_of_solutions={number_of_solutions} result_size={result_size}");
+
+        let slice = unsafe {std::slice::from_raw_parts(buffer.as_ptr(), *result_size as usize)};
         let c_str = unsafe { CStr::from_bytes_with_nul_unchecked(slice) };
 
         log::info!("buffer=\n{}", c_str.to_str().unwrap());

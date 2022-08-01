@@ -1,11 +1,12 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
+use std::ops::Deref;
 use std::path::Path;
 use env_logger::init;
 use indoc::formatdoc;
 use iref::Iri;
-use rdfox::{FactDomain, GraphConnection, Parameters, Prefix, Prefixes, Statement};
+use rdfox::{APPLICATION_N_QUADS, FactDomain, GraphConnection, Parameters, Prefix, Prefixes, Statement};
 
 /// TODO: Add test for "import axioms" (add test ontology)
 #[test]
@@ -98,8 +99,16 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
     log::info!("Number of rows processed: {count}");
 
     let nquads_query = Statement::nquads_query(&prefixes)?;
-    ds_connection.evaluate_to_buffer(nquads_query)?;
-
+    let mut buffer = [0u8; 10240];
+    let mut number_of_solutions = 0u64;
+    let mut result_size = 0u64;
+    ds_connection.evaluate_to_buffer(
+        nquads_query,
+        &mut buffer,
+        &mut number_of_solutions,
+        &mut result_size,
+        APPLICATION_N_QUADS.deref()
+    )?;
 
     Ok(())
 }

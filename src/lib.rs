@@ -29,6 +29,11 @@ pub use transaction::Transaction;
 
 lazy_static! {
     pub static ref TEXT_TURTLE: Mime = Mime::from_str("text/turtle").unwrap();
+    pub static ref TEXT_OWL_FUNCTIONAL: Mime = Mime::from_str("text/owl-functional").unwrap();
+    pub static ref APPLICATION_N_TRIPLES: Mime = Mime::from_str("application/n-triples").unwrap();
+    pub static ref APPLICATION_N_QUADS: Mime = Mime::from_str("application/n-quads").unwrap();
+    pub static ref APPLICATION_TRIG: Mime = Mime::from_str("application/trig").unwrap();
+    pub static ref APPLICATION_X_DATALOG: Mime = Mime::from_str("application/x.datalog").unwrap();
 }
 
 mod cursor;
