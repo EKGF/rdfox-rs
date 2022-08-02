@@ -24,18 +24,9 @@ pub struct CursorRow<'a> {
 }
 
 impl<'a> CursorRow<'a> {
-    pub fn resource_id(&self, term_index: u16) -> Result<u64, Error> {
-        if let Some(argument_index) = self.opened.argument_indexes.get(term_index as usize) {
-            if let Some(resource_id) = self.opened.arguments_buffer.get(*argument_index as usize) {
-                Ok(*resource_id)
-            } else {
-                log::error!("Could not get the resource ID from the arguments buffer with argument index {argument_index} and term index {term_index}");
-                Err(Unknown)
-            }
-        } else {
-            log::error!("Could not get the argument index for term index {term_index}");
-            Err(Unknown)
-        }
+    /// Get the resource ID from the arguments buffer which dynamically changes after each cursor advance.
+    fn resource_id(&self, term_index: u16) -> Result<u64, Error> {
+        self.opened.resource_id(term_index)
     }
 
     // pub fn CCursor_getResourceValue(
@@ -49,7 +40,7 @@ impl<'a> CursorRow<'a> {
     //     resourceResolved: *mut bool,
     // ) -> *const root::CException;
     /// Returns the resource bound to the given index in the current answer row.
-    pub fn resource_value_with_id(&self, resource_id: u64) -> Result<ResourceValue, Error> {
+    fn resource_value_with_id(&self, resource_id: u64) -> Result<ResourceValue, Error> {
         let mut data: *const u8 = ptr::null_mut();
         let mut data_size: std::os::raw::c_ulong = 0;
         let mut namespace: *const u8 = ptr::null_mut();
@@ -77,7 +68,7 @@ impl<'a> CursorRow<'a> {
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
 
-        log::debug!("row={}: CCursor_getResourceValue({resource_id}): data_type={datatype_id} len={data_size} namespace_len={namespace_size}", self.rowid);
+        log::trace!("row={}: CCursor_getResourceValue({resource_id}): data_type={datatype_id} len={data_size} namespace_len={namespace_size}", self.rowid);
 
         if data_size == 0 {
             log::error!("Call to cursor (row {}) resource id {resource_id} could not be resolved, no data", self.rowid);
@@ -95,11 +86,11 @@ impl<'a> CursorRow<'a> {
     pub fn resource_value(&self, term_index: u16) -> Result<ResourceValue, Error> {
         let resource_id = self.resource_id(term_index)?;
         log::debug!(
-                "row={rowid} multiplicity={multiplicity} \
-                 term_index={term_index} resource_id={resource_id}:",
-                rowid = self.rowid,
-                multiplicity = self.multiplicity
-            );
+            "row={rowid} multiplicity={multiplicity} \
+             term_index={term_index} resource_id={resource_id}:",
+            rowid = self.rowid,
+            multiplicity = self.multiplicity
+        );
         let value = self.resource_value_with_id(resource_id)?;
         log::debug!("{value:?}");
         Ok(value)
@@ -116,7 +107,7 @@ impl<'a> CursorRow<'a> {
     //     resourceResolved: *mut bool,
     // ) -> *const root::CException;
     /// Returns the resource bound to the given index in the current answer row.
-    pub fn lexical_value_with_id(&self, resource_id: u64) -> Result<LexicalValue, Error> {
+    fn lexical_value_with_id(&self, resource_id: u64) -> Result<LexicalValue, Error> {
         let mut buffer = [0u8; 1024];
         let mut lexical_form_size = 0 as c_ulong;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;

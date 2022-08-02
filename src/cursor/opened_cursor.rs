@@ -23,8 +23,8 @@ pub struct OpenedCursor<'a> {
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
     pub arity: u16,
-    pub arguments_buffer: Vec<u64>,
-    pub argument_indexes: Vec<u32>
+    pub arguments_buffer: &'a [u64],
+    pub argument_indexes: &'a [u32]
 }
 
 impl<'a> OpenedCursor<'a> {
@@ -68,7 +68,7 @@ impl<'a> OpenedCursor<'a> {
         Ok(arity as u16)
     }
 
-    pub fn arguments_buffer(c_cursor: *mut CCursor) -> Result<Vec<u64>, Error> {
+    pub fn arguments_buffer(c_cursor: *mut CCursor) -> Result<&'a [u64], Error> {
         let mut buffer: *const CResourceID = ptr::null_mut();
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_getArgumentsBuffer(c_cursor, &mut buffer)
@@ -86,28 +86,35 @@ impl<'a> OpenedCursor<'a> {
                 p = p.offset(1);
             }
         }
-        let mut result = Vec::new();
-        if count > 1 {
-            unsafe {
-                result.extend(std::slice::from_raw_parts(buffer, count - 1));
-            }
+        unsafe {
+            Ok(std::slice::from_raw_parts(buffer, count - 1))
         }
-        log::info!("CCursor_getArgumentsBuffer: {result:?}");
-        Ok(result)
     }
 
-    fn argument_indexes(c_cursor: *mut CCursor, arity: u16) -> Result<Vec<u32>, Error> {
+    fn argument_indexes(c_cursor: *mut CCursor, arity: u16) -> Result<&'a [u32], Error> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_getArgumentIndexes(c_cursor, &mut indexes)
         }))?;
         if indexes.is_null() { return Err(Unknown) }
-        let mut result = Vec::new();
         unsafe {
-            result.extend(std::slice::from_raw_parts(indexes, arity as usize));
+            Ok(std::slice::from_raw_parts(indexes, arity as usize))
         }
-        log::trace!("CCursor_getArgumentIndexes: {result:?}");
-        Ok(result)
+    }
+
+    /// Get the resource ID from the arguments buffer which dynamically changes after each cursor advance.
+    pub(crate) fn resource_id(&self, term_index: u16) -> Result<u64, Error> {
+        if let Some(argument_index) = self.argument_indexes.get(term_index as usize) {
+            if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
+                Ok(*resource_id)
+            } else {
+                log::error!("Could not get the resource ID from the arguments buffer with argument index {argument_index} and term index {term_index}");
+                Err(Unknown)
+            }
+        } else {
+            log::error!("Could not get the argument index for term index {term_index}");
+            Err(Unknown)
+        }
     }
 
     /// TODO: Check why this panics when called after previous call returned zero
@@ -116,7 +123,7 @@ impl<'a> OpenedCursor<'a> {
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_advance(self.cursor.inner, &mut multiplicity)
         }))?;
-        log::debug!("cursor {:?} advanced, multiplicity={multiplicity}", self.cursor.inner);
+        log::trace!("cursor {:?} advanced, multiplicity={multiplicity}", self.cursor.inner);
         Ok(multiplicity)
     }
 

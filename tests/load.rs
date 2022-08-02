@@ -104,6 +104,7 @@ fn test_cursor_with_lexical_value(graph_connection: &rdfox::GraphConnection) -> 
     Ok(())
 }
 
+#[allow(dead_code)]
 fn test_cursor_with_resource_value(graph_connection: &rdfox::GraphConnection) -> Result<(), rdfox::Error> {
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = rdfox::Prefixes::default()?;
@@ -166,10 +167,10 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
 
     graph_connection.import_data_from_file("tests/test.ttl")?;
 
-    test_count_some_stuff_in_the_store(&ds_connection)?;
-    test_count_some_stuff_in_the_graph(&graph_connection)?;
+    // test_count_some_stuff_in_the_store(&ds_connection)?;
+    // test_count_some_stuff_in_the_graph(&graph_connection)?;
 
-    test_cursor_with_lexical_value(&graph_connection)?;
+    // test_cursor_with_lexical_value(&graph_connection)?;
     test_cursor_with_resource_value(&graph_connection)?;
 
     // test_run_query_to_nquads_buffer(&ds_connection)?;

@@ -13,7 +13,8 @@ union LexicalValueUnion {
     pub iri: ManuallyDrop<IriBuf>,
     #[allow(dead_code)]
     pub string: ManuallyDrop<String>,
-    pub blank_node: ManuallyDrop<String>
+    pub blank_node: ManuallyDrop<String>,
+    pub boolean: bool
 }
 
 pub struct LexicalValue {
@@ -125,7 +126,23 @@ impl LexicalValue {
                         blank_node: ManuallyDrop::new(buffer.to_string())
                     }
                 })
-            }
+            },
+            DataType::Boolean => {
+                Ok(LexicalValue {
+                    data_type,
+                    value: LexicalValueUnion {
+                        boolean: buffer.starts_with("true")
+                    }
+                })
+            },
+            DataType::String | DataType::PlainLiteral => {
+                Ok(LexicalValue {
+                    data_type,
+                    value: LexicalValueUnion {
+                        string: ManuallyDrop::new(buffer.to_string())
+                    }
+                })
+            },
             _ => {
                 log::warn!("Unsupported datatype: {data_type:?} value={buffer}");
                 Err(Unknown)
