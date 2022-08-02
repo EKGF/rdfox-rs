@@ -6,18 +6,14 @@ use std::path::Path;
 use env_logger::init;
 use indoc::formatdoc;
 use iref::Iri;
-use rdfox::{APPLICATION_N_QUADS, FactDomain, GraphConnection, Parameters, Prefix, Prefixes, Statement};
 
-/// TODO: Add test for "import axioms" (add test ontology)
-#[test]
-fn load_rdfox() -> Result<(), rdfox::Error> {
-    init();
-    let server_params = &Parameters::empty()?
+fn test_create_database() -> Result<rdfox::DataStoreConnection, rdfox::Error> {
+    let server_params = &rdfox::Parameters::empty()?
         .api_log(true)?
         .api_log_directory(Path::new("./tests"))?;
     let server = rdfox::Server::start_with_parameters(
         rdfox::RoleCreds::default(),
-        server_params
+        server_params,
     )?;
 
     let connection = server.connection_with_default_role()?;
@@ -28,12 +24,17 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
     // data and reasoning.
     connection.set_number_of_threads(2)?;
 
-    let data_store =
-        connection.create_data_store(rdfox::DataStore::define("example"))?;
+    assert_eq!(connection.get_number_of_threads()?, 2);
 
-    let ds_connection = connection.connect_to_data_store(data_store)?;
+    let data_store = connection.create_data_store_named("example")?;
 
-    let graph_base_iri = Prefix::declare(
+    connection.connect_to_data_store(data_store)
+}
+
+fn test_create_graph(
+    ds_connection: &rdfox::DataStoreConnection
+) -> Result<rdfox::GraphConnection, rdfox::Error> {
+    let graph_base_iri = rdfox::Prefix::declare(
         "graph:",
         Iri::new("http://whatever.kom/graph/").unwrap(),
     );
@@ -45,21 +46,34 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
         "<http://whatever.kom/graph/test>"
     );
 
-    let graph_connection =
-        GraphConnection::new(&ds_connection, test_graph, None);
-    graph_connection.import_data_from_file("tests/test.ttl")?;
+    Ok(rdfox::GraphConnection::new(
+        ds_connection, test_graph, None,
+    ))
+}
 
-    let count = ds_connection.get_triples_count(FactDomain::ALL);
+#[allow(dead_code)]
+fn test_count_some_stuff_in_the_store(ds_connection: &rdfox::DataStoreConnection) -> Result<(), rdfox::Error> {
+    let count = ds_connection.get_triples_count(rdfox::FactDomain::ALL);
     assert!(count.is_ok());
     assert_eq!(count.unwrap(), 37);
 
-    let count = graph_connection.get_triples_count(FactDomain::ALL);
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn test_count_some_stuff_in_the_graph(graph_connection: &rdfox::GraphConnection) -> Result<(), rdfox::Error> {
+    let count = graph_connection.get_triples_count(rdfox::FactDomain::ALL);
     assert!(count.is_ok());
     assert_eq!(count.unwrap(), 37);
 
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn test_cursor_with_lexical_value(graph_connection: &rdfox::GraphConnection) -> Result<(), rdfox::Error> {
     let graph = graph_connection.graph.as_display_iri();
-    let prefixes = Prefixes::default()?;
-    let query = Statement::query(
+    let prefixes = rdfox::Prefixes::default()?;
+    let query = rdfox::Statement::query(
         &prefixes,
         formatdoc!(
             r##"
@@ -71,34 +85,63 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
                 }}
                 "##,
         )
-        .as_str(),
+            .as_str(),
     )?;
     let mut cursor = query.clone().cursor(
         graph_connection.data_store_connection,
-        &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
+        &rdfox::Parameters::empty()?.fact_domain(rdfox::FactDomain::ASSERTED)?,
     )?;
 
     let count = cursor.execute_and_rollback(|row| {
         assert_eq!(row.opened.arity, 3);
-        for term_index in 0 .. row.opened.arity {
-
-            let resource_id = row.resource_id(term_index)?;
-            log::info!(
-                "row={rowid} multiplicity={multiplicity} \
-                 term_index={term_index} resource_id={resource_id}:",
-                rowid = row.rowid,
-                multiplicity = row.multiplicity
-            );
-            // let value = row.resource_value(resource_id)?;
-            let value = row.resource_value_lexical_form(resource_id)?;
+        for term_index in 0..row.opened.arity {
+            let value = row.lexical_value(term_index)?;
             log::info!("{value:?}");
-            // log::info!("{}{}", value.prefix, value.value);
         }
         Ok(())
     })?;
     log::info!("Number of rows processed: {count}");
+    Ok(())
+}
 
-    let nquads_query = Statement::nquads_query(&prefixes)?;
+fn test_cursor_with_resource_value(graph_connection: &rdfox::GraphConnection) -> Result<(), rdfox::Error> {
+    let graph = graph_connection.graph.as_display_iri();
+    let prefixes = rdfox::Prefixes::default()?;
+    let query = rdfox::Statement::query(
+        &prefixes,
+        formatdoc!(
+            r##"
+                SELECT ?subject ?predicate ?object
+                FROM {graph}
+                WHERE {{
+                    ?subject a <https://ekgf.org/ontology/user-story/UserStory> ;
+                        ?predicate ?object
+                }}
+                "##,
+        )
+            .as_str(),
+    )?;
+    let mut cursor = query.clone().cursor(
+        graph_connection.data_store_connection,
+        &rdfox::Parameters::empty()?.fact_domain(rdfox::FactDomain::ASSERTED)?,
+    )?;
+
+    let count = cursor.execute_and_rollback(|row| {
+        assert_eq!(row.opened.arity, 3);
+        for term_index in 0..row.opened.arity {
+            let value = row.resource_value(term_index)?;
+            log::info!("{value:?}");
+        }
+        Ok(())
+    })?;
+    log::info!("Number of rows processed: {count}");
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn test_run_query_to_nquads_buffer(ds_connection: &rdfox::DataStoreConnection) -> Result<(), rdfox::Error> {
+    let prefixes = rdfox::Prefixes::default()?;
+    let nquads_query = rdfox::Statement::nquads_query(&prefixes)?;
     let mut buffer = [0u8; 10240];
     let mut number_of_solutions = 0u64;
     let mut result_size = 0u64;
@@ -107,8 +150,29 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
         &mut buffer,
         &mut number_of_solutions,
         &mut result_size,
-        APPLICATION_N_QUADS.deref()
+        rdfox::APPLICATION_N_QUADS.deref(),
     )?;
+    Ok(())
+}
+
+/// TODO: Add test for "import axioms" (add test ontology)
+#[test]
+fn load_rdfox() -> Result<(), rdfox::Error> {
+    init();
+
+    let ds_connection = test_create_database()?;
+
+    let graph_connection = test_create_graph(&ds_connection)?;
+
+    graph_connection.import_data_from_file("tests/test.ttl")?;
+
+    test_count_some_stuff_in_the_store(&ds_connection)?;
+    test_count_some_stuff_in_the_graph(&graph_connection)?;
+
+    test_cursor_with_lexical_value(&graph_connection)?;
+    test_cursor_with_resource_value(&graph_connection)?;
+
+    // test_run_query_to_nquads_buffer(&ds_connection)?;
 
     Ok(())
 }

@@ -1,6 +1,8 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 use num_enum::TryFromPrimitive;
+use crate::Error;
+use crate::Error::UnknownDatatype;
 
 #[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
 #[repr(u8)]
@@ -41,4 +43,13 @@ pub enum DataType {
     UnsignedInt = 33,
     UnsignedShort = 34,
     UnsignedByte = 35,
+}
+
+impl DataType {
+
+    pub fn from_datatype_id(datatype_id: u8) -> Result<DataType, Error> {
+        DataType::try_from(datatype_id).map_err(|_err| {
+            UnknownDatatype {datatype_id}
+        })
+    }
 }

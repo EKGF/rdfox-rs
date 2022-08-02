@@ -15,7 +15,7 @@ impl Display for DataStore {
 }
 
 impl DataStore {
-    pub fn define(name: &str) -> Self {
+    pub fn declare(name: &str) -> Self {
         Self {
             name: name.to_string(),
         }

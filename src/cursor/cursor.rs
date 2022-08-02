@@ -70,22 +70,7 @@ impl<'a> Cursor<'a> {
     }
 
     pub fn count(&mut self) -> Result<u64, Error> {
-        self.execute_and_rollback(|row| {
-            for term_index in 0..row.opened.arity {
-                let resource_id = row.resource_id(term_index)?;
-                log::info!(
-                "row={rowid} multiplicity={multiplicity} \
-                 term_index={term_index} resource_id={resource_id}:",
-                rowid = row.rowid,
-                multiplicity = row.multiplicity
-            );
-                // let value = row.resource_value(resource_id)?;
-                let value = row.resource_value_lexical_form(resource_id)?;
-                log::info!("{value:?}");
-                // log::info!("{}{}", value.prefix, value.value);
-            }
-            Ok(())
-        })
+        self.execute_and_rollback(|_row| { Ok(()) })
     }
 
     fn consume_cursor<T>(&mut self, tx: &mut Transaction, mut f: T) -> Result<u64, Error>

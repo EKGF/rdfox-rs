@@ -7,43 +7,43 @@ use std::ops::Deref;
 use std::str::FromStr;
 use iref::IriBuf;
 use crate::{DataType, Error};
-use crate::Error::UNKNOWN;
+use crate::Error::Unknown;
 
-union DataValueUnion {
+union LexicalValueUnion {
     pub iri: ManuallyDrop<IriBuf>,
     #[allow(dead_code)]
     pub string: ManuallyDrop<String>,
     pub blank_node: ManuallyDrop<String>
 }
 
-pub struct DataValue {
+pub struct LexicalValue {
     pub data_type: DataType,
-    value: DataValueUnion,
+    value: LexicalValueUnion,
 }
 
-impl Debug for DataValue {
+impl Debug for LexicalValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         // Just show the value in its most turtle-like form
         unsafe {
             match self {
-                DataValue {
+                LexicalValue {
                     data_type: DataType::AnyUri | DataType::IriReference,
-                    value: DataValueUnion{ iri }
+                    value: LexicalValueUnion { iri }
                 } => {
                     let iri_buf = iri.deref();
                     write!(f, "<{}>", iri_buf)
                 }
-                DataValue {
+                LexicalValue {
                     data_type: DataType::String | DataType::PlainLiteral,
-                    value: DataValueUnion{
+                    value: LexicalValueUnion {
                         string
                     }
                 } => {
                     write!(f, "{:?}", string)
                 }
-                DataValue {
+                LexicalValue {
                     data_type: DataType::BlankNode,
-                    value: DataValueUnion{
+                    value: LexicalValueUnion {
                         blank_node
                     }
                 } => {
@@ -57,7 +57,7 @@ impl Debug for DataValue {
     }
 }
 
-impl Display for DataValue {
+impl Display for LexicalValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self.data_type {
             DataType::IriReference | DataType::AnyUri => write!(f, "<{}>", self.as_iri().unwrap().as_str()),
@@ -66,12 +66,12 @@ impl Display for DataValue {
     }
 }
 
-impl DataValue {
+impl LexicalValue {
     pub fn as_iri(&self) -> Option<IriBuf> {
         match self.data_type {
             DataType::IriReference | DataType::AnyUri => {
                 unsafe {
-                    let DataValue { value: DataValueUnion { iri }, .. } = self;
+                    let LexicalValue { value: LexicalValueUnion { iri }, .. } = self;
                     Some(iri.deref().clone())
                 }
             }
@@ -85,7 +85,7 @@ impl DataValue {
                 self.as_iri().map(|iri| String::from(iri.as_str())),
             DataType::String | DataType::PlainLiteral =>
                 unsafe {
-                    let DataValue { value: DataValueUnion { string }, .. } = self;
+                    let LexicalValue { value: LexicalValueUnion { string }, .. } = self;
                     Some(string.deref().clone())
                 },
             _ => {
@@ -94,41 +94,41 @@ impl DataValue {
         }
     }
 
-    pub fn from_type_and_c_buffer(data_type: DataType, buffer: &[u8]) -> Result<DataValue, Error> {
+    pub fn from_type_and_c_buffer(data_type: DataType, buffer: &[u8]) -> Result<LexicalValue, Error> {
         let str_buffer = std::ffi::CStr::from_bytes_until_nul(buffer)
             .map_err(|err| {
                 log::error!("Cannot read buffer: {err:?}");
-                UNKNOWN // TODO
+                Unknown // TODO
             })?
             .to_str()
             .map_err(|err| {
                 log::error!("Cannot convert buffer to string: {err:?}");
-                UNKNOWN // TODO
+                Unknown // TODO
             })?;
         Self::from_type_and_buffer(data_type, str_buffer)
     }
 
-    pub fn from_type_and_buffer(data_type: DataType, buffer: &str) -> Result<DataValue, Error> {
+    pub fn from_type_and_buffer(data_type: DataType, buffer: &str) -> Result<LexicalValue, Error> {
         match data_type {
             DataType::AnyUri | DataType::IriReference => {
-                Ok(DataValue {
+                Ok(LexicalValue {
                     data_type,
-                    value: DataValueUnion {
+                    value: LexicalValueUnion {
                         iri: ManuallyDrop::new(IriBuf::from_str(buffer)?),
                     },
                 })
             }
             DataType::BlankNode => {
-                Ok(DataValue {
+                Ok(LexicalValue {
                     data_type,
-                    value: DataValueUnion {
+                    value: LexicalValueUnion {
                         blank_node: ManuallyDrop::new(buffer.to_string())
                     }
                 })
             }
             _ => {
                 log::warn!("Unsupported datatype: {data_type:?} value={buffer}");
-                Err(UNKNOWN)
+                Err(Unknown)
             }
         }
     }

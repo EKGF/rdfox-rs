@@ -10,7 +10,7 @@ use std::str::Utf8Error;
 
 use crate::root::{CException, CException_getExceptionName, CException_what};
 use crate::Error;
-use crate::Error::UNKNOWN;
+use crate::Error::Unknown;
 
 impl CException {
     pub fn handle<F>(f: F) -> Result<(), Error>
@@ -24,7 +24,7 @@ impl CException {
                     return Ok(());
                 }
                 log::error!("{:}", *exception);
-                Err(UNKNOWN)
+                Err(Unknown)
             });
             if did_panic.is_err() {
                 log::error!("RDFox panicked");

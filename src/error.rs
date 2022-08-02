@@ -9,7 +9,11 @@ use thiserror::Error;
 pub enum Error {
     #[allow(dead_code)]
     #[error("Unknown Error")]
-    UNKNOWN,
+    Unknown,
+    #[error("Unknown data type {datatype_id}")]
+    UnknownDatatype {
+        datatype_id: u8
+    },
     #[allow(dead_code)]
     #[error("Unknown resource")]
     UnknownResourceException,

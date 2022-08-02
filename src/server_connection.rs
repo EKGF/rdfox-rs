@@ -71,6 +71,12 @@ impl ServerConnection {
         Ok(data_store)
     }
 
+    pub fn create_data_store_named(&self, name: &str) -> Result<DataStore, Error> {
+        self.create_data_store(
+            DataStore::declare(name)
+        )
+    }
+
     pub fn connect_to_data_store(
         &self,
         data_store: DataStore,

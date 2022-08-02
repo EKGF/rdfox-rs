@@ -15,7 +15,7 @@ pub use cursor::{Cursor,OpenedCursor,CursorRow,ResourceValue};
 pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
 pub use data_type::DataType;
-pub use data_value::DataValue;
+pub use lexical_value::LexicalValue;
 pub use error::Error;
 pub use graph::{DEFAULT_GRAPH, Graph, NS_RDFOX};
 pub use graph_connection::GraphConnection;
@@ -52,6 +52,6 @@ mod statement;
 mod transaction;
 mod class;
 mod data_type;
-mod data_value;
+mod lexical_value;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

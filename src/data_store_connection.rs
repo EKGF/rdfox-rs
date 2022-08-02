@@ -226,7 +226,7 @@ impl DataStoreConnection {
         let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
         let parameters = Parameters::empty()?;
         let query_answer_format_name = CString::new(mime_type.as_ref())?;
-        log::trace!("CDataStoreConnection_evaluateStatementToBuffer:");
+        log::info!("CDataStoreConnection_evaluateStatementToBuffer: mime={query_answer_format_name:?}");
         CException::handle(AssertUnwindSafe(|| unsafe {
             CDataStoreConnection_evaluateStatementToBuffer(
                 self.inner,
@@ -237,15 +237,16 @@ impl DataStoreConnection {
                 parameters.inner,
                 buffer.as_mut_ptr() as *mut i8,
                 buffer.len() as c_ulong,
-                result_size,
+                ptr::addr_of_mut!(*result_size),
                 query_answer_format_name.as_ptr(),
-                number_of_solutions
+                ptr::addr_of_mut!(*number_of_solutions)
             )
         }))?;
 
-        log::info!("number_of_solutions={number_of_solutions} result_size={result_size}");
+        let bytes_len: usize = *result_size as usize;
+        log::info!("buffer-len={} number_of_solutions={number_of_solutions} result_size={result_size} bytes_len={bytes_len}", buffer.len());
 
-        let slice = unsafe {std::slice::from_raw_parts(buffer.as_ptr(), *result_size as usize)};
+        let slice = unsafe {std::slice::from_raw_parts(buffer.as_ptr(), bytes_len)};
         let c_str = unsafe { CStr::from_bytes_with_nul_unchecked(slice) };
 
         log::info!("buffer=\n{}", c_str.to_str().unwrap());

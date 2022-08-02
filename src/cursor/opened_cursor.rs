@@ -4,7 +4,7 @@
 use std::panic::AssertUnwindSafe;
 use std::ptr;
 
-use crate::{Cursor, Error, Error::UNKNOWN, root::{
+use crate::{Cursor, Error, Error::Unknown, root::{
     CArgumentIndex,
     CCursor,
     CCursor_advance,
@@ -22,7 +22,7 @@ pub struct OpenedCursor<'a> {
     pub cursor: &'a Cursor<'a>,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity: u64,
+    pub arity: u16,
     pub arguments_buffer: Vec<u64>,
     pub argument_indexes: Vec<u32>
 }
@@ -36,7 +36,7 @@ impl<'a> OpenedCursor<'a> {
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
         let arguments_buffer = Self::arguments_buffer(c_cursor)?;
-        let argument_indexes = Self::argument_indexes(c_cursor, arity as usize)?;
+        let argument_indexes = Self::argument_indexes(c_cursor, arity)?;
         let opened_cursor = OpenedCursor {
             tx,
             cursor,
@@ -59,12 +59,13 @@ impl<'a> OpenedCursor<'a> {
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    fn arity(c_cursor: *mut CCursor) -> Result<u64, Error> {
+    fn arity(c_cursor: *mut CCursor) -> Result<u16, Error> {
         let mut arity = 0_u64;
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_getArity(c_cursor, &mut arity)
         }))?;
-        Ok(arity)
+        // Trimming it down, we don't expect more than 2^16 columns do we?
+        Ok(arity as u16)
     }
 
     pub fn arguments_buffer(c_cursor: *mut CCursor) -> Result<Vec<u64>, Error> {
@@ -95,15 +96,15 @@ impl<'a> OpenedCursor<'a> {
         Ok(result)
     }
 
-    fn argument_indexes(c_cursor: *mut CCursor, arity: usize) -> Result<Vec<u32>, Error> {
+    fn argument_indexes(c_cursor: *mut CCursor, arity: u16) -> Result<Vec<u32>, Error> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_getArgumentIndexes(c_cursor, &mut indexes)
         }))?;
-        if indexes.is_null() { return Err(UNKNOWN) }
+        if indexes.is_null() { return Err(Unknown) }
         let mut result = Vec::new();
         unsafe {
-            result.extend(std::slice::from_raw_parts(indexes, arity));
+            result.extend(std::slice::from_raw_parts(indexes, arity as usize));
         }
         log::trace!("CCursor_getArgumentIndexes: {result:?}");
         Ok(result)
@@ -115,7 +116,7 @@ impl<'a> OpenedCursor<'a> {
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_advance(self.cursor.inner, &mut multiplicity)
         }))?;
-        log::info!("cursor {:?} advanced, multiplicity={multiplicity}", self.cursor.inner);
+        log::debug!("cursor {:?} advanced, multiplicity={multiplicity}", self.cursor.inner);
         Ok(multiplicity)
     }
 
