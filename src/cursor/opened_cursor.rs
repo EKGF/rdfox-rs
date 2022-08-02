@@ -53,7 +53,7 @@ impl<'a> OpenedCursor<'a> {
         CException::handle(AssertUnwindSafe(|| unsafe {
             CCursor_open(c_cursor, &mut multiplicity)
         }))?;
-        log::info!("CCursor_open ok multiplicity={multiplicity}");
+        log::debug!("CCursor_open ok multiplicity={multiplicity}");
         Ok(multiplicity)
     }
 

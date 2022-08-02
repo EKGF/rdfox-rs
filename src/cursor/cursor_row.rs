@@ -149,15 +149,13 @@ impl<'a> CursorRow<'a> {
     /// Get the value in lexical form of a term in the current solution / current row with the given term index.
     pub fn lexical_value(&self, term_index: u16) -> Result<LexicalValue, Error> {
         let resource_id = self.resource_id(term_index)?;
-        log::info!(
+        log::debug!(
                 "row={rowid} multiplicity={multiplicity} \
                  term_index={term_index} resource_id={resource_id}:",
                 rowid = self.rowid,
                 multiplicity = self.multiplicity
             );
-        let value = self.lexical_value_with_id(resource_id)?;
-        log::info!("{value:?}");
-        Ok(value)
+        self.lexical_value_with_id(resource_id)
     }
 }
 
