@@ -29,16 +29,6 @@ impl<'a> CursorRow<'a> {
         self.opened.resource_id(term_index)
     }
 
-    // pub fn CCursor_getResourceValue(
-    //     cursor: *mut root::CCursor,
-    //     resourceID: root::CResourceID,
-    //     data: *mut *const root::byte_t,
-    //     dataSize: *mut root::size_t,
-    //     prefixData: *mut *const root::byte_t,
-    //     prefixDataSize: *mut root::size_t,
-    //     datatypeID: *mut root::CDatatypeID,
-    //     resourceResolved: *mut bool,
-    // ) -> *const root::CException;
     /// Returns the resource bound to the given index in the current answer row.
     fn resource_value_with_id(&self, resource_id: u64) -> Result<ResourceValue, Error> {
         let mut data: *const u8 = ptr::null_mut();
@@ -96,16 +86,6 @@ impl<'a> CursorRow<'a> {
         Ok(value)
     }
 
-
-    // pub fn CCursor_getResourceLexicalForm(
-    //     cursor: *mut root::CCursor,
-    //     resourceID: root::CResourceID,
-    //     buffer: *mut ::std::os::raw::c_char,
-    //     bufferSize: root::size_t,
-    //     lexicalFormSize: *mut root::size_t,
-    //     datatypeID: *mut root::CDatatypeID,
-    //     resourceResolved: *mut bool,
-    // ) -> *const root::CException;
     /// Returns the resource bound to the given index in the current answer row.
     fn lexical_value_with_id(&self, resource_id: u64) -> Result<LexicalValue, Error> {
         let mut buffer = [0u8; 1024];
