@@ -44,7 +44,6 @@ impl<'a> OpenedCursor<'a> {
             arguments_buffer,
             argument_indexes,
         };
-        log::info!("Created OpenedCursor");
         Ok((opened_cursor, multiplicity))
     }
 

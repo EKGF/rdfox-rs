@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use crate::error::Error;
 use crate::ServerConnection;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct DataStore {
     pub(crate) name: String,
 }

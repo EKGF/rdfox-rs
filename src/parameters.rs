@@ -34,7 +34,7 @@ impl Drop for Parameters {
     fn drop(&mut self) {
         unsafe {
             CParameters_destroy(self.inner);
-            log::debug!("Destroyed params");
+            log::trace!("Destroyed params");
         }
     }
 }

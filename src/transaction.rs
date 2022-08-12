@@ -108,7 +108,7 @@ impl<'a> Transaction<'a> {
                 log::error!("Error occurred during transaction: {err}");
             },
             Ok(..) => {
-                log::info!("Readonly-transaction was successful");
+                log::debug!("Readonly-transaction was successful");
             }
         }
         self.rollback()?;

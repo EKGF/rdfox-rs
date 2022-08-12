@@ -1,8 +1,9 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ffi::{c_ulong, CStr, CString};
-use std::fmt::{Display, Formatter};
+use std::ffi::{CStr, CString};
+use std::fmt::{Debug, Display, Formatter};
+use std::io::Write;
 use std::ops::Deref;
 use std::os::unix::ffi::OsStrExt;
 use std::panic::AssertUnwindSafe;
@@ -17,15 +18,17 @@ use indoc::formatdoc;
 use mime::Mime;
 use regex::Regex;
 
-use crate::{DataStore, DEFAULT_GRAPH, FactDomain, Graph, Parameters, Prefixes, root::{
+use crate::{DataStore, DEFAULT_GRAPH, FactDomain, Graph, Parameters, Prefix, Prefixes, root::{
     CDataStoreConnection,
-    CDataStoreConnection_evaluateStatementToBuffer, CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
+    // CDataStoreConnection_evaluateStatementToBuffer,
+    CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
     CDataStoreConnection_importAxiomsFromTriples, CDataStoreConnection_importDataFromFile,
     CException, CUpdateType,
-}, Statement, TEXT_TURTLE};
+    // COutputStream
+}, Statement, Streamer, TEXT_TURTLE};
 use crate::error::Error;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct DataStoreConnection {
     pub data_store: DataStore,
     pub(crate) inner: *mut CDataStoreConnection,
@@ -212,52 +215,69 @@ impl DataStoreConnection {
     //     queryAnswerFormatName: *const ::std::os::raw::c_char,
     //     statementResult: *mut root::size_t,
     // ) -> *const root::CException;
-    pub fn evaluate_to_buffer(
-        &self,
-        statement: Statement,
-        buffer: &mut [u8],
-        number_of_solutions: &mut u64,
-        result_size: &mut u64,
-        mime_type: &Mime
-    ) -> Result<(), Error> {
-        let base_iri = ptr::null_mut();
-        let prefixes = Prefixes::default()?;
-        let statement_text = statement.as_c_string()?;
-        let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
-        let parameters = Parameters::empty()?;
-        let query_answer_format_name = CString::new(mime_type.as_ref())?;
-        log::info!("CDataStoreConnection_evaluateStatementToBuffer: mime={query_answer_format_name:?}");
-        CException::handle(AssertUnwindSafe(|| unsafe {
-            CDataStoreConnection_evaluateStatementToBuffer(
-                self.inner,
-                base_iri,
-                prefixes.inner,
-                statement_text.as_ptr(),
-                statement_text_len,
-                parameters.inner,
-                buffer.as_mut_ptr() as *mut i8,
-                buffer.len() as c_ulong,
-                ptr::addr_of_mut!(*result_size),
-                query_answer_format_name.as_ptr(),
-                ptr::addr_of_mut!(*number_of_solutions)
-            )
-        }))?;
+    // pub fn evaluate_to_buffer(
+    //     &self,
+    //     statement: Statement,
+    //     buffer: &mut [u8],
+    //     number_of_solutions: &mut u64,
+    //     result_size: &mut u64,
+    //     mime_type: &Mime,
+    // ) -> Result<(), Error> {
+    //     let base_iri = ptr::null_mut();
+    //     let prefixes = Prefixes::default()?;
+    //     let statement_text = statement.as_c_string()?;
+    //     let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
+    //     let parameters = Parameters::empty()?;
+    //     let buffer_size = buffer.len() as c_ulong;
+    //     let query_answer_format_name = CString::new(mime_type.as_ref())?;
+    //     log::info!("CDataStoreConnection_evaluateStatementToBuffer: mime={query_answer_format_name:?}");
+    //     CException::handle(AssertUnwindSafe(|| unsafe {
+    //         CDataStoreConnection_evaluateStatementToBuffer(
+    //             self.inner,
+    //             base_iri,
+    //             prefixes.inner,
+    //             statement_text.as_ptr(),
+    //             statement_text_len,
+    //             parameters.inner,
+    //             buffer.as_mut_ptr() as *mut i8,
+    //             buffer_size,
+    //             result_size,
+    //             query_answer_format_name.as_ptr(),
+    //             number_of_solutions,
+    //         )
+    //     }))?;
+    //
+    //     log::info!("buffer_size={buffer_size} number_of_solutions={number_of_solutions} result_size={}",*result_size as usize);
+    //
+    //     let slice = unsafe { std::slice::from_raw_parts(buffer.as_ptr(), *result_size as usize) };
+    //     let c_str = unsafe { CStr::from_bytes_with_nul_unchecked(slice) };
+    //
+    //     log::info!("buffer=\n{}", c_str.to_str().unwrap());
+    //     Ok(())
+    // }
 
-        let bytes_len: usize = *result_size as usize;
-        log::info!("buffer-len={} number_of_solutions={number_of_solutions} result_size={result_size} bytes_len={bytes_len}", buffer.len());
-
-        let slice = unsafe {std::slice::from_raw_parts(buffer.as_ptr(), bytes_len)};
-        let c_str = unsafe { CStr::from_bytes_with_nul_unchecked(slice) };
-
-        log::info!("buffer=\n{}", c_str.to_str().unwrap());
-        Ok(())
+    pub fn evaluate_to_stream<'a, W>(
+        &'a self,
+        writer: W,
+        statement: &'a Statement<'a>,
+        mime_type: &'static Mime,
+    ) -> Result<Streamer<'a, W>, Error>
+        where W: 'a + Write + Debug
+    {
+        Streamer::run(
+            self,
+            writer,
+            statement,
+            mime_type,
+            Prefix::declare_from_str("base","https://whatever.kg")
+        )
     }
 
     pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            formatdoc! (
+            formatdoc!(
                 r##"
                 SELECT ?graph ?s ?p ?o
                 WHERE {{
@@ -278,7 +298,7 @@ impl DataStoreConnection {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            formatdoc! (
+            formatdoc!(
                 r##"
                 SELECT DISTINCT ?subject
                 WHERE {{
@@ -301,7 +321,7 @@ impl DataStoreConnection {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            formatdoc! (
+            formatdoc!(
                 r##"
                 SELECT DISTINCT ?predicate
                 WHERE {{
@@ -324,7 +344,7 @@ impl DataStoreConnection {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::query(
             &Prefixes::default()?,
-            formatdoc! (
+            formatdoc!(
                 r##"
                 SELECT DISTINCT ?ontology
                 WHERE {{
@@ -338,9 +358,10 @@ impl DataStoreConnection {
                     }}
                 }}
                 "##
-            ).as_str()
+            ).as_str(),
         )?
             .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
             .count()
     }
 }
+

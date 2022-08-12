@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
 }
@@ -84,7 +84,7 @@ impl Prefixes {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug,PartialEq,Clone)]
 pub struct Prefix {
     /// assumed to end with ':'
     pub name: String,

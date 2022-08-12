@@ -31,8 +31,7 @@ impl Debug for LexicalValue {
                     data_type: DataType::AnyUri | DataType::IriReference,
                     value: LexicalValueUnion { iri }
                 } => {
-                    let iri_buf = iri.deref();
-                    write!(f, "<{}>", iri_buf)
+                    write!(f, "<{}>", iri.deref())
                 }
                 LexicalValue {
                     data_type: DataType::String | DataType::PlainLiteral,
@@ -40,8 +39,16 @@ impl Debug for LexicalValue {
                         string
                     }
                 } => {
-                    write!(f, "{:?}", string)
-                }
+                    write!(f, "{:?}", string.deref())
+                },
+                LexicalValue {
+                    data_type: DataType::Boolean,
+                    value: LexicalValueUnion {
+                        boolean
+                    }
+                } => {
+                    write!(f, "{}", boolean)
+                },
                 LexicalValue {
                     data_type: DataType::BlankNode,
                     value: LexicalValueUnion {
@@ -51,7 +58,7 @@ impl Debug for LexicalValue {
                     write!(f, "_:{}", blank_node.as_str())
                 }
                 &_ => {
-                    write!(f, "unsupported type")
+                    write!(f, "unsupported type {:?}", self.data_type)
                 }
             }
         }

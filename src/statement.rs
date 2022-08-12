@@ -10,7 +10,7 @@ use indoc::formatdoc;
 use crate::Cursor;
 
 /// SPARQL Statement
-#[derive(Debug,Clone)]
+#[derive(Debug,PartialEq,Clone)]
 pub struct Statement<'a> {
     pub prefixes: &'a Prefixes,
     pub(crate) text: String,

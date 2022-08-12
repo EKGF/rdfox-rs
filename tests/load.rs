@@ -143,16 +143,13 @@ fn test_cursor_with_resource_value(graph_connection: &rdfox::GraphConnection) ->
 fn test_run_query_to_nquads_buffer(ds_connection: &rdfox::DataStoreConnection) -> Result<(), rdfox::Error> {
     let prefixes = rdfox::Prefixes::default()?;
     let nquads_query = rdfox::Statement::nquads_query(&prefixes)?;
-    let mut buffer = [0u8; 10240];
-    let mut number_of_solutions = 0u64;
-    let mut result_size = 0u64;
-    ds_connection.evaluate_to_buffer(
-        nquads_query,
-        &mut buffer,
-        &mut number_of_solutions,
-        &mut result_size,
+    let writer= std::io::stdout();
+    ds_connection.evaluate_to_stream(
+        writer,
+        &nquads_query,
         rdfox::APPLICATION_N_QUADS.deref(),
     )?;
+    log::info!("test_run_query_to_nquads_buffer passed");
     Ok(())
 }
 
@@ -167,13 +164,15 @@ fn load_rdfox() -> Result<(), rdfox::Error> {
 
     graph_connection.import_data_from_file("tests/test.ttl")?;
 
-    // test_count_some_stuff_in_the_store(&ds_connection)?;
-    // test_count_some_stuff_in_the_graph(&graph_connection)?;
+    test_count_some_stuff_in_the_store(&ds_connection)?;
+    test_count_some_stuff_in_the_graph(&graph_connection)?;
 
-    // test_cursor_with_lexical_value(&graph_connection)?;
+    test_cursor_with_lexical_value(&graph_connection)?;
     test_cursor_with_resource_value(&graph_connection)?;
 
-    // test_run_query_to_nquads_buffer(&ds_connection)?;
+    test_run_query_to_nquads_buffer(&ds_connection)?;
+
+    log::info!("load_rdfox end");
 
     Ok(())
 }

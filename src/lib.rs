@@ -2,6 +2,7 @@
 //---------------------------------------------------------------
 #![feature(rustc_private)]
 #![feature(cstr_from_bytes_until_nul)]
+#![feature(ptr_metadata)]
 
 extern crate core;
 
@@ -25,6 +26,7 @@ pub use role_creds::RoleCreds;
 pub use server::Server;
 pub use server_connection::ServerConnection;
 pub use statement::Statement;
+pub use streamer::Streamer;
 pub use transaction::Transaction;
 
 lazy_static! {
@@ -53,5 +55,6 @@ mod transaction;
 mod class;
 mod data_type;
 mod lexical_value;
+mod streamer;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
