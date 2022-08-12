@@ -1,38 +1,54 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ffi::{CStr, CString};
-use std::fmt::{Debug, Display, Formatter};
-use std::io::Write;
-use std::ops::Deref;
-use std::os::unix::ffi::OsStrExt;
-use std::panic::AssertUnwindSafe;
-use std::path::Path;
-use std::ptr;
-use std::time::Instant;
+use std::{
+    ffi::{CStr, CString},
+    fmt::{Debug, Display, Formatter},
+    io::Write,
+    ops::Deref,
+    os::unix::ffi::OsStrExt,
+    panic::AssertUnwindSafe,
+    path::Path,
+    ptr,
+    time::Instant,
+};
 
 use colored::Colorize;
-use ignore::types::TypesBuilder;
-use ignore::WalkBuilder;
+use ignore::{types::TypesBuilder, WalkBuilder};
 use indoc::formatdoc;
 use mime::Mime;
 use regex::Regex;
 
-use crate::{DataStore, DEFAULT_GRAPH, FactDomain, Graph, Parameters, Prefix, Prefixes, root::{
-    CDataStoreConnection,
-    // CDataStoreConnection_evaluateStatementToBuffer,
-    CDataStoreConnection_getID, CDataStoreConnection_getUniqueID,
-    CDataStoreConnection_importAxiomsFromTriples, CDataStoreConnection_importDataFromFile,
-    CException, CUpdateType,
-    // COutputStream
-}, Statement, Streamer, TEXT_TURTLE};
 use crate::error::Error;
+use crate::{
+    root::{
+        CDataStoreConnection,
+        // CDataStoreConnection_evaluateStatementToBuffer,
+        CDataStoreConnection_getID,
+        CDataStoreConnection_getUniqueID,
+        CDataStoreConnection_importAxiomsFromTriples,
+        CDataStoreConnection_importDataFromFile,
+        CException,
+        CUpdateType,
+        // COutputStream
+    },
+    DataStore,
+    FactDomain,
+    Graph,
+    Parameters,
+    Prefix,
+    Prefixes,
+    Statement,
+    Streamer,
+    DEFAULT_GRAPH,
+    TEXT_TURTLE,
+};
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct DataStoreConnection {
-    pub data_store: DataStore,
+    pub data_store:   DataStore,
     pub(crate) inner: *mut CDataStoreConnection,
-    started_at: Instant,
+    started_at:       Instant,
 }
 
 impl Display for DataStoreConnection {
@@ -46,7 +62,7 @@ impl Display for DataStoreConnection {
             Ok(id) => write!(f, " {}", id),
             Err(_error) => write!(f, " (error could not get unique-id)"),
         }
-            .unwrap();
+        .unwrap();
         write!(f, " to {}", self.data_store)
     }
 }
@@ -59,7 +75,10 @@ impl Drop for DataStoreConnection {
 }
 
 impl DataStoreConnection {
-    pub(crate) fn new(data_store: DataStore, inner: *mut CDataStoreConnection) -> Self {
+    pub(crate) fn new(
+        data_store: DataStore,
+        inner: *mut CDataStoreConnection,
+    ) -> Self {
         Self {
             data_store,
             inner,
@@ -84,9 +103,13 @@ impl DataStoreConnection {
         Ok(c_str.to_str().unwrap().into())
     }
 
-    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
-        where
-            P: AsRef<Path>,
+    pub fn import_data_from_file<P>(
+        &self,
+        file: P,
+        graph: &Graph,
+    ) -> Result<(), Error>
+    where
+        P: AsRef<Path>,
     {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
@@ -153,8 +176,13 @@ impl DataStoreConnection {
     ///
     /// TODO: Support all the types that RDFox supports (and more)
     /// TODO: Support '*.gz' files
-    /// TODO: Parallelize appropriately in sync with number of threads that RDFox uses
-    pub fn import_rdf_from_directory(&self, root: &Path, graph: &Graph) -> Result<u16, Error> {
+    /// TODO: Parallelize appropriately in sync with number of threads that
+    /// RDFox uses
+    pub fn import_rdf_from_directory(
+        &self,
+        root: &Path,
+        graph: &Graph,
+    ) -> Result<u16, Error> {
         let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
@@ -186,17 +214,17 @@ impl DataStoreConnection {
                 Ok(dir_entry) => {
                     let file_type = dir_entry.file_type().unwrap();
                     if file_type.is_dir() {
-                        continue;
+                        continue
                     }
                     let rdf_file = dir_entry.path();
                     // log::debug!("entry {:?}", dir_entry);
                     self.import_data_from_file(rdf_file, &graph)?;
                     count += 1;
-                }
+                },
                 Err(error) => {
                     log::error!("error {:?}", error);
-                    return Err(Error::WalkError(error));
-                }
+                    return Err(Error::WalkError(error))
+                },
             }
         }
         Ok(count)
@@ -230,7 +258,8 @@ impl DataStoreConnection {
     //     let parameters = Parameters::empty()?;
     //     let buffer_size = buffer.len() as c_ulong;
     //     let query_answer_format_name = CString::new(mime_type.as_ref())?;
-    //     log::info!("CDataStoreConnection_evaluateStatementToBuffer: mime={query_answer_format_name:?}");
+    //     log::info!("CDataStoreConnection_evaluateStatementToBuffer:
+    // mime={query_answer_format_name:?}");
     //     CException::handle(AssertUnwindSafe(|| unsafe {
     //         CDataStoreConnection_evaluateStatementToBuffer(
     //             self.inner,
@@ -249,8 +278,9 @@ impl DataStoreConnection {
     //
     //     log::info!("buffer_size={buffer_size} number_of_solutions={number_of_solutions} result_size={}",*result_size as usize);
     //
-    //     let slice = unsafe { std::slice::from_raw_parts(buffer.as_ptr(), *result_size as usize) };
-    //     let c_str = unsafe { CStr::from_bytes_with_nul_unchecked(slice) };
+    //     let slice = unsafe { std::slice::from_raw_parts(buffer.as_ptr(),
+    // *result_size as usize) };     let c_str = unsafe {
+    // CStr::from_bytes_with_nul_unchecked(slice) };
     //
     //     log::info!("buffer=\n{}", c_str.to_str().unwrap());
     //     Ok(())
@@ -262,20 +292,24 @@ impl DataStoreConnection {
         statement: &'a Statement<'a>,
         mime_type: &'static Mime,
     ) -> Result<Streamer<'a, W>, Error>
-        where W: 'a + Write + Debug
+    where
+        W: 'a + Write + Debug,
     {
         Streamer::run(
             self,
             writer,
             statement,
             mime_type,
-            Prefix::declare_from_str("base","https://whatever.kg")
+            Prefix::declare_from_str("base", "https://whatever.kg"),
         )
     }
 
-    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_triples_count(
+        &self,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        Statement::query(
+        Statement::new(
             &Prefixes::default()?,
             formatdoc!(
                 r##"
@@ -288,15 +322,20 @@ impl DataStoreConnection {
                         BIND({default_graph} AS ?graph)
                     }}
                 }}
-            "##).as_str(),
+            "##
+            )
+            .as_str(),
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .count()
     }
 
-    pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_subjects_count(
+        &self,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        Statement::query(
+        Statement::new(
             &Prefixes::default()?,
             formatdoc!(
                 r##"
@@ -311,15 +350,20 @@ impl DataStoreConnection {
                         BIND({default_graph} AS ?graph)
                     }}
                 }}
-            "##).as_str(),
+            "##
+            )
+            .as_str(),
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .count()
     }
 
-    pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_predicates_count(
+        &self,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        Statement::query(
+        Statement::new(
             &Prefixes::default()?,
             formatdoc!(
                 r##"
@@ -334,15 +378,20 @@ impl DataStoreConnection {
                         BIND({default_graph} AS ?graph)
                     }}
                 }}
-            "##).as_str(),
+            "##
+            )
+            .as_str(),
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .count()
     }
 
-    pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_ontologies_count(
+        &self,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        Statement::query(
+        Statement::new(
             &Prefixes::default()?,
             formatdoc!(
                 r##"
@@ -358,10 +407,10 @@ impl DataStoreConnection {
                     }}
                 }}
                 "##
-            ).as_str(),
+            )
+            .as_str(),
         )?
-            .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-            .count()
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .count()
     }
 }
-

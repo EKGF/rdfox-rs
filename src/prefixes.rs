@@ -10,13 +10,13 @@ use crate::{
     root::{
         CException,
         CPrefixes,
-        CPrefixes_declarePrefix,
         CPrefixes_DeclareResult as PrefixDeclareResult,
+        CPrefixes_declarePrefix,
         CPrefixes_newDefaultPrefixes,
     },
 };
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
 }
@@ -59,19 +59,19 @@ impl Prefixes {
                     prefix.iri.as_str()
                 );
                 Err(Error::InvalidPrefixName)
-            }
+            },
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
                 log::warn!("Registered {prefix} twice");
                 Ok(result)
-            }
+            },
             _ => {
                 log::error!(
                     "Result of registering prefix {prefix} is {:?}",
                     result
                 );
                 Ok(result)
-            }
+            },
         }
     }
 
@@ -82,14 +82,18 @@ impl Prefixes {
     ) -> Result<PrefixDeclareResult, Error> {
         self.declare_prefix(&Prefix::declare(name, iri))
     }
+
+    pub fn add(self, prefix: &Prefix) -> Result<Self, Error> {
+        self.declare_prefix(prefix).map(|_result| self)
+    }
 }
 
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Prefix {
     /// assumed to end with ':'
     pub name: String,
     /// assumed to end with either '/' or '#'
-    pub iri: IriBuf,
+    pub iri:  IriBuf,
 }
 
 impl std::fmt::Display for Prefix {
@@ -105,15 +109,15 @@ impl Prefix {
             '/' | '#' => {
                 Self {
                     name: name.to_string(),
-                    iri: IriBuf::from(iri),
+                    iri:  IriBuf::from(iri),
                 }
-            }
+            },
             _ => {
                 Self {
                     name: name.to_string(),
-                    iri: IriBuf::from_string(format!("{}/", iri)).unwrap(),
+                    iri:  IriBuf::from_string(format!("{}/", iri)).unwrap(),
                 }
-            }
+            },
         }
     }
 
@@ -160,7 +164,6 @@ impl<'a> PrefixesBuilder {
         Ok(to_build)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

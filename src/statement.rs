@@ -1,18 +1,24 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use crate::error::Error;
-use crate::{DataStoreConnection, DEFAULT_GRAPH, Parameters, Prefixes};
 use core::fmt::{Display, Formatter};
-use std::ffi::{ CString};
-use std::ops::Deref;
+use std::{ffi::CString, ops::Deref};
+
 use indoc::formatdoc;
-use crate::Cursor;
+
+use crate::{
+    error::Error,
+    Cursor,
+    DataStoreConnection,
+    Parameters,
+    Prefixes,
+    DEFAULT_GRAPH,
+};
 
 /// SPARQL Statement
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Statement<'a> {
-    pub prefixes: &'a Prefixes,
+    pub prefixes:    &'a Prefixes,
     pub(crate) text: String,
 }
 
@@ -23,7 +29,7 @@ impl Display for Statement<'_> {
 }
 
 impl<'a> Statement<'a> {
-    pub fn query(prefixes: &'a Prefixes, statement: &str) -> Result<Self, Error> {
+    pub fn new(prefixes: &'a Prefixes, statement: &str) -> Result<Self, Error> {
         let s = Self {
             prefixes,
             text: statement.trim().into(),
@@ -44,13 +50,15 @@ impl<'a> Statement<'a> {
         Ok(CString::new(self.text.as_str())?)
     }
 
-    /// Return a Statement that can be used to export all data in `application/nquads` format
-    pub fn nquads_query(prefixes: &'a Prefixes) -> Result<Statement<'a>, Error> {
-
+    /// Return a Statement that can be used to export all data in
+    /// `application/nquads` format
+    pub fn nquads_query(
+        prefixes: &'a Prefixes,
+    ) -> Result<Statement<'a>, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        let statement = Statement::query(
+        let statement = Statement::new(
             prefixes,
-            formatdoc! (
+            formatdoc!(
                 r##"
                 SELECT ?S ?P ?O ?G
                 WHERE {{
@@ -61,7 +69,9 @@ impl<'a> Statement<'a> {
                         BIND({default_graph} AS ?G)
                     }}
                 }}
-            "##).as_str(),
+            "##
+            )
+            .as_str(),
         )?;
         Ok(statement)
     }

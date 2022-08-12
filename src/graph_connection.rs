@@ -85,7 +85,7 @@ impl<'a> GraphConnection<'a> {
         &self,
         fact_domain: FactDomain,
     ) -> Result<std::os::raw::c_ulong, Error> {
-        Statement::query(
+        Statement::new(
             &Prefixes::default()?,
             formatdoc!(
                 r##"

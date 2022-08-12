@@ -2,12 +2,23 @@
 //---------------------------------------------------------------
 
 use std::ops::Deref;
+
 use indoc::formatdoc;
-use crate::{DataStoreConnection, DEFAULT_GRAPH, Error, FactDomain, Parameters, Prefix, Prefixes, Statement};
+
+use crate::{
+    DataStoreConnection,
+    Error,
+    FactDomain,
+    Parameters,
+    Prefix,
+    Prefixes,
+    Statement,
+    DEFAULT_GRAPH,
+};
 
 #[derive(Debug, Clone)]
 pub struct Class {
-    pub prefix: Prefix,
+    pub prefix:     Prefix,
     pub local_name: String,
 }
 
@@ -37,7 +48,7 @@ impl Class {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let prefixes =
             Prefixes::builder().declare(self.prefix.clone()).build()?;
-        let count_result = Statement::query(
+        let count_result = Statement::new(
             &prefixes,
             (formatdoc! {r##"
                 SELECT DISTINCT ?thing
@@ -53,13 +64,13 @@ impl Class {
                 }}
                 "##
             })
-                .as_str(),
+            .as_str(),
         )?
-            .cursor(
-                ds_connection,
-                &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
-            )?
-            .count();
+        .cursor(
+            ds_connection,
+            &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
+        )?
+        .count();
         #[allow(clippy::let_and_return)]
         count_result
     }
@@ -69,8 +80,7 @@ impl Class {
 mod tests {
     use iref::Iri;
 
-    use crate::Prefix;
-    use crate::class::Class;
+    use crate::{class::Class, Prefix};
 
     #[test]
     fn test_a_class() {
@@ -83,4 +93,3 @@ mod tests {
         assert_eq!(s, "test:SomeClass")
     }
 }
-
