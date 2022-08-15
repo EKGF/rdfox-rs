@@ -16,7 +16,7 @@ lazy_static! {
 
 #[derive(Debug, Clone)]
 pub struct Graph {
-    pub namespace: Prefix,
+    pub namespace:  Prefix,
     pub local_name: String,
 }
 
@@ -42,21 +42,14 @@ impl Graph {
         }
     }
 
-    pub fn dataset_from_path(
-        namespace: Prefix,
-        path: &std::path::Path,
-    ) -> Self {
+    pub fn dataset_from_path(namespace: Prefix, path: &std::path::Path) -> Self {
         Self::declare(namespace, path.file_name().unwrap().to_str().unwrap())
     }
 
-    pub fn test_dataset_from_path(
-        namespace: Prefix,
-        path: &std::path::Path,
-    ) -> Self {
+    pub fn test_dataset_from_path(namespace: Prefix, path: &std::path::Path) -> Self {
         Self::declare(
             namespace,
-            format!("test-{}", path.file_name().unwrap().to_str().unwrap())
-                .as_str(),
+            format!("test-{}", path.file_name().unwrap().to_str().unwrap()).as_str(),
         )
     }
 
@@ -100,9 +93,11 @@ mod tests {
         let graph_prefix = crate::Prefix::declare("graph:", ns);
         let graph = crate::Graph::declare(graph_prefix, "somedataset");
 
-
         assert_eq!(format!("{:}", graph).as_str(), "graph:somedataset");
-        assert_eq!(format!("{:}", graph.as_display_iri()).as_str(), "<https://whatever.kom/graph/somedataset>");
+        assert_eq!(
+            format!("{:}", graph.as_display_iri()).as_str(),
+            "<https://whatever.kom/graph/somedataset>"
+        );
     }
 
     #[test]

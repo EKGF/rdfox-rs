@@ -8,18 +8,17 @@ extern crate core;
 
 use core::str::FromStr;
 
-use lazy_static::lazy_static;
-pub use mime::Mime;
-
 pub use class::Class;
-pub use cursor::{Cursor,OpenedCursor,CursorRow,ResourceValue};
+pub use cursor::{Cursor, CursorRow, OpenedCursor, ResourceValue};
 pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
 pub use data_type::DataType;
-pub use lexical_value::LexicalValue;
 pub use error::Error;
-pub use graph::{DEFAULT_GRAPH, Graph, NS_RDFOX};
+pub use graph::{Graph, DEFAULT_GRAPH, NS_RDFOX};
 pub use graph_connection::GraphConnection;
+use lazy_static::lazy_static;
+pub use lexical_value::LexicalValue;
+pub use mime::Mime;
 pub use parameters::{FactDomain, Parameters};
 pub use prefixes::{Prefix, Prefixes, PrefixesBuilder};
 pub use role_creds::RoleCreds;
@@ -30,31 +29,53 @@ pub use streamer::Streamer;
 pub use transaction::Transaction;
 
 lazy_static! {
+    // As documented here: https://docs.oxfordsemantic.tech/5.6/programmatic-access-APIs.html#formats-encoding-sparql-query-results
+    pub static ref TEXT_TSV: Mime = Mime::from_str("text/tab-separated-values").unwrap();
+    pub static ref TEXT_CSV: Mime = Mime::from_str("text/csv").unwrap();
+    pub static ref TEXT_X_CSV_ABBREV: Mime = Mime::from_str("text/x.csv-abbrev").unwrap();
     pub static ref TEXT_TURTLE: Mime = Mime::from_str("text/turtle").unwrap();
     pub static ref TEXT_OWL_FUNCTIONAL: Mime = Mime::from_str("text/owl-functional").unwrap();
-    pub static ref APPLICATION_N_TRIPLES: Mime = Mime::from_str("application/n-triples").unwrap();
-    pub static ref APPLICATION_N_QUADS: Mime = Mime::from_str("application/n-quads").unwrap();
+    pub static ref TEXT_X_TAB_SEPARATED_VALUES_ABBREV: Mime =
+        Mime::from_str("text/x.tab-separated-values-abbrev").unwrap();
     pub static ref APPLICATION_TRIG: Mime = Mime::from_str("application/trig").unwrap();
+    pub static ref APPLICATION_N_QUADS: Mime = Mime::from_str("application/n-quads").unwrap();
+    pub static ref APPLICATION_N_TRIPLES: Mime = Mime::from_str("application/n-triples").unwrap();
     pub static ref APPLICATION_X_DATALOG: Mime = Mime::from_str("application/x.datalog").unwrap();
+    pub static ref APPLICATION_SPARQL_RESULTS_XML: Mime =
+        Mime::from_str("application/sparql-results+xml").unwrap();
+    pub static ref APPLICATION_SPARQL_RESULTS_JSON: Mime =
+        Mime::from_str("application/sparql-results+json").unwrap();
+    pub static ref APPLICATION_SPARQL_RESULTS_TURTLE: Mime =
+        Mime::from_str("application/sparql-results+turtle").unwrap();
+    pub static ref APPLICATION_X_SPARQL_RESULTS_XML_ABBREV: Mime =
+        Mime::from_str("application/x.sparql-results+xml-abbrev").unwrap();
+    pub static ref APPLICATION_X_SPARQL_RESULTS_JSON_ABBREV: Mime =
+        Mime::from_str("application/x.sparql-results+json-abbrev").unwrap();
+    pub static ref APPLICATION_X_SPARQL_RESULTS_TURTLE_ABBREV: Mime =
+        Mime::from_str("application/x.sparql-results+turtle-abbrev").unwrap();
+    pub static ref APPLICATION_X_SPARQL_RESULTS_RESOURCEID: Mime =
+        Mime::from_str("application/x.sparql-results+resourceid").unwrap();
+    pub static ref APPLICATION_X_SPARQL_RESULTS_NULL: Mime =
+        Mime::from_str("application/x.sparql-results+null").unwrap();
 }
 
+mod class;
 mod cursor;
 mod data_store;
 mod data_store_connection;
+mod data_type;
 mod error;
 mod exception;
 mod graph;
 mod graph_connection;
+mod lexical_value;
 mod parameters;
 mod prefixes;
 mod role_creds;
 mod server;
 mod server_connection;
 mod statement;
-mod transaction;
-mod class;
-mod data_type;
-mod lexical_value;
 mod streamer;
+mod transaction;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

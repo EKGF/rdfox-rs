@@ -1,25 +1,25 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ffi::CString;
-use std::panic::AssertUnwindSafe;
-use std::ptr;
-
-use crate::{DataStoreConnection, error::Error, Parameters, root::{
-    CCursor,
-    CCursor_destroy,
-    CDataStoreConnection_createCursor,
-    CException,
-}, Statement, Transaction};
+use std::{ffi::CString, ptr};
 
 use super::{CursorRow, OpenedCursor};
+use crate::{
+    database_call,
+    error::Error,
+    root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
+    DataStoreConnection,
+    Parameters,
+    Statement,
+    Transaction,
+};
 
 #[derive(Debug)]
 pub struct Cursor<'a> {
     #[allow(dead_code)]
-    pub inner: *mut CCursor,
+    pub inner:             *mut CCursor,
     pub(crate) connection: &'a DataStoreConnection,
-    statement: Statement<'a>,
+    statement:             Statement<'a>,
 }
 
 impl<'a> Drop for Cursor<'a> {
@@ -48,7 +48,8 @@ impl<'a> Cursor<'a> {
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len: u64 = c_query.as_bytes().len() as u64;
         log::trace!("Starting cursor for {:?}", c_query);
-        CException::handle(AssertUnwindSafe(|| unsafe {
+        database_call!(
+            "creating a cursor",
             CDataStoreConnection_createCursor(
                 connection.inner,
                 ptr::null(),
@@ -58,7 +59,7 @@ impl<'a> Cursor<'a> {
                 parameters.inner,
                 &mut c_cursor,
             )
-        }))?;
+        )?;
         let cursor = Cursor {
             inner: c_cursor,
             connection,
@@ -69,19 +70,22 @@ impl<'a> Cursor<'a> {
         Ok(cursor)
     }
 
-    pub fn count(&mut self) -> Result<u64, Error> {
-        self.execute_and_rollback(|_row| { Ok(()) })
-    }
+    pub fn count(&mut self) -> Result<u64, Error> { self.execute_and_rollback(|_row| Ok(())) }
 
     fn consume_cursor<T>(&mut self, tx: &mut Transaction, mut f: T) -> Result<u64, Error>
-        where T: FnMut(CursorRow) -> Result<(), Error> {
+    where T: FnMut(CursorRow) -> Result<(), Error> {
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, &tx)?;
         let mut rowid = 0_u64;
         let mut count = 0_u64;
         while multiplicity > 0 {
             rowid += 1;
             count += multiplicity;
-            let row = CursorRow { opened: &opened_cursor, multiplicity, count, rowid };
+            let row = CursorRow {
+                opened: &opened_cursor,
+                multiplicity,
+                count,
+                rowid,
+            };
             f(row)?;
             multiplicity = opened_cursor.advance()?;
         }
@@ -89,16 +93,36 @@ impl<'a> Cursor<'a> {
     }
 
     pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<u64, Error>
-        where T: FnMut(CursorRow) -> Result<(), Error> {
-        Transaction::begin_read_write(self.connection)?.update_and_commit(|tx| {
-            self.consume_cursor(tx, f)
-        })
+    where T: FnMut(CursorRow) -> Result<(), Error> {
+        let mut tx = Transaction::begin_read_write(self.connection)?;
+        self.update_and_commit_in_transaction(&mut tx, f)
     }
 
     pub fn execute_and_rollback<T>(&mut self, f: T) -> Result<u64, Error>
-        where T: FnMut(CursorRow) -> Result<(), Error> {
-        Transaction::begin_read_only(self.connection)?.execute_and_rollback(|tx| {
-            self.consume_cursor(tx, f)
-        })
+    where T: FnMut(CursorRow) -> Result<(), Error> {
+        let mut tx = Transaction::begin_read_only(self.connection)?;
+        self.execute_and_rollback_in_transaction(&mut tx, f)
+    }
+
+    pub fn execute_and_rollback_in_transaction<T>(
+        &mut self,
+        tx: &mut Transaction,
+        f: T,
+    ) -> Result<u64, Error>
+    where
+        T: FnMut(CursorRow) -> Result<(), Error>,
+    {
+        tx.execute_and_rollback(|tx| self.consume_cursor(tx, f))
+    }
+
+    pub fn update_and_commit_in_transaction<T>(
+        &mut self,
+        tx: &mut Transaction,
+        f: T,
+    ) -> Result<u64, Error>
+    where
+        T: FnMut(CursorRow) -> Result<(), Error>,
+    {
+        tx.execute_and_rollback(|tx| self.consume_cursor(tx, f))
     }
 }

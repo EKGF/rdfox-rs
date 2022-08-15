@@ -1,18 +1,20 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ffi::CString;
-use std::panic::AssertUnwindSafe;
-use std::ptr;
+use std::{ffi::CString, ptr};
 
-use crate::error::Error;
-use crate::error::Error::CouldNotConnectToServer;
 use crate::{
+    database_call,
+    error::{Error, Error::CouldNotConnectToServer},
     root::{
-        CException, CServerConnection, CServerConnection_newServerConnection,
-        CServer_createFirstLocalServerRole, CServer_startLocalServer,
+        CServerConnection,
+        CServerConnection_newServerConnection,
+        CServer_createFirstLocalServerRole,
+        CServer_startLocalServer,
     },
-    Parameters, RoleCreds, ServerConnection,
+    Parameters,
+    RoleCreds,
+    ServerConnection,
 };
 
 pub struct Server {
@@ -29,8 +31,10 @@ impl Server {
         params: &Parameters,
     ) -> Result<Self, Error> {
         log::debug!("Starting local RDFox server with {params}");
-        CException::handle(|| unsafe { CServer_startLocalServer(params.inner) })?;
-
+        database_call!(
+            "starting a local server",
+            CServer_startLocalServer(params.inner)
+        )?;
         let server = Server {
             default_role_creds: role_creds,
         };
@@ -45,9 +49,10 @@ impl Server {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         log::debug!("Creating server role named [{}]", role_creds.role_name);
-        CException::handle(|| unsafe {
+        database_call!(
+            "creating a local server role",
             CServer_createFirstLocalServerRole(c_role_name.as_ptr(), c_password.as_ptr())
-        })?;
+        )?;
         log::debug!("Created server role named [{}]", role_creds.role_name);
         Ok(())
     }
@@ -60,13 +65,14 @@ impl Server {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         let mut server_connection_ptr: *mut CServerConnection = ptr::null_mut();
-        CException::handle(AssertUnwindSafe(|| unsafe {
+        database_call!(
+            "creating a server connection",
             CServerConnection_newServerConnection(
                 c_role_name.as_ptr(),
                 c_password.as_ptr(),
                 &mut server_connection_ptr,
             )
-        }))?;
+        )?;
         if server_connection_ptr.is_null() {
             log::error!("Could not establish connection to server");
             Err(CouldNotConnectToServer)

@@ -1,14 +1,28 @@
-use std::ffi::{c_void, CString};
-use std::fmt::Debug;
-use std::io::Write;
-use std::panic::AssertUnwindSafe;
-use std::ptr;
-use mime::Mime;
-use crate::root::{
-    COutputStream, CException, CPrefixes, CDataStoreConnection, CDataStoreConnection_evaluateStatement, size_t,
+use std::{
+    ffi::{c_void, CString},
+    fmt::Debug,
+    io::Write,
+    ptr,
 };
-use crate::{DataStoreConnection, Error, Parameters, Prefix, Statement};
-use crate::cursor::ptr_to_cstr;
+
+use mime::Mime;
+
+use crate::{
+    cursor::ptr_to_cstr,
+    database_call,
+    root::{
+        size_t,
+        CDataStoreConnection,
+        CDataStoreConnection_evaluateStatement,
+        COutputStream,
+        CPrefixes,
+    },
+    DataStoreConnection,
+    Error,
+    Parameters,
+    Prefix,
+    Statement,
+};
 
 #[derive(PartialEq, Debug)]
 struct RefToSelf<'a, W: 'a + Write + Debug> {
@@ -21,18 +35,17 @@ impl<'a, W: 'a + Write + Debug> Drop for RefToSelf<'a, W> {
     }
 }
 
-
 /// A `Streamer` is a helper-object that's created by `evaluate_to_stream`
 /// to handle the various callbacks from the underlying C-API to RDFox.
 #[derive(PartialEq, Debug)]
 pub struct Streamer<'a, W: 'a + Write + Debug> {
     pub connection: &'a DataStoreConnection,
-    pub writer: W,
-    pub statement: &'a Statement<'a>,
-    pub mime_type: &'static Mime,
-    pub base_iri: Prefix,
-    pub instant: std::time::Instant,
-    self_p: String
+    pub writer:     W,
+    pub statement:  &'a Statement<'a>,
+    pub mime_type:  &'static Mime,
+    pub base_iri:   Prefix,
+    pub instant:    std::time::Instant,
+    self_p:         String,
 }
 
 impl<'a, W: 'a + Write + Debug> Drop for Streamer<'a, W> {
@@ -56,13 +69,13 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
             mime_type,
             base_iri,
             instant: std::time::Instant::now(),
-            self_p: "".to_string()
+            self_p: "".to_string(),
         };
         streamer.evaluate()
     }
 
-    /// Evaluate/execute the statement and stream all content to the given writer,
-    /// then return the streamer (i.e. self).
+    /// Evaluate/execute the statement and stream all content to the given
+    /// writer, then return the streamer (i.e. self).
     fn evaluate(mut self) -> Result<Self, Error> {
         let base_iri = ptr::null_mut();
         let statement_text = self.statement.as_c_string()?;
@@ -78,7 +91,9 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
 
         log::debug!("{self_p}: evaluate statement with mime={query_answer_format_name:?}");
 
-        let ref_to_self = Box::new(RefToSelf { streamer: &mut self as *mut Self });
+        let ref_to_self = Box::new(RefToSelf {
+            streamer: &mut self as *mut Self,
+        });
         let ref_to_self_raw_ptr = Box::into_raw(ref_to_self);
 
         let stream = Box::new(COutputStream {
@@ -88,7 +103,8 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
         });
         let stream_raw_ptr = Box::into_raw(stream);
 
-        let result = CException::handle(AssertUnwindSafe(|| unsafe {
+        let result = database_call! {
+            "evaluating a statement",
             CDataStoreConnection_evaluateStatement(
                 connection_ptr,
                 base_iri,
@@ -100,8 +116,7 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
                 query_answer_format_name.as_ptr(),
                 &mut number_of_solutions,
             )
-        }));
-
+        };
         // Explicitly clean up the two boxes that we allocated
         unsafe {
             ptr::drop_in_place(ref_to_self_raw_ptr);
@@ -120,13 +135,13 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
         ref_to_self
     }
 
-    extern fn flush_function(context: *mut c_void) -> bool {
+    extern "C" fn flush_function(context: *mut c_void) -> bool {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };
         streamer.flush()
     }
 
-    extern fn write_function(
+    extern "C" fn write_function(
         context: *mut c_void,
         data: *const c_void,
         number_of_bytes_to_write: size_t,
@@ -140,21 +155,17 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
             Ok(data_c_str) => {
                 log::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
                 streamer.write(data_c_str.to_bytes_with_nul())
-            }
+            },
             Err(error) => {
                 log::error!("{streamer:p}: could not write: {error:?}");
                 false
-            }
+            },
         }
     }
 
-    fn prefixes_ptr(&self) -> *mut CPrefixes {
-        self.statement.prefixes.inner
-    }
+    fn prefixes_ptr(&self) -> *mut CPrefixes { self.statement.prefixes.inner }
 
-    fn connection_ptr(&self) -> *mut CDataStoreConnection {
-        self.connection.inner
-    }
+    fn connection_ptr(&self) -> *mut CDataStoreConnection { self.connection.inner }
 }
 
 trait StreamerWithCallbacks {
@@ -180,10 +191,10 @@ impl<'a, W: 'a + Write + Debug> StreamerWithCallbacks for Streamer<'a, W> {
             Ok(len) => {
                 log::trace!("{self:p}: wrote {len} bytes");
                 true
-            }
+            },
             Err(err) => {
                 panic!("{self:p}: could not write: {err:?}")
-            }
+            },
         }
     }
 }

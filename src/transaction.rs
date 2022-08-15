@@ -2,12 +2,12 @@
 //---------------------------------------------------------------
 
 use crate::{
+    database_call,
     error::Error,
     root::{
         CDataStoreConnection_beginTransaction,
         CDataStoreConnection_commitTransaction,
         CDataStoreConnection_rollbackTransaction,
-        CException,
         CTransactionType,
     },
     DataStoreConnection,
@@ -15,8 +15,8 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Transaction<'a> {
-    pub(crate) connection: &'a DataStoreConnection,
-    committed:             bool,
+    pub connection: &'a DataStoreConnection,
+    committed:      bool,
 }
 
 impl<'a> Drop for Transaction<'a> {
@@ -34,9 +34,10 @@ impl<'a> Transaction<'a> {
         connection: &'a DataStoreConnection,
         tx_type: CTransactionType,
     ) -> Result<Self, Error> {
-        CException::handle(|| unsafe {
+        database_call!(
+            "starting a transaction",
             CDataStoreConnection_beginTransaction(connection.inner, tx_type)
-        })?;
+        )?;
         log::debug!("Started transaction");
         Ok(Self {
             connection,
@@ -44,15 +45,11 @@ impl<'a> Transaction<'a> {
         })
     }
 
-    pub fn begin_read_only(
-        connection: &'a DataStoreConnection,
-    ) -> Result<Self, Error> {
+    pub fn begin_read_only(connection: &'a DataStoreConnection) -> Result<Self, Error> {
         Self::begin(connection, CTransactionType::TRANSACTION_TYPE_READ_ONLY)
     }
 
-    pub fn begin_read_write(
-        connection: &'a DataStoreConnection,
-    ) -> Result<Self, Error> {
+    pub fn begin_read_write(connection: &'a DataStoreConnection) -> Result<Self, Error> {
         Self::begin(connection, CTransactionType::TRANSACTION_TYPE_READ_WRITE)
     }
 
@@ -70,21 +67,23 @@ impl<'a> Transaction<'a> {
     }
 
     pub fn commit(&mut self) -> Result<(), Error> {
-        if ! self.committed {
+        if !self.committed {
             self.committed = true; // May have to be made more thread-safe?
-            CException::handle(|| unsafe {
+            database_call!(
+                "committing a transaction",
                 CDataStoreConnection_commitTransaction(self.connection.inner)
-            })?;
+            )?;
         }
         Ok(())
     }
 
     pub fn rollback(&mut self) -> Result<(), Error> {
-        if ! self.committed {
+        if !self.committed {
             self.committed = true; // May have to be made more thread-safe?
-            CException::handle(|| unsafe {
+            database_call!(
+                "rolling back a transaction",
                 CDataStoreConnection_rollbackTransaction(self.connection.inner)
-            })?;
+            )?;
         }
         Ok(())
     }
@@ -109,7 +108,7 @@ impl<'a> Transaction<'a> {
             },
             Ok(..) => {
                 log::debug!("Readonly-transaction was successful");
-            }
+            },
         }
         self.rollback()?;
         result

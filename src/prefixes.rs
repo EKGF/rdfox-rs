@@ -1,14 +1,14 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, panic::AssertUnwindSafe, ptr};
+use std::{ffi::CString, ptr};
 
 use iref::{Iri, IriBuf};
 
 use crate::{
+    database_call,
     error::Error,
     root::{
-        CException,
         CPrefixes,
         CPrefixes_DeclareResult as PrefixDeclareResult,
         CPrefixes_declarePrefix,
@@ -28,33 +28,26 @@ impl Prefixes {
         let mut prefixes = Self {
             inner: ptr::null_mut(),
         };
-        CException::handle(AssertUnwindSafe(|| unsafe {
+        database_call!(
+            "allocating prefixes",
             CPrefixes_newDefaultPrefixes(&mut prefixes.inner)
-        }))?;
+        )?;
         Ok(prefixes)
     }
 
-    pub fn declare_prefix<'a>(
-        &self,
-        prefix: &Prefix,
-    ) -> Result<PrefixDeclareResult, Error> {
+    pub fn declare_prefix<'a>(&self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
         log::trace!("Register prefix {prefix}");
         let c_name = CString::new(prefix.name.as_str()).unwrap();
         let c_iri = CString::new(prefix.iri.as_str()).unwrap();
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
-        CException::handle(AssertUnwindSafe(|| unsafe {
-            CPrefixes_declarePrefix(
-                self.inner,
-                c_name.as_ptr(),
-                c_iri.as_ptr(),
-                &mut result,
-            )
-        }))?;
+        database_call!(
+            "declaring a prefix",
+            CPrefixes_declarePrefix(self.inner, c_name.as_ptr(), c_iri.as_ptr(), &mut result)
+        )?;
         match result {
             PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
                 log::error!(
-                    "Invalid prefix name \"{}\" while registering namespace \
-                     <{}>",
+                    "Invalid prefix name \"{}\" while registering namespace <{}>",
                     prefix.name.as_str(),
                     prefix.iri.as_str()
                 );
@@ -62,14 +55,11 @@ impl Prefixes {
             },
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
-                log::warn!("Registered {prefix} twice");
+                log::debug!("Registered {prefix} twice");
                 Ok(result)
             },
             _ => {
-                log::error!(
-                    "Result of registering prefix {prefix} is {:?}",
-                    result
-                );
+                log::error!("Result of registering prefix {prefix} is {:?}", result);
                 Ok(result)
             },
         }
@@ -142,11 +132,7 @@ impl<'a> PrefixesBuilder {
         }
     }
 
-    pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(
-        mut self,
-        name: &str,
-        iri: Base,
-    ) -> Self {
+    pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
         self.prefixes.push(Prefix::declare(name, iri));
         self
     }
@@ -173,10 +159,7 @@ mod tests {
 
     #[test]
     fn test_a_prefix() -> Result<(), iref::Error> {
-        let prefix = Prefix::declare(
-            "test:",
-            Iri::new("http://whatever.kom/test#").unwrap(),
-        );
+        let prefix = Prefix::declare("test:", Iri::new("http://whatever.kom/test#").unwrap());
         let x = prefix.with_local_name("abc")?;
 
         assert_eq!(x.as_str(), "http://whatever.kom/test#abc");

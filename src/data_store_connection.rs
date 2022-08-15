@@ -7,7 +7,6 @@ use std::{
     io::Write,
     ops::Deref,
     os::unix::ffi::OsStrExt,
-    panic::AssertUnwindSafe,
     path::Path,
     ptr,
     time::Instant,
@@ -21,16 +20,18 @@ use regex::Regex;
 
 use crate::error::Error;
 use crate::{
+    database_call,
     root::{
         CDataStoreConnection,
+        CDataStoreConnection_evaluateUpdate,
         // CDataStoreConnection_evaluateStatementToBuffer,
         CDataStoreConnection_getID,
         CDataStoreConnection_getUniqueID,
         CDataStoreConnection_importAxiomsFromTriples,
         CDataStoreConnection_importDataFromFile,
-        CException,
-        CUpdateType,
+        CStatementResult,
         // COutputStream
+        CUpdateType,
     },
     DataStore,
     FactDomain,
@@ -75,10 +76,7 @@ impl Drop for DataStoreConnection {
 }
 
 impl DataStoreConnection {
-    pub(crate) fn new(
-        data_store: DataStore,
-        inner: *mut CDataStoreConnection,
-    ) -> Self {
+    pub(crate) fn new(data_store: DataStore, inner: *mut CDataStoreConnection) -> Self {
         Self {
             data_store,
             inner,
@@ -88,29 +86,25 @@ impl DataStoreConnection {
 
     pub fn get_id(&self) -> Result<u32, Error> {
         let mut id: u32 = 0;
-        CException::handle(AssertUnwindSafe(|| unsafe {
+        database_call!(
+            "getting the id of a datastore connection",
             CDataStoreConnection_getID(self.inner, &mut id)
-        }))?;
+        )?;
         Ok(id)
     }
 
     pub fn get_unique_id(&self) -> Result<String, Error> {
         let mut unique_id: *const std::os::raw::c_char = ptr::null();
-        CException::handle(AssertUnwindSafe(|| unsafe {
+        database_call!(
+            "getting the unique id of datastore connection",
             CDataStoreConnection_getUniqueID(self.inner, &mut unique_id)
-        }))?;
+        )?;
         let c_str = unsafe { CStr::from_ptr(unique_id) };
         Ok(c_str.to_str().unwrap().into())
     }
 
-    pub fn import_data_from_file<P>(
-        &self,
-        file: P,
-        graph: &Graph,
-    ) -> Result<(), Error>
-    where
-        P: AsRef<Path>,
-    {
+    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
+    where P: AsRef<Path> {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
         let rdf_file = file.as_ref().as_os_str().as_bytes();
@@ -126,7 +120,8 @@ impl DataStoreConnection {
         let file_name = CString::new(rdf_file).unwrap();
         let format_name = CString::new(TEXT_TURTLE.as_ref()).unwrap();
 
-        CException::handle(|| unsafe {
+        database_call!(
+            "importing data from a file",
             CDataStoreConnection_importDataFromFile(
                 self.inner,
                 c_graph_name.as_ptr() as *const std::os::raw::c_char,
@@ -135,7 +130,7 @@ impl DataStoreConnection {
                 file_name.as_ptr() as *const std::os::raw::c_char,
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
-        })?;
+        )?;
         log::debug!(
             "Imported file {} into graph {:}",
             file.as_ref().display(),
@@ -154,7 +149,8 @@ impl DataStoreConnection {
         let c_source_graph_name = source_graph.as_c_string()?;
         let c_target_graph_name = target_graph.as_c_string()?;
 
-        CException::handle(|| unsafe {
+        database_call!(
+            "importing axioms",
             CDataStoreConnection_importAxiomsFromTriples(
                 self.inner,
                 c_source_graph_name.as_ptr() as *const std::os::raw::c_char,
@@ -162,7 +158,7 @@ impl DataStoreConnection {
                 c_target_graph_name.as_ptr() as *const std::os::raw::c_char,
                 CUpdateType::UPDATE_TYPE_ADDITION,
             )
-        })?;
+        )?;
         log::debug!(
             "Imported axioms from {:} into graph {:}",
             source_graph,
@@ -178,11 +174,7 @@ impl DataStoreConnection {
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that
     /// RDFox uses
-    pub fn import_rdf_from_directory(
-        &self,
-        root: &Path,
-        graph: &Graph,
-    ) -> Result<u16, Error> {
+    pub fn import_rdf_from_directory(&self, root: &Path, graph: &Graph) -> Result<u16, Error> {
         let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
@@ -230,61 +222,30 @@ impl DataStoreConnection {
         Ok(count)
     }
 
-    // pub fn CDataStoreConnection_evaluateStatementToBuffer(
-    //     dataStoreConnection: *mut root::CDataStoreConnection,
-    //     baseIRI: *const ::std::os::raw::c_char,
-    //     prefixes: *mut root::CPrefixes,
-    //     statementText: *const ::std::os::raw::c_char,
-    //     statementTextLength: root::size_t,
-    //     compilationParameters: *const root::CParameters,
-    //     buffer: *mut ::std::os::raw::c_char,
-    //     bufferSize: root::size_t,
-    //     resultSize: *mut root::size_t,
-    //     queryAnswerFormatName: *const ::std::os::raw::c_char,
-    //     statementResult: *mut root::size_t,
-    // ) -> *const root::CException;
-    // pub fn evaluate_to_buffer(
-    //     &self,
-    //     statement: Statement,
-    //     buffer: &mut [u8],
-    //     number_of_solutions: &mut u64,
-    //     result_size: &mut u64,
-    //     mime_type: &Mime,
-    // ) -> Result<(), Error> {
-    //     let base_iri = ptr::null_mut();
-    //     let prefixes = Prefixes::default()?;
-    //     let statement_text = statement.as_c_string()?;
-    //     let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
-    //     let parameters = Parameters::empty()?;
-    //     let buffer_size = buffer.len() as c_ulong;
-    //     let query_answer_format_name = CString::new(mime_type.as_ref())?;
-    //     log::info!("CDataStoreConnection_evaluateStatementToBuffer:
-    // mime={query_answer_format_name:?}");
-    //     CException::handle(AssertUnwindSafe(|| unsafe {
-    //         CDataStoreConnection_evaluateStatementToBuffer(
-    //             self.inner,
-    //             base_iri,
-    //             prefixes.inner,
-    //             statement_text.as_ptr(),
-    //             statement_text_len,
-    //             parameters.inner,
-    //             buffer.as_mut_ptr() as *mut i8,
-    //             buffer_size,
-    //             result_size,
-    //             query_answer_format_name.as_ptr(),
-    //             number_of_solutions,
-    //         )
-    //     }))?;
-    //
-    //     log::info!("buffer_size={buffer_size} number_of_solutions={number_of_solutions} result_size={}",*result_size as usize);
-    //
-    //     let slice = unsafe { std::slice::from_raw_parts(buffer.as_ptr(),
-    // *result_size as usize) };     let c_str = unsafe {
-    // CStr::from_bytes_with_nul_unchecked(slice) };
-    //
-    //     log::info!("buffer=\n{}", c_str.to_str().unwrap());
-    //     Ok(())
-    // }
+    pub fn evaluate_update<'a>(
+        &self,
+        statement: &'a Statement<'a>,
+        parameters: &Parameters,
+    ) -> Result<(), Error> {
+        let base_iri = ptr::null_mut();
+        let statement_text = statement.as_c_string()?;
+        let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
+        let mut statement_result: CStatementResult = Default::default();
+        database_call!(
+            "evaluating an update statement",
+            CDataStoreConnection_evaluateUpdate(
+                self.inner,
+                base_iri,
+                statement.prefixes.inner,
+                statement_text.as_ptr(),
+                statement_text_len,
+                parameters.inner,
+                statement_result.as_mut_ptr(),
+            )
+        )?;
+        log::debug!("evaluated update statement: {:?}", statement_result);
+        Ok(())
+    }
 
     pub fn evaluate_to_stream<'a, W>(
         &'a self,
@@ -304,10 +265,7 @@ impl DataStoreConnection {
         )
     }
 
-    pub fn get_triples_count(
-        &self,
-        fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -330,10 +288,7 @@ impl DataStoreConnection {
         .count()
     }
 
-    pub fn get_subjects_count(
-        &self,
-        fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -358,10 +313,7 @@ impl DataStoreConnection {
         .count()
     }
 
-    pub fn get_predicates_count(
-        &self,
-        fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -386,10 +338,7 @@ impl DataStoreConnection {
         .count()
     }
 
-    pub fn get_ontologies_count(
-        &self,
-        fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,

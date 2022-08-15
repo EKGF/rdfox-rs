@@ -63,10 +63,8 @@ impl<'a> GraphConnection<'a> {
 
     pub fn import_axioms(&self) -> Result<(), Error> {
         assert!(self.ontology_graph.is_some(), "no ontology graph specified");
-        self.data_store_connection.import_axioms_from_triples(
-            self.ontology_graph.as_ref().unwrap(),
-            &self.graph,
-        )
+        self.data_store_connection
+            .import_axioms_from_triples(self.ontology_graph.as_ref().unwrap(), &self.graph)
     }
 
     /// Read all RDF files (currently it supports .ttl and .nt files) from
@@ -81,10 +79,7 @@ impl<'a> GraphConnection<'a> {
             .import_rdf_from_directory(root, &self.graph)
     }
 
-    pub fn get_triples_count(
-        &self,
-        fact_domain: FactDomain,
-    ) -> Result<std::os::raw::c_ulong, Error> {
+    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
         Statement::new(
             &Prefixes::default()?,
             formatdoc!(
