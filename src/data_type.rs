@@ -4,7 +4,7 @@ use num_enum::TryFromPrimitive;
 use crate::Error;
 use crate::Error::UnknownDatatype;
 
-#[derive(Debug, Eq, PartialEq, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, Hash, TryFromPrimitive)]
 #[repr(u8)]
 pub enum DataType {
     UnboundValue = 0,
