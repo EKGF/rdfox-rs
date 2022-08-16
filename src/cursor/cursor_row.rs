@@ -25,7 +25,7 @@ pub struct CursorRow<'a> {
 impl<'a> CursorRow<'a> {
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
-    fn resource_id(&self, term_index: u16) -> Result<u64, Error> {
+    fn resource_id(&self, term_index: u16) -> Result<Option<u64>, Error> {
         self.opened.resource_id(term_index)
     }
 
@@ -86,21 +86,26 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value of a term in the current solution / current row with the
     /// given term index.
-    pub fn resource_value(&self, term_index: u16) -> Result<ResourceValue, Error> {
+    pub fn resource_value(&self, term_index: u16) -> Result<Option<ResourceValue>, Error> {
         let resource_id = self.resource_id(term_index)?;
         log::debug!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
-             resource_id={resource_id}:",
+             resource_id={resource_id:?}:",
             rowid = self.rowid,
             multiplicity = self.multiplicity
         );
-        let value = self.resource_value_with_id(resource_id)?;
-        log::debug!("{value:?}");
-        Ok(value)
+        if let Some(resource_id) = resource_id {
+            let value = self.resource_value_with_id(resource_id)?;
+            log::debug!("{value:?}");
+            Ok(Some(value))
+        } else {
+            log::debug!("None");
+            Ok(None)
+        }
     }
 
     /// Returns the resource bound to the given index in the current answer row.
-    fn lexical_value_with_id(&self, resource_id: u64) -> Result<LexicalValue, Error> {
+    fn lexical_value_with_id(&self, resource_id: u64) -> Result<Option<LexicalValue>, Error> {
         let mut buffer = [0u8; 1024];
         let mut lexical_form_size = 0 as c_ulong;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
@@ -127,7 +132,7 @@ impl<'a> CursorRow<'a> {
 
         log::trace!(
             "CCursor_getResourceLexicalForm({resource_id}): data_type={datatype_id:?} \
-             lexical_form_size={lexical_form_size}"
+             lexical_form_size={lexical_form_size:?}"
         );
 
         LexicalValue::from_type_and_c_buffer(data_type, &buffer)
@@ -135,14 +140,18 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value in lexical form of a term in the current solution /
     /// current row with the given term index.
-    pub fn lexical_value(&self, term_index: u16) -> Result<LexicalValue, Error> {
+    pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, Error> {
         let resource_id = self.resource_id(term_index)?;
         log::debug!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
-             resource_id={resource_id}:",
+             resource_id={resource_id:?}:",
             rowid = self.rowid,
             multiplicity = self.multiplicity
         );
-        self.lexical_value_with_id(resource_id)
+        if let Some(resource_id)= resource_id {
+            self.lexical_value_with_id(resource_id)
+        } else {
+            Ok(None)
+        }
     }
 }

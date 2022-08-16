@@ -102,7 +102,7 @@ impl LexicalValue {
         }
     }
 
-    pub fn from_type_and_c_buffer(data_type: DataType, buffer: &[u8]) -> Result<LexicalValue, Error> {
+    pub fn from_type_and_c_buffer(data_type: DataType, buffer: &[u8]) -> Result<Option<LexicalValue>, Error> {
         let str_buffer = std::ffi::CStr::from_bytes_until_nul(buffer)
             .map_err(|err| {
                 log::error!("Cannot read buffer: {err:?}");
@@ -116,39 +116,42 @@ impl LexicalValue {
         Self::from_type_and_buffer(data_type, str_buffer)
     }
 
-    pub fn from_type_and_buffer(data_type: DataType, buffer: &str) -> Result<LexicalValue, Error> {
+    pub fn from_type_and_buffer(data_type: DataType, buffer: &str) -> Result<Option<LexicalValue>, Error> {
         match data_type {
             DataType::AnyUri | DataType::IriReference => {
-                Ok(LexicalValue {
+                Ok(Some(LexicalValue {
                     data_type,
                     value: LexicalValueUnion {
                         iri: ManuallyDrop::new(IriBuf::from_str(buffer)?),
                     },
-                })
+                }))
             }
             DataType::BlankNode => {
-                Ok(LexicalValue {
+                Ok(Some(LexicalValue {
                     data_type,
                     value: LexicalValueUnion {
                         blank_node: ManuallyDrop::new(buffer.to_string())
                     }
-                })
+                }))
             },
             DataType::Boolean => {
-                Ok(LexicalValue {
+                Ok(Some(LexicalValue {
                     data_type,
                     value: LexicalValueUnion {
                         boolean: buffer.starts_with("true")
                     }
-                })
+                }))
             },
             DataType::String | DataType::PlainLiteral => {
-                Ok(LexicalValue {
+                Ok(Some(LexicalValue {
                     data_type,
                     value: LexicalValueUnion {
                         string: ManuallyDrop::new(buffer.to_string())
                     }
-                })
+                }))
+            },
+            DataType::UnboundValue => {
+                Ok(None)
             },
             _ => {
                 log::warn!("Unsupported datatype: {data_type:?} value={buffer}");

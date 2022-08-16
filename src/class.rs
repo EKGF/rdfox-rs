@@ -9,6 +9,7 @@ use crate::{
     DataStoreConnection,
     Error,
     FactDomain,
+    GraphConnection,
     Parameters,
     Prefix,
     Prefixes,
@@ -41,36 +42,56 @@ impl Class {
         }
     }
 
-    pub fn number_of_individuals(
-        &self,
-        ds_connection: &DataStoreConnection,
-    ) -> Result<u64, Error> {
+    pub fn number_of_individuals(&self, ds_connection: &DataStoreConnection) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
-        let prefixes =
-            Prefixes::builder().declare(self.prefix.clone()).build()?;
-        let count_result = Statement::new(
-            &prefixes,
-            (formatdoc! {r##"
-                SELECT DISTINCT ?thing
-                WHERE {{
-                    {{
-                        GRAPH ?graph {{
-                            ?thing a {self}
-                        }}
-                    }} UNION {{
-                            ?thing a {self}
-                        BIND({default_graph} AS ?graph)
+        let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
+        let sparql = formatdoc! {r##"
+            SELECT DISTINCT ?thing
+            WHERE {{
+                {{
+                    GRAPH ?graph {{
+                        ?thing a {self}
                     }}
+                }} UNION {{
+                        ?thing a {self}
+                    BIND({default_graph} AS ?graph)
                 }}
-                "##
-            })
-            .as_str(),
-        )?
-        .cursor(
-            ds_connection,
-            &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
-        )?
-        .count();
+            }}
+            "##
+        };
+        log::debug!(target: "sparql", "\n{sparql}");
+        let count_result = Statement::new(&prefixes, sparql.as_str())?
+            .cursor(
+                ds_connection,
+                &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
+            )?
+            .count();
+        #[allow(clippy::let_and_return)]
+        count_result
+    }
+
+    pub fn number_of_individuals_in_graph(
+        &self,
+        graph_connection: &GraphConnection,
+    ) -> Result<u64, Error> {
+        let graph = graph_connection.graph.as_display_iri();
+        let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
+        let sparql = formatdoc! {r##"
+            SELECT DISTINCT ?thing
+            WHERE {{
+                GRAPH {graph} {{
+                    ?thing a {self}
+                }}
+            }}
+            "##
+        };
+        log::debug!(target: "sparql", "\n{sparql}");
+        let count_result = Statement::new(&prefixes, sparql.as_str())?
+            .cursor(
+                graph_connection.data_store_connection,
+                &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
+            )?
+            .count();
         #[allow(clippy::let_and_return)]
         count_result
     }
@@ -84,10 +105,7 @@ mod tests {
 
     #[test]
     fn test_a_class() {
-        let prefix = Prefix::declare(
-            "test:",
-            Iri::new("http://whatever.com/test#").unwrap(),
-        );
+        let prefix = Prefix::declare("test:", Iri::new("http://whatever.com/test#").unwrap());
         let class = Class::declare(prefix, "SomeClass");
         let s = format!("{:}", class);
         assert_eq!(s, "test:SomeClass")

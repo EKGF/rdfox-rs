@@ -110,16 +110,17 @@ impl<'a> OpenedCursor<'a> {
 
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
-    pub(crate) fn resource_id(&self, term_index: u16) -> Result<u64, Error> {
+    pub(crate) fn resource_id(&self, term_index: u16) -> Result<Option<u64>, Error> {
         if let Some(argument_index) = self.argument_indexes.get(term_index as usize) {
             if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
-                Ok(*resource_id)
+                Ok(Some(*resource_id))
             } else {
-                log::error!(
-                    "Could not get the resource ID from the arguments buffer with argument index \
-                     {argument_index} and term index {term_index}"
-                );
-                Err(Unknown)
+                // log::error!(
+                //     "Could not get the resource ID from the arguments buffer with argument index \
+                //      {argument_index} and term index {term_index}"
+                // );
+                // Err(Unknown)
+                Ok(None)
             }
         } else {
             log::error!("Could not get the argument index for term index {term_index}");
