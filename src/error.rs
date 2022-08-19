@@ -14,6 +14,19 @@ pub enum Error {
     UnknownDatatype {
         datatype_id: u8
     },
+    #[error("The multiplicity ({multiplicity}) of a cursor row exceeded the maximum number of rows ({maxrow}) for query:\n{query}")]
+    MultiplicityExceededMaximumNumberOfRows {
+        maxrow: u64,
+        multiplicity: u64,
+        query: String
+    },
+    #[error("Maximum number of rows ({maxrow}) has been exceeded for query:\n{query}")]
+    ExceededMaximumNumberOfRows {
+        maxrow: u64,
+        query: String
+    },
+    #[error("Could not find a license key")]
+    RDFoxLicenseFileNotFound,
     #[allow(dead_code)]
     #[error("Unknown resource")]
     UnknownResourceException,

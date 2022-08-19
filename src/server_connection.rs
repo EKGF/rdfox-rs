@@ -10,6 +10,7 @@ use crate::{
         CParameters_getEmptyParameters,
         CServerConnection,
         CServerConnection_createDataStore,
+        CServerConnection_deleteDataStore,
         CServerConnection_destroy,
         CServerConnection_getNumberOfThreads,
         CServerConnection_newDataStoreConnection,
@@ -61,6 +62,17 @@ impl ServerConnection {
             "setting the number of threads",
             CServerConnection_setNumberOfThreads(self.inner, number_of_threads)
         )
+    }
+
+    pub fn delete_data_store(&self, data_store: DataStore) -> Result<(), Error> {
+        log::debug!("Creating {data_store}");
+        let c_name = CString::new(data_store.name.as_str()).unwrap();
+        database_call!(
+            "deleting a datastore",
+            CServerConnection_deleteDataStore(self.inner, c_name.as_ptr())
+        )?;
+        log::info!("Deleted {data_store}");
+        Ok(())
     }
 
     pub fn create_data_store(&self, data_store: DataStore) -> Result<DataStore, Error> {

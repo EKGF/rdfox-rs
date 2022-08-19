@@ -11,6 +11,7 @@ use crate::{
         CServerConnection_newServerConnection,
         CServer_createFirstLocalServerRole,
         CServer_startLocalServer,
+        CServer_getNumberOfLocalServerRoles
     },
     Parameters,
     RoleCreds,
@@ -39,7 +40,9 @@ impl Server {
             default_role_creds: role_creds,
         };
 
-        server.create_role(&server.default_role_creds)?;
+        if server.get_number_of_local_server_roles()? == 0 {
+            server.create_role(&server.default_role_creds)?;
+        }
 
         log::debug!("Local RDFox server has been started");
         Ok(server)
@@ -57,7 +60,17 @@ impl Server {
         Ok(())
     }
 
+    pub fn get_number_of_local_server_roles(&self) -> Result<u16, Error> {
+        let mut number_of_roles = 0_u64;
+        database_call!(
+            "getting the number of local server roles",
+            CServer_getNumberOfLocalServerRoles(&mut number_of_roles)
+        )?;
+        Ok(number_of_roles as u16)
+    }
+
     pub fn connection_with_default_role(&self) -> Result<ServerConnection, Error> {
+
         self.connection(&self.default_role_creds)
     }
 

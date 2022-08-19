@@ -170,6 +170,8 @@ impl DataStoreConnection {
     /// Read all RDF files (currently it supports .ttl and .nt files) from
     /// the given directory, applying ignore files like `.gitignore`.
     ///
+    /// Returns the number of loaded files.
+    ///
     /// TODO: Support all the types that RDFox supports (and more)
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that

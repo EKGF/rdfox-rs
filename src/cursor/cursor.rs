@@ -70,15 +70,25 @@ impl<'a> Cursor<'a> {
         Ok(cursor)
     }
 
-    pub fn count(&mut self) -> Result<u64, Error> { self.execute_and_rollback(|_row| Ok(())) }
+    pub fn count(&mut self) -> Result<u64, Error> { self.execute_and_rollback(1000000000, |_row| Ok(())) }
 
-    fn consume_cursor<T>(&mut self, tx: &mut Transaction, mut f: T) -> Result<u64, Error>
+    pub fn count_in_transaction(&mut self, tx: &mut Transaction) -> Result<u64, Error> {
+        self.consume(tx, 1000000000, |_row| Ok(()))
+    }
+
+    pub fn consume<T>(&mut self, tx: &mut Transaction, maxrow: u64, mut f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, &tx)?;
         let mut rowid = 0_u64;
         let mut count = 0_u64;
         while multiplicity > 0 {
+            if multiplicity >= maxrow {
+                return Err(Error::MultiplicityExceededMaximumNumberOfRows { maxrow, multiplicity, query: self.statement.text.clone() })
+            }
             rowid += 1;
+            if rowid >= maxrow {
+                return Err(Error::ExceededMaximumNumberOfRows { maxrow, query: self.statement.text.clone() })
+            }
             count += multiplicity;
             let row = CursorRow {
                 opened: &opened_cursor,
@@ -92,37 +102,39 @@ impl<'a> Cursor<'a> {
         Ok(count)
     }
 
-    pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<u64, Error>
+    pub fn update_and_commit<T, U>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
         let mut tx = Transaction::begin_read_write(self.connection)?;
-        self.update_and_commit_in_transaction(&mut tx, f)
+        self.update_and_commit_in_transaction(&mut tx, maxrow,f)
     }
 
-    pub fn execute_and_rollback<T>(&mut self, f: T) -> Result<u64, Error>
+    pub fn execute_and_rollback<T>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
         let mut tx = Transaction::begin_read_only(self.connection)?;
-        self.execute_and_rollback_in_transaction(&mut tx, f)
+        self.execute_and_rollback_in_transaction(&mut tx, maxrow, f)
     }
 
     pub fn execute_and_rollback_in_transaction<T>(
         &mut self,
         tx: &mut Transaction,
+        maxrow: u64,
         f: T,
     ) -> Result<u64, Error>
     where
         T: FnMut(CursorRow) -> Result<(), Error>,
     {
-        tx.execute_and_rollback(|tx| self.consume_cursor(tx, f))
+        tx.execute_and_rollback(|tx| self.consume(tx, maxrow, f))
     }
 
     pub fn update_and_commit_in_transaction<T>(
         &mut self,
         tx: &mut Transaction,
+        maxrow: u64,
         f: T,
     ) -> Result<u64, Error>
     where
         T: FnMut(CursorRow) -> Result<(), Error>,
     {
-        tx.execute_and_rollback(|tx| self.consume_cursor(tx, f))
+        tx.update_and_commit(|tx| self.consume(tx, maxrow, f))
     }
 }

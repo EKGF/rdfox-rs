@@ -19,7 +19,7 @@ pub use graph_connection::GraphConnection;
 use lazy_static::lazy_static;
 pub use lexical_value::LexicalValue;
 pub use mime::Mime;
-pub use parameters::{FactDomain, Parameters};
+pub use parameters::{FactDomain, Parameters, PersistenceMode};
 pub use prefixes::{Prefix, Prefixes, PrefixesBuilder};
 pub use role_creds::RoleCreds;
 pub use server::Server;

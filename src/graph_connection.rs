@@ -9,15 +9,7 @@ use std::{
 
 use indoc::formatdoc;
 
-use crate::{
-    error::Error,
-    DataStoreConnection,
-    FactDomain,
-    Graph,
-    Parameters,
-    Prefixes,
-    Statement,
-};
+use crate::{error::Error, DataStoreConnection, FactDomain, Graph, Parameters, Prefixes, Statement, Transaction};
 
 pub struct GraphConnection<'a> {
     pub data_store_connection: &'a DataStoreConnection,
@@ -70,6 +62,8 @@ impl<'a> GraphConnection<'a> {
     /// Read all RDF files (currently it supports .ttl and .nt files) from
     /// the given directory, applying ignore files like `.gitignore`.
     ///
+    /// Returns the number of loaded files.
+    ///
     /// TODO: Support all the types that RDFox supports (and more)
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that
@@ -79,7 +73,7 @@ impl<'a> GraphConnection<'a> {
             .import_rdf_from_directory(root, &self.graph)
     }
 
-    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_triples_count(&self, tx: &mut Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
         Statement::new(
             &Prefixes::default()?,
             formatdoc!(
@@ -98,7 +92,7 @@ impl<'a> GraphConnection<'a> {
             self.data_store_connection,
             &Parameters::empty()?.fact_domain(fact_domain)?,
         )?
-        .count()
+        .count_in_transaction(tx)
     }
 
     // pub fn get_subjects_count(&self, fact_domain: FactDomain) ->

@@ -27,6 +27,22 @@ pub enum FactDomain {
     ALL,
 }
 
+pub enum PersistenceMode {
+    File,
+    FileSequence,
+    Off
+}
+
+impl Display for PersistenceMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PersistenceMode::File => write!(f, "file"),
+            PersistenceMode::FileSequence => write!(f, "file-sequence"),
+            PersistenceMode::Off => write!(f, "off"),
+        }
+    }
+}
+
 pub struct Parameters {
     pub(crate) inner: *mut CParameters,
 }
@@ -82,6 +98,34 @@ impl Parameters {
     pub fn switch_off_file_access_sandboxing(self) -> Result<Self, Error> {
         self.set_string("sandbox-directory", "")?;
         Ok(self)
+    }
+
+    pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, Error> {
+        self.set_string("persist-ds", &mode.to_string())?;
+        Ok(self)
+    }
+
+    pub fn persist_roles(self, mode: PersistenceMode) -> Result<Self, Error> {
+        self.set_string("persist-roles", &mode.to_string())?;
+        Ok(self)
+    }
+
+    pub fn server_directory(self, dir: &Path) -> Result<Self, Error> {
+        if dir.is_dir() {
+            self.set_string("server-directory", dir.to_str().unwrap())?;
+            Ok(self)
+        } else {
+            panic!("{dir:?} is not a directory")
+        }
+    }
+
+    pub fn license_file(self, file: &Path) -> Result<Self, Error> {
+        if file.is_file() {
+            self.set_string("license-file", file.to_str().unwrap())?;
+            Ok(self)
+        } else {
+            panic!("{file:?} does not exist")
+        }
     }
 
     /// If true, all API calls are recorded in a script that
