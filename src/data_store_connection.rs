@@ -46,13 +46,13 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq)]
-pub struct DataStoreConnection {
-    pub data_store:   DataStore,
+pub struct DataStoreConnection<'a> {
+    pub data_store:   &'a DataStore<'a>,
     pub(crate) inner: *mut CDataStoreConnection,
     started_at:       Instant,
 }
 
-impl Display for DataStoreConnection {
+impl<'a> Display for DataStoreConnection<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str("connection").unwrap();
         // match self.get_id() {
@@ -68,15 +68,15 @@ impl Display for DataStoreConnection {
     }
 }
 
-impl Drop for DataStoreConnection {
+impl<'a> Drop for DataStoreConnection<'a> {
     fn drop(&mut self) {
         let duration = self.started_at.elapsed();
         log::info!("dropped {self} after {:?}", duration)
     }
 }
 
-impl DataStoreConnection {
-    pub(crate) fn new(data_store: DataStore, inner: *mut CDataStoreConnection) -> Self {
+impl<'a> DataStoreConnection<'a> {
+    pub(crate) fn new(data_store: &'a DataStore<'a>, inner: *mut CDataStoreConnection) -> Self {
         Self {
             data_store,
             inner,
@@ -224,9 +224,9 @@ impl DataStoreConnection {
         Ok(count)
     }
 
-    pub fn evaluate_update<'a>(
+    pub fn evaluate_update<'b>(
         &self,
-        statement: &'a Statement<'a>,
+        statement: &'b Statement<'b>,
         parameters: &Parameters,
     ) -> Result<(), Error> {
         let base_iri = ptr::null_mut();
@@ -249,7 +249,7 @@ impl DataStoreConnection {
         Ok(())
     }
 
-    pub fn evaluate_to_stream<'a, W>(
+    pub fn evaluate_to_stream<W>(
         &'a self,
         writer: W,
         statement: &'a Statement<'a>,

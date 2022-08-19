@@ -9,10 +9,19 @@ use std::{
 
 use indoc::formatdoc;
 
-use crate::{error::Error, DataStoreConnection, FactDomain, Graph, Parameters, Prefixes, Statement, Transaction};
+use crate::{
+    error::Error,
+    DataStoreConnection,
+    FactDomain,
+    Graph,
+    Parameters,
+    Prefixes,
+    Statement,
+    Transaction,
+};
 
 pub struct GraphConnection<'a> {
-    pub data_store_connection: &'a DataStoreConnection,
+    pub data_store_connection: &'a DataStoreConnection<'a>,
     started_at:                Instant,
     pub graph:                 Graph,
     pub ontology_graph:        Option<Graph>,
@@ -73,7 +82,11 @@ impl<'a> GraphConnection<'a> {
             .import_rdf_from_directory(root, &self.graph)
     }
 
-    pub fn get_triples_count(&self, tx: &mut Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_triples_count(
+        &self,
+        tx: &mut Transaction,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         Statement::new(
             &Prefixes::default()?,
             formatdoc!(

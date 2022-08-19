@@ -39,7 +39,7 @@ impl<'a, W: 'a + Write + Debug> Drop for RefToSelf<'a, W> {
 /// to handle the various callbacks from the underlying C-API to RDFox.
 #[derive(PartialEq, Debug)]
 pub struct Streamer<'a, W: 'a + Write + Debug> {
-    pub connection: &'a DataStoreConnection,
+    pub connection: &'a DataStoreConnection<'a>,
     pub writer:     W,
     pub statement:  &'a Statement<'a>,
     pub mime_type:  &'static Mime,

@@ -15,7 +15,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Transaction<'a> {
-    pub connection: &'a DataStoreConnection,
+    pub connection: &'a DataStoreConnection<'a>,
     committed:      bool,
 }
 

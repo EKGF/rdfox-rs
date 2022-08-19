@@ -7,7 +7,6 @@ use crate::{
     database_call,
     error::Error,
     root::{
-        CParameters_getEmptyParameters,
         CServerConnection,
         CServerConnection_createDataStore,
         CServerConnection_deleteDataStore,
@@ -75,7 +74,7 @@ impl ServerConnection {
         Ok(())
     }
 
-    pub fn create_data_store(&self, data_store: DataStore) -> Result<DataStore, Error> {
+    pub fn create_data_store<'a>(&self, data_store: &'a DataStore<'a>) -> Result<(), Error> {
         log::debug!("Creating {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
@@ -83,23 +82,19 @@ impl ServerConnection {
             CServerConnection_createDataStore(
                 self.inner,
                 c_name.as_ptr(),
-                CParameters_getEmptyParameters(),
+                data_store.parameters.inner,
             )
         )?;
         log::info!("Created {data_store}");
-        Ok(data_store)
+        Ok(())
     }
 
-    pub fn create_data_store_named(&self, name: &str) -> Result<DataStore, Error> {
-        self.create_data_store(DataStore::declare(name))
-    }
-
-    pub fn connect_to_data_store(
+    pub fn connect_to_data_store<'a>(
         &self,
-        data_store: DataStore,
-    ) -> Result<DataStoreConnection, Error> {
+        data_store: &'a DataStore<'a>,
+    ) -> Result<DataStoreConnection<'a>, Error> {
         log::debug!("Connecting to {}", data_store);
-        let mut ds_connection = DataStoreConnection::new(data_store.clone(), ptr::null_mut());
+        let mut ds_connection = DataStoreConnection::new(data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
             "creating a datastore connection",

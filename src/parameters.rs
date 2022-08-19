@@ -30,7 +30,7 @@ pub enum FactDomain {
 pub enum PersistenceMode {
     File,
     FileSequence,
-    Off
+    Off,
 }
 
 impl Display for PersistenceMode {
@@ -43,6 +43,7 @@ impl Display for PersistenceMode {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Parameters {
     pub(crate) inner: *mut CParameters,
 }
@@ -126,6 +127,14 @@ impl Parameters {
         } else {
             panic!("{file:?} does not exist")
         }
+    }
+
+    pub fn import_rename_user_blank_nodes(self, setting: bool) -> Result<Self, Error> {
+        self.set_string(
+            "import.rename-user-blank-nodes",
+            format!("{setting:?}").as_str(),
+        )?;
+        Ok(self)
     }
 
     /// If true, all API calls are recorded in a script that
