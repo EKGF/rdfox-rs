@@ -130,6 +130,28 @@ impl Display for LexicalValue {
     }
 }
 
+impl Clone for LexicalValue {
+    fn clone(&self) -> Self {
+        match self.data_type {
+            DataType::IriReference | DataType::AnyUri => {
+                if let Some(iri) = self.as_iri() {
+                    LexicalValue {
+                        data_type: self.data_type,
+                        value:     LexicalValueUnion {
+                            iri: ManuallyDrop::new(iri),
+                        },
+                    }
+                } else {
+                    todo!("the situation where the iri in a lexical value is empty")
+                }
+            },
+            _ => {
+                todo!("dealing with other datatypes")
+            },
+        }
+    }
+}
+
 impl LexicalValue {
     pub fn as_iri(&self) -> Option<IriBuf> {
         match self.data_type {

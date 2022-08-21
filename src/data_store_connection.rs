@@ -71,7 +71,7 @@ impl<'a> Display for DataStoreConnection<'a> {
 impl<'a> Drop for DataStoreConnection<'a> {
     fn drop(&mut self) {
         let duration = self.started_at.elapsed();
-        log::info!("dropped {self} after {:?}", duration)
+        log::debug!("Dropped {self} after {:?}", duration)
     }
 }
 

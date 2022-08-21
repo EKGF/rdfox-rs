@@ -18,27 +18,37 @@ use crate::{
     DataStore,
     DataStoreConnection,
     RoleCreds,
+    Server
 };
 
-pub struct ServerConnection {
+pub struct ServerConnection<'a> {
     #[allow(dead_code)]
     role_creds: RoleCreds,
+    server:     &'a Server,
     inner:      *mut CServerConnection,
 }
 
-impl Drop for ServerConnection {
+impl<'a> Drop for ServerConnection<'a> {
     fn drop(&mut self) { self.destroy() }
 }
 
-impl ServerConnection {
+impl<'a> std::fmt::Display for ServerConnection<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "connection to {:})", self.server)
+    }
+}
+
+impl<'a> ServerConnection<'a> {
     pub(crate) fn new(
         role_creds: &RoleCreds,
+        server: &'a Server,
         server_connection_ptr: *mut CServerConnection,
     ) -> Self {
         assert!(!server_connection_ptr.is_null());
         Self {
             role_creds: role_creds.clone(),
-            inner:      server_connection_ptr,
+            server,
+            inner: server_connection_ptr,
         }
     }
 
@@ -74,8 +84,8 @@ impl ServerConnection {
         Ok(())
     }
 
-    pub fn create_data_store<'a>(&self, data_store: &'a DataStore<'a>) -> Result<(), Error> {
-        log::debug!("Creating {data_store}");
+    pub fn create_data_store<'b>(&self, data_store: &'b DataStore<'b>) -> Result<(), Error> {
+        log::trace!("Creating {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
             "creating a datastore",
@@ -85,14 +95,14 @@ impl ServerConnection {
                 data_store.parameters.inner,
             )
         )?;
-        log::info!("Created {data_store}");
+        log::debug!("Created {data_store}");
         Ok(())
     }
 
-    pub fn connect_to_data_store<'a>(
+    pub fn connect_to_data_store<'b>(
         &self,
-        data_store: &'a DataStore<'a>,
-    ) -> Result<DataStoreConnection<'a>, Error> {
+        data_store: &'b DataStore<'b>,
+    ) -> Result<DataStoreConnection<'b>, Error> {
         log::debug!("Connecting to {}", data_store);
         let mut ds_connection = DataStoreConnection::new(data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();

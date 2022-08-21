@@ -11,7 +11,8 @@ use crate::{
         CServerConnection_newServerConnection,
         CServer_createFirstLocalServerRole,
         CServer_startLocalServer,
-        CServer_getNumberOfLocalServerRoles
+        CServer_getNumberOfLocalServerRoles,
+        CServer_stopLocalServer
     },
     Parameters,
     RoleCreds,
@@ -20,6 +21,18 @@ use crate::{
 
 pub struct Server {
     default_role_creds: RoleCreds,
+}
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.stop();
+    }
+}
+
+impl std::fmt::Display for Server {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "server {self:p})")
+    }
 }
 
 impl Server {
@@ -91,7 +104,14 @@ impl Server {
             Err(CouldNotConnectToServer)
         } else {
             log::debug!("Established connection to server");
-            Ok(ServerConnection::new(role_creds, server_connection_ptr))
+            Ok(ServerConnection::new(role_creds, self, server_connection_ptr))
         }
+    }
+
+    pub fn stop(&self) {
+        unsafe {
+            CServer_stopLocalServer();
+        }
+        log::trace!("Stopped local RDFox server");
     }
 }

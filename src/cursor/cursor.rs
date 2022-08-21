@@ -78,15 +78,8 @@ impl<'a> Cursor<'a> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
-    pub fn consume<T>(
-        &mut self,
-        tx: &mut Transaction,
-        maxrow: u64,
-        mut f: T,
-    ) -> Result<u64, Error>
-    where
-        T: FnMut(CursorRow) -> Result<(), Error>,
-    {
+    pub fn consume<T>(&mut self, tx: &Transaction, maxrow: u64, mut f: T) -> Result<u64, Error>
+    where T: FnMut(CursorRow) -> Result<(), Error> {
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, &tx)?;
         let mut rowid = 0_u64;
         let mut count = 0_u64;
