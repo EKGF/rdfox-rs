@@ -73,12 +73,12 @@ impl Prefixes {
         self.declare_prefix(&Prefix::declare(name, iri))
     }
 
-    pub fn add(self, prefix: &Prefix) -> Result<Self, Error> {
+    pub fn add_prefix(self, prefix: &Prefix) -> Result<Self, Error> {
         self.declare_prefix(prefix).map(|_result| self)
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Prefix {
     /// assumed to end with ':'
     pub name: String,
