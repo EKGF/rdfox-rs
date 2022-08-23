@@ -28,6 +28,8 @@ pub enum Error {
     #[allow(dead_code)]
     #[error("Unknown resource")]
     UnknownResourceException,
+    #[error("Could not create RDFox server")]
+    CouldNotCreateRDFoxServer,
     #[error("Could not connect to RDFox server")]
     CouldNotConnectToServer,
     #[error("Could not import RDF File")]

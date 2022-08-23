@@ -297,10 +297,10 @@ impl<'a> DataStoreConnection<'a> {
             .as_str(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count_in_transaction(tx)
+        .count(tx)
     }
 
-    pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_subjects_count(&self, tx: &Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -322,10 +322,10 @@ impl<'a> DataStoreConnection<'a> {
             .as_str(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+        .count(tx)
     }
 
-    pub fn get_predicates_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_predicates_count(&self, tx: &Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -347,10 +347,10 @@ impl<'a> DataStoreConnection<'a> {
             .as_str(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+        .count(tx)
     }
 
-    pub fn get_ontologies_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_ontologies_count(&self, tx: &Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -372,7 +372,7 @@ impl<'a> DataStoreConnection<'a> {
             .as_str(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+        .count(tx)
     }
 
     fn destroy(&mut self) {

@@ -105,7 +105,7 @@ impl<'a> GraphConnection<'a> {
             self.data_store_connection,
             &Parameters::empty()?.fact_domain(fact_domain)?,
         )?
-        .count_in_transaction(tx)
+        .count(tx)
     }
 
     // pub fn get_subjects_count(&self, fact_domain: FactDomain) ->

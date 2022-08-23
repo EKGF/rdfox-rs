@@ -70,11 +70,7 @@ impl<'a> Cursor<'a> {
         Ok(cursor)
     }
 
-    pub fn count(&mut self) -> Result<u64, Error> {
-        self.execute_and_rollback(1000000000, |_row| Ok(()))
-    }
-
-    pub fn count_in_transaction(&mut self, tx: &Transaction) -> Result<u64, Error> {
+    pub fn count(&mut self, tx: &Transaction) -> Result<u64, Error> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 

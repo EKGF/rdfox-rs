@@ -6,7 +6,6 @@ use std::ops::Deref;
 use indoc::formatdoc;
 
 use crate::{
-    DataStoreConnection,
     Error,
     FactDomain,
     GraphConnection,
@@ -14,6 +13,7 @@ use crate::{
     Prefix,
     Prefixes,
     Statement,
+    Transaction,
     DEFAULT_GRAPH,
 };
 
@@ -42,7 +42,17 @@ impl Class {
         }
     }
 
-    pub fn number_of_individuals(&self, ds_connection: &DataStoreConnection) -> Result<u64, Error> {
+    pub fn display_turtle<'a>(&'a self) -> impl std::fmt::Display + 'a {
+        struct TurtleClass<'a>(&'a Class);
+        impl<'a> std::fmt::Display for TurtleClass<'a> {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "{}{}", self.0.prefix.name, self.0.local_name)
+            }
+        }
+        TurtleClass(self)
+    }
+
+    pub fn number_of_individuals(&self, tx: &Transaction) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"
@@ -62,16 +72,17 @@ impl Class {
         log::debug!(target: "sparql", "\n{sparql}");
         let count_result = Statement::new(&prefixes, sparql.as_str())?
             .cursor(
-                ds_connection,
+                tx.connection,
                 &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
             )?
-            .count();
+            .count(tx);
         #[allow(clippy::let_and_return)]
         count_result
     }
 
     pub fn number_of_individuals_in_graph(
         &self,
+        tx: &Transaction,
         graph_connection: &GraphConnection,
     ) -> Result<u64, Error> {
         let graph = graph_connection.graph.as_display_iri();
@@ -91,7 +102,7 @@ impl Class {
                 graph_connection.data_store_connection,
                 &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
             )?
-            .count();
+            .count(tx);
         #[allow(clippy::let_and_return)]
         count_result
     }
