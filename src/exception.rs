@@ -10,14 +10,15 @@ use std::{
     str::Utf8Error,
 };
 
+pub use crate::root::CException;
 use crate::{
-    root::{CException, CException_getExceptionName, CException_what},
+    root::{CException_getExceptionName, CException_what},
     Error,
     Error::Unknown,
 };
 
 impl CException {
-    pub fn handle<F>(action: &'static str, f: F) -> Result<(), Error>
+    pub fn handle<F>(action: &str, f: F) -> Result<(), Error>
     where F: FnOnce() -> *const CException + std::panic::UnwindSafe {
         unsafe {
             let result = catch_unwind(|| {
@@ -72,7 +73,7 @@ macro_rules! database_call {
     ($action:expr, $function:expr) => {{
         // log::trace!("{} at line {}", stringify!($function), line!());
         log::trace!("{}", $action);
-        crate::root::CException::handle(
+        $crate::exception::CException::handle(
             $action,
             core::panic::AssertUnwindSafe(|| unsafe { $function }),
         )

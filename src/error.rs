@@ -11,20 +11,18 @@ pub enum Error {
     #[error("Unknown Error")]
     Unknown,
     #[error("Unknown data type {datatype_id}")]
-    UnknownDatatype {
-        datatype_id: u8
-    },
-    #[error("The multiplicity ({multiplicity}) of a cursor row exceeded the maximum number of rows ({maxrow}) for query:\n{query}")]
+    UnknownDatatype { datatype_id: u8 },
+    #[error(
+        "The multiplicity ({multiplicity}) of a cursor row exceeded the maximum number of rows \
+         ({maxrow}) for query:\n{query}"
+    )]
     MultiplicityExceededMaximumNumberOfRows {
-        maxrow: u64,
+        maxrow:       u64,
         multiplicity: u64,
-        query: String
+        query:        String,
     },
     #[error("Maximum number of rows ({maxrow}) has been exceeded for query:\n{query}")]
-    ExceededMaximumNumberOfRows {
-        maxrow: u64,
-        query: String
-    },
+    ExceededMaximumNumberOfRows { maxrow: u64, query: String },
     #[error("Could not find a license key")]
     RDFoxLicenseFileNotFound,
     #[allow(dead_code)]
@@ -46,5 +44,5 @@ pub enum Error {
     #[error(transparent)]
     IriParseError(#[from] iref::Error),
     #[error(transparent)]
-    CApiError(#[from] std::ffi::NulError)
+    CApiError(#[from] std::ffi::NulError),
 }

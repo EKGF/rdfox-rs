@@ -18,9 +18,10 @@ use crate::{
     DataStore,
     DataStoreConnection,
     RoleCreds,
-    Server
+    Server,
 };
 
+#[derive(Debug, PartialEq)]
 pub struct ServerConnection<'a> {
     #[allow(dead_code)]
     role_creds: RoleCreds,
@@ -55,7 +56,7 @@ impl<'a> ServerConnection<'a> {
     pub fn get_number_of_threads(&self) -> Result<std::os::raw::c_ulong, Error> {
         let mut number_of_threads = 0 as std::os::raw::c_ulong;
         database_call!(
-            "getting the number of threads",
+            "Getting the number of threads",
             CServerConnection_getNumberOfThreads(self.inner, &mut number_of_threads)
         )?;
         log::debug!("Number of threads is {}", number_of_threads);
@@ -66,25 +67,23 @@ impl<'a> ServerConnection<'a> {
         &self,
         number_of_threads: std::os::raw::c_ulong,
     ) -> Result<(), Error> {
-        log::debug!("Setting the number of threads to {}", number_of_threads);
+        let msg = format!("Setting the number of threads to {}", number_of_threads);
         database_call!(
-            "setting the number of threads",
+            msg.as_str(),
             CServerConnection_setNumberOfThreads(self.inner, number_of_threads)
         )
     }
 
-    pub fn delete_data_store(&self, data_store: DataStore) -> Result<(), Error> {
-        log::debug!("Creating {data_store}");
+    pub fn delete_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
+        let msg = format!("Deleting {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
-            "deleting a datastore",
+            msg.as_str(),
             CServerConnection_deleteDataStore(self.inner, c_name.as_ptr())
-        )?;
-        log::info!("Deleted {data_store}");
-        Ok(())
+        )
     }
 
-    pub fn create_data_store<'b>(&self, data_store: &'b DataStore<'b>) -> Result<(), Error> {
+    pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
         log::trace!("Creating {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
@@ -100,11 +99,11 @@ impl<'a> ServerConnection<'a> {
     }
 
     pub fn connect_to_data_store<'b>(
-        &self,
-        data_store: &'b DataStore<'b>,
+        &'b self,
+        data_store: &'b DataStore,
     ) -> Result<DataStoreConnection<'b>, Error> {
         log::debug!("Connecting to {}", data_store);
-        let mut ds_connection = DataStoreConnection::new(data_store, ptr::null_mut());
+        let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
             "creating a datastore connection",
@@ -119,10 +118,11 @@ impl<'a> ServerConnection<'a> {
     }
 
     fn destroy(&mut self) {
+        assert!(!self.inner.is_null());
         unsafe {
             CServerConnection_destroy(self.inner);
         }
         self.inner = ptr::null_mut();
-        log::debug!("Destroyed connection");
+        log::debug!("Destroyed server connection");
     }
 }

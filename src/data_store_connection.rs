@@ -9,6 +9,7 @@ use std::{
     os::unix::ffi::OsStrExt,
     path::Path,
     ptr,
+    ptr::null_mut,
     time::Instant,
 };
 
@@ -23,6 +24,7 @@ use crate::{
     database_call,
     root::{
         CDataStoreConnection,
+        CDataStoreConnection_destroy,
         CDataStoreConnection_evaluateUpdate,
         // CDataStoreConnection_evaluateStatementToBuffer,
         CDataStoreConnection_getID,
@@ -39,17 +41,20 @@ use crate::{
     Parameters,
     Prefix,
     Prefixes,
+    ServerConnection,
     Statement,
     Streamer,
+    Transaction,
     DEFAULT_GRAPH,
     TEXT_TURTLE,
 };
 
 #[derive(Debug, PartialEq)]
 pub struct DataStoreConnection<'a> {
-    pub data_store:   &'a DataStore<'a>,
-    pub(crate) inner: *mut CDataStoreConnection,
-    started_at:       Instant,
+    pub data_store:        &'a DataStore,
+    pub server_connection: &'a ServerConnection<'a>,
+    pub(crate) inner:      *mut CDataStoreConnection,
+    started_at:            Instant,
 }
 
 impl<'a> Display for DataStoreConnection<'a> {
@@ -69,22 +74,25 @@ impl<'a> Display for DataStoreConnection<'a> {
 }
 
 impl<'a> Drop for DataStoreConnection<'a> {
-    fn drop(&mut self) {
-        let duration = self.started_at.elapsed();
-        log::debug!("Dropped {self} after {:?}", duration)
-    }
+    fn drop(&mut self) { self.destroy() }
 }
 
 impl<'a> DataStoreConnection<'a> {
-    pub(crate) fn new(data_store: &'a DataStore<'a>, inner: *mut CDataStoreConnection) -> Self {
+    pub(crate) fn new(
+        server_connection: &'a ServerConnection<'a>,
+        data_store: &'a DataStore,
+        inner: *mut CDataStoreConnection,
+    ) -> Self {
         Self {
             data_store,
+            server_connection,
             inner,
             started_at: Instant::now(),
         }
     }
 
     pub fn get_id(&self) -> Result<u32, Error> {
+        assert!(!self.inner.is_null(), "invalid datastore connection");
         let mut id: u32 = 0;
         database_call!(
             "getting the id of a datastore connection",
@@ -94,9 +102,10 @@ impl<'a> DataStoreConnection<'a> {
     }
 
     pub fn get_unique_id(&self) -> Result<String, Error> {
+        assert!(!self.inner.is_null(), "invalid datastore connection");
         let mut unique_id: *const std::os::raw::c_char = ptr::null();
         database_call!(
-            "getting the unique id of datastore connection",
+            "Getting the unique id of datastore connection",
             CDataStoreConnection_getUniqueID(self.inner, &mut unique_id)
         )?;
         let c_str = unsafe { CStr::from_ptr(unique_id) };
@@ -109,7 +118,7 @@ impl<'a> DataStoreConnection<'a> {
 
         let rdf_file = file.as_ref().as_os_str().as_bytes();
         log::trace!(
-            "Importing file {} into graph {:} of {:}",
+            "Importing file {} into {:} of {:}",
             file.as_ref().display(),
             graph,
             self
@@ -131,11 +140,7 @@ impl<'a> DataStoreConnection<'a> {
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
         )?;
-        log::debug!(
-            "Imported file {} into graph {:}",
-            file.as_ref().display(),
-            graph
-        );
+        log::debug!("Imported file {} into {:}", file.as_ref().display(), graph);
         Ok(())
     }
 
@@ -229,6 +234,7 @@ impl<'a> DataStoreConnection<'a> {
         statement: &'b Statement<'b>,
         parameters: &Parameters,
     ) -> Result<(), Error> {
+        assert!(!self.inner.is_null(), "invalid datastore connection");
         let base_iri = ptr::null_mut();
         let statement_text = statement.as_c_string()?;
         let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
@@ -267,7 +273,11 @@ impl<'a> DataStoreConnection<'a> {
         )
     }
 
-    pub fn get_triples_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_triples_count(
+        &self,
+        tx: &Transaction,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -287,7 +297,7 @@ impl<'a> DataStoreConnection<'a> {
             .as_str(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
-        .count()
+        .count_in_transaction(tx)
     }
 
     pub fn get_subjects_count(&self, fact_domain: FactDomain) -> Result<u64, Error> {
@@ -363,5 +373,19 @@ impl<'a> DataStoreConnection<'a> {
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
         .count()
+    }
+
+    fn destroy(&mut self) {
+        let duration = self.started_at.elapsed();
+
+        assert!(!self.inner.is_null(), "invalid datastore connection");
+
+        let self_msg = format!("{self}");
+
+        unsafe {
+            CDataStoreConnection_destroy(self.inner);
+        }
+        self.inner = null_mut();
+        log::debug!("Destroyed {self_msg} after {:?}", duration);
     }
 }

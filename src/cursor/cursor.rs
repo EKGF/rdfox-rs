@@ -74,28 +74,28 @@ impl<'a> Cursor<'a> {
         self.execute_and_rollback(1000000000, |_row| Ok(()))
     }
 
-    pub fn count_in_transaction(&mut self, tx: &mut Transaction) -> Result<u64, Error> {
+    pub fn count_in_transaction(&mut self, tx: &Transaction) -> Result<u64, Error> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
-    pub fn consume<T>(&mut self, tx: &Transaction, maxrow: u64, mut f: T) -> Result<u64, Error>
+    pub fn consume<T>(&mut self, tx: &Transaction, max_row: u64, mut f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, &tx)?;
         let mut rowid = 0_u64;
         let mut count = 0_u64;
         while multiplicity > 0 {
-            if multiplicity >= maxrow {
+            if multiplicity >= max_row {
                 return Err(Error::MultiplicityExceededMaximumNumberOfRows {
-                    maxrow,
+                    maxrow: max_row,
                     multiplicity,
                     query: self.statement.text.clone(),
                 })
             }
             rowid += 1;
-            if rowid >= maxrow {
+            if rowid >= max_row {
                 return Err(Error::ExceededMaximumNumberOfRows {
-                    maxrow,
-                    query: self.statement.text.clone(),
+                    maxrow: max_row,
+                    query:  self.statement.text.clone(),
                 })
             }
             count += multiplicity;

@@ -34,6 +34,7 @@ impl<'a> Transaction<'a> {
         connection: &'a DataStoreConnection,
         tx_type: CTransactionType,
     ) -> Result<Self, Error> {
+        assert!(!connection.inner.is_null());
         database_call!(
             "starting a transaction",
             CDataStoreConnection_beginTransaction(connection.inner, tx_type)
@@ -80,6 +81,7 @@ impl<'a> Transaction<'a> {
     pub fn rollback(&mut self) -> Result<(), Error> {
         if !self.committed {
             self.committed = true; // May have to be made more thread-safe?
+            assert!(!self.connection.inner.is_null());
             database_call!(
                 "rolling back a transaction",
                 CDataStoreConnection_rollbackTransaction(self.connection.inner)
@@ -107,7 +109,7 @@ impl<'a> Transaction<'a> {
                 log::error!("Error occurred during transaction: {err}");
             },
             Ok(..) => {
-                log::debug!("Readonly-transaction was successful");
+                log::debug!("Readonly-transaction was successful (but still rolling back)");
             },
         }
         self.rollback()?;

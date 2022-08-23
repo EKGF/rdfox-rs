@@ -1,43 +1,78 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-
+/// We're using `#[test_log::test]` tests in this file which allows
+/// you to see the log in your test runner if you set the environment
+/// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
+/// at the end of your cargo test command line.
+/// See https://crates.io/crates/test-log.
+///
+/// TODO: Add test for "import axioms" (add test ontology)
 use std::{ops::Deref, path::Path};
 
-use env_logger::init;
 use indoc::formatdoc;
 use iref::Iri;
+use rdfox::{
+    DataStore,
+    DataStoreConnection,
+    Error,
+    FactDomain,
+    GraphConnection,
+    Parameters,
+    Prefixes,
+    RoleCreds,
+    Server,
+    ServerConnection,
+    Statement,
+    Transaction,
+    APPLICATION_N_QUADS,
+};
 
-fn test_create_database() -> Result<rdfox::DataStoreConnection, rdfox::Error> {
-    let server_params = &rdfox::Parameters::empty()?
+fn test_define_data_store() -> Result<DataStore, Error> {
+    log::info!("test_define_data_store");
+    let data_store_params = Parameters::empty()?;
+    DataStore::declare_with_parameters("example", data_store_params)
+}
+
+fn test_create_server() -> Result<Server, Error> {
+    log::info!("test_create_server");
+    let server_params = &Parameters::empty()?
         .api_log(true)?
         .api_log_directory(Path::new("./tests"))?;
-    let server = rdfox::Server::start_with_parameters(
-        rdfox::RoleCreds::default(),
-        server_params,
-    )?;
+    Server::start_with_parameters(RoleCreds::default(), server_params)
+}
 
-    let connection = server.connection_with_default_role()?;
+fn test_create_server_connection(server: &Server) -> Result<ServerConnection, Error> {
+    log::info!("test_create_server_connection");
 
-    assert!(connection.get_number_of_threads()? > 0);
+    let server_connection = server.connection_with_default_role()?;
+
+    assert!(server_connection.get_number_of_threads()? > 0);
 
     // We next specify how many threads the server should use during import of
     // data and reasoning.
-    connection.set_number_of_threads(2)?;
+    server_connection.set_number_of_threads(2)?;
 
-    assert_eq!(connection.get_number_of_threads()?, 2);
+    assert_eq!(server_connection.get_number_of_threads()?, 2);
 
-    let data_store = connection.create_data_store_named("example")?;
-
-    connection.connect_to_data_store(data_store)
+    Ok(server_connection)
 }
 
-fn test_create_graph(
-    ds_connection: &rdfox::DataStoreConnection,
-) -> Result<rdfox::GraphConnection, rdfox::Error> {
-    let graph_base_iri = rdfox::Prefix::declare(
-        "graph:",
-        Iri::new("http://whatever.kom/graph/").unwrap(),
-    );
+fn test_create_data_store<'a>(
+    server_connection: &'a ServerConnection,
+    data_store: &'a DataStore,
+) -> Result<DataStoreConnection<'a>, Error> {
+    log::info!("test_create_data_store");
+
+    server_connection.create_data_store(&data_store)?;
+    server_connection.connect_to_data_store(&data_store)
+}
+
+fn test_create_graph<'a>(
+    ds_connection: &'a DataStoreConnection,
+) -> Result<GraphConnection<'a>, Error> {
+    log::info!("test_create_graph");
+    let graph_base_iri =
+        rdfox::Prefix::declare("graph:", Iri::new("http://whatever.kom/graph/").unwrap());
     let test_graph = rdfox::Graph::declare(graph_base_iri, "test");
 
     assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
@@ -51,9 +86,11 @@ fn test_create_graph(
 
 #[allow(dead_code)]
 fn test_count_some_stuff_in_the_store(
-    ds_connection: &rdfox::DataStoreConnection,
-) -> Result<(), rdfox::Error> {
-    let count = ds_connection.get_triples_count(rdfox::FactDomain::ALL);
+    tx: &Transaction,
+    ds_connection: &DataStoreConnection,
+) -> Result<(), Error> {
+    log::info!("test_count_some_stuff_in_the_store");
+    let count = ds_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
     assert_eq!(count.unwrap(), 37);
 
@@ -62,9 +99,11 @@ fn test_count_some_stuff_in_the_store(
 
 #[allow(dead_code)]
 fn test_count_some_stuff_in_the_graph(
-    graph_connection: &rdfox::GraphConnection,
-) -> Result<(), rdfox::Error> {
-    let count = graph_connection.get_triples_count(rdfox::FactDomain::ALL);
+    tx: &Transaction,
+    graph_connection: &GraphConnection,
+) -> Result<(), Error> {
+    log::info!("test_count_some_stuff_in_the_graph");
+    let count = graph_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
     assert_eq!(count.unwrap(), 37);
 
@@ -73,11 +112,13 @@ fn test_count_some_stuff_in_the_graph(
 
 #[allow(dead_code)]
 fn test_cursor_with_lexical_value(
-    graph_connection: &rdfox::GraphConnection,
-) -> Result<(), rdfox::Error> {
+    tx: &Transaction,
+    graph_connection: &GraphConnection,
+) -> Result<(), Error> {
+    log::info!("test_cursor_with_lexical_value");
     let graph = graph_connection.graph.as_display_iri();
-    let prefixes = rdfox::Prefixes::default()?;
-    let query = rdfox::Statement::new(
+    let prefixes = Prefixes::default()?;
+    let query = Statement::new(
         &prefixes,
         formatdoc!(
             r##"
@@ -89,15 +130,14 @@ fn test_cursor_with_lexical_value(
                 }}
                 "##,
         )
-            .as_str(),
+        .as_str(),
     )?;
     let mut cursor = query.clone().cursor(
         graph_connection.data_store_connection,
-        &rdfox::Parameters::empty()?
-            .fact_domain(rdfox::FactDomain::ASSERTED)?,
+        &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
     )?;
 
-    let count = cursor.execute_and_rollback(|row| {
+    let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
         for term_index in 0 .. row.opened.arity {
             let value = row.lexical_value(term_index)?;
@@ -111,11 +151,13 @@ fn test_cursor_with_lexical_value(
 
 #[allow(dead_code)]
 fn test_cursor_with_resource_value(
-    graph_connection: &rdfox::GraphConnection,
-) -> Result<(), rdfox::Error> {
+    tx: &Transaction,
+    graph_connection: &GraphConnection,
+) -> Result<(), Error> {
+    log::info!("test_cursor_with_resource_value");
     let graph = graph_connection.graph.as_display_iri();
-    let prefixes = rdfox::Prefixes::default()?;
-    let query = rdfox::Statement::new(
+    let prefixes = Prefixes::default()?;
+    let query = Statement::new(
         &prefixes,
         formatdoc!(
             r##"
@@ -127,15 +169,14 @@ fn test_cursor_with_resource_value(
                 }}
                 "##,
         )
-            .as_str(),
+        .as_str(),
     )?;
     let mut cursor = query.clone().cursor(
         graph_connection.data_store_connection,
-        &rdfox::Parameters::empty()?
-            .fact_domain(rdfox::FactDomain::ASSERTED)?,
+        &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
     )?;
 
-    let count = cursor.execute_and_rollback(|row| {
+    let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
         for term_index in 0 .. row.opened.arity {
             let value = row.resource_value(term_index)?;
@@ -149,40 +190,66 @@ fn test_cursor_with_resource_value(
 
 #[allow(dead_code)]
 fn test_run_query_to_nquads_buffer(
-    ds_connection: &rdfox::DataStoreConnection,
-) -> Result<(), rdfox::Error> {
-    let prefixes = rdfox::Prefixes::default()?;
-    let nquads_query = rdfox::Statement::nquads_query(&prefixes)?;
+    _tx: &Transaction, // TODO: consider passing tx to evaluate_to_stream()
+    ds_connection: &DataStoreConnection,
+) -> Result<(), Error> {
+    log::info!("test_run_query_to_nquads_buffer");
+    let prefixes = Prefixes::default()?;
+    let nquads_query = Statement::nquads_query(&prefixes)?;
     let writer = std::io::stdout();
-    ds_connection.evaluate_to_stream(
-        writer,
-        &nquads_query,
-        rdfox::APPLICATION_N_QUADS.deref(),
-    )?;
+    ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref())?;
     log::info!("test_run_query_to_nquads_buffer passed");
     Ok(())
 }
 
-/// TODO: Add test for "import axioms" (add test ontology)
-#[test]
-fn load_rdfox() -> Result<(), rdfox::Error> {
-    init();
+#[test_log::test]
+fn load_rdfox() -> Result<(), Error> {
+    let server = test_create_server()?;
+    let server_connection = test_create_server_connection(&server)?;
 
-    let ds_connection = test_create_database()?;
+    let data_store = test_define_data_store()?;
 
-    let graph_connection = test_create_graph(&ds_connection)?;
+    // Create a separate scope to control the life-time of `ds_connection` which
+    // will ensure that the DataStoreConnection created by
+    // `test_create_data_store()` is destroyed at the end of this scope.
+    {
+        let ds_connection = test_create_data_store(&server_connection, &data_store)?;
 
-    graph_connection.import_data_from_file("tests/test.ttl")?;
+        let graph_connection = test_create_graph(&ds_connection)?;
 
-    test_count_some_stuff_in_the_store(&ds_connection)?;
-    test_count_some_stuff_in_the_graph(&graph_connection)?;
+        graph_connection.import_data_from_file("tests/test.ttl")?;
 
-    test_cursor_with_lexical_value(&graph_connection)?;
-    test_cursor_with_resource_value(&graph_connection)?;
+        Transaction::begin_read_only(&ds_connection)?.execute_and_rollback(|tx| {
+            test_count_some_stuff_in_the_store(tx, &ds_connection)?;
+            test_count_some_stuff_in_the_graph(tx, &graph_connection)?;
 
-    test_run_query_to_nquads_buffer(&ds_connection)?;
+            test_cursor_with_lexical_value(tx, &graph_connection)?;
+            test_cursor_with_resource_value(tx, &graph_connection)?;
+
+            test_run_query_to_nquads_buffer(tx, &ds_connection)
+        })?;
+    }
+
+    log::info!("Data store connection is now destroyed, now we can delete the data store:");
+
+    server_connection.delete_data_store(&data_store)?;
 
     log::info!("load_rdfox end");
 
     Ok(())
+}
+
+#[test_log::test]
+fn create_sandbox_database() -> Result<(), Error> {
+    let server_params = Parameters::empty()?.switch_off_file_access_sandboxing()?;
+    let role_creds = RoleCreds::default();
+    let server = Server::start_with_parameters(role_creds, &server_params)?;
+
+    let server_connection = server.connection_with_default_role()?;
+
+    assert!(server_connection.get_number_of_threads()? > 0);
+
+    // We next specify how many threads the server should use during import of
+    // data and reasoning.
+    server_connection.set_number_of_threads(2)
 }

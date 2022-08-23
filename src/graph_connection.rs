@@ -84,7 +84,7 @@ impl<'a> GraphConnection<'a> {
 
     pub fn get_triples_count(
         &self,
-        tx: &mut Transaction,
+        tx: &Transaction,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         Statement::new(

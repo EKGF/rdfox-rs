@@ -43,7 +43,7 @@ impl Display for PersistenceMode {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Parameters {
     pub(crate) inner: *mut CParameters,
 }
@@ -68,7 +68,7 @@ impl Parameters {
     pub fn empty() -> Result<Self, Error> {
         let mut parameters: *mut CParameters = ptr::null_mut();
         database_call!(
-            "allocating parameters",
+            "Allocating parameters",
             CParameters_newEmptyParameters(&mut parameters)
         )?;
         Ok(Parameters {
@@ -79,12 +79,11 @@ impl Parameters {
     pub fn set_string(&self, key: &str, value: &str) -> Result<(), Error> {
         let c_key = CString::new(key).unwrap();
         let c_value = CString::new(value).unwrap();
+        let msg = format!("Setting parameter {c_key:?}={c_value:?}");
         database_call!(
-            "setting a parameter",
+            msg.as_str(),
             CParameters_setString(self.inner, c_key.as_ptr(), c_value.as_ptr())
-        )?;
-        log::debug!("param {key}={value}");
-        Ok(())
+        )
     }
 
     pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, Error> {
