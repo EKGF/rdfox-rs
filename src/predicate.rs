@@ -1,8 +1,8 @@
 use crate::Prefix;
 
 pub struct Predicate<'a> {
-    namespace:  &'a Prefix,
-    local_name: String,
+    pub namespace:  &'a Prefix,
+    pub local_name: String,
 }
 
 impl<'a> std::fmt::Display for Predicate<'a> {

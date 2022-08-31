@@ -82,7 +82,7 @@ fn test_create_graph<'a>(
         "<http://whatever.kom/graph/test>"
     );
 
-    Ok(rdfox::GraphConnection::new(ds_connection, test_graph, None))
+    Ok(GraphConnection::new(ds_connection, test_graph, None))
 }
 
 #[allow(dead_code)]
@@ -200,7 +200,7 @@ fn test_run_query_to_nquads_buffer(
     let prefixes = Prefixes::empty()?;
     let nquads_query = Statement::nquads_query(&prefixes)?;
     let writer = std::io::stdout();
-    ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref())?;
+    ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref(), None)?;
     log::info!("test_run_query_to_nquads_buffer passed");
     Ok(())
 }

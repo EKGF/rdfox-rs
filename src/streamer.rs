@@ -77,7 +77,6 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
     /// Evaluate/execute the statement and stream all content to the given
     /// writer, then return the streamer (i.e. self).
     fn evaluate(mut self) -> Result<Self, Error> {
-        let base_iri = ptr::null_mut();
         let statement_text = self.statement.as_c_string()?;
         let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
         let parameters = Parameters::empty()?;
@@ -85,6 +84,7 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
         let mut number_of_solutions = 0u64;
         let prefixes_ptr = self.prefixes_ptr();
         let connection_ptr = self.connection_ptr();
+        let c_base_iri = CString::new(self.base_iri.iri.as_str()).unwrap();
 
         let self_p = format!("{:p}", &self);
         self.self_p = self_p.clone();
@@ -107,7 +107,7 @@ impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
             "evaluating a statement",
             CDataStoreConnection_evaluateStatement(
                 connection_ptr,
-                base_iri,
+                c_base_iri.as_ptr(),
                 prefixes_ptr,
                 statement_text.as_ptr(),
                 statement_text_len,

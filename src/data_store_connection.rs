@@ -17,6 +17,7 @@ use std::{
 use colored::Colorize;
 use ignore::{types::TypesBuilder, WalkBuilder};
 use indoc::formatdoc;
+use iref::Iri;
 use mime::Mime;
 use regex::Regex;
 
@@ -46,6 +47,7 @@ use crate::{
     Statement,
     Streamer,
     Transaction,
+    DEFAULT_BASE_IRI,
     DEFAULT_GRAPH,
     TEXT_TURTLE,
 };
@@ -234,9 +236,14 @@ impl<'a> DataStoreConnection<'a> {
         &self,
         statement: &'b Statement<'b>,
         parameters: &Parameters,
+        base_iri: Option<Iri>,
     ) -> Result<(), Error> {
         assert!(!self.inner.is_null(), "invalid datastore connection");
-        let base_iri = ptr::null_mut();
+        let c_base_iri = if let Some(base_iri) = base_iri {
+            CString::new(base_iri.as_str()).unwrap()
+        } else {
+            CString::new(DEFAULT_BASE_IRI).unwrap()
+        };
         let statement_text = statement.as_c_string()?;
         let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
         let mut statement_result: CStatementResult = Default::default();
@@ -244,7 +251,7 @@ impl<'a> DataStoreConnection<'a> {
             "evaluating an update statement",
             CDataStoreConnection_evaluateUpdate(
                 self.inner,
-                base_iri,
+                c_base_iri.as_ptr(),
                 statement.prefixes.inner,
                 statement_text.as_ptr(),
                 statement_text_len,
@@ -261,6 +268,7 @@ impl<'a> DataStoreConnection<'a> {
         writer: W,
         statement: &'a Statement<'a>,
         mime_type: &'static Mime,
+        base_iri: Option<Iri>,
     ) -> Result<Streamer<'a, W>, Error>
     where
         W: 'a + Write + Debug,
@@ -270,13 +278,19 @@ impl<'a> DataStoreConnection<'a> {
             writer,
             statement,
             mime_type,
-            Prefix::declare_from_str("base", "https://whatever.kg"),
+            Prefix::declare_from_str(
+                "base",
+                base_iri
+                    .as_ref()
+                    .map(|iri| iri.as_str())
+                    .unwrap_or(DEFAULT_BASE_IRI.deref()),
+            ),
         )
     }
 
     pub fn get_triples_count(
         &self,
-        tx: std::sync::Arc<Transaction>,
+        tx: Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
