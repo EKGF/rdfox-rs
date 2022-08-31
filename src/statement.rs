@@ -5,6 +5,7 @@ use core::fmt::{Display, Formatter};
 use std::{ffi::CString, ops::Deref};
 
 use indoc::formatdoc;
+use iref::Iri;
 
 use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH};
 
@@ -35,8 +36,9 @@ impl<'a> Statement<'a> {
         self,
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
+        base_iri: Option<Iri>,
     ) -> Result<Cursor<'a>, Error> {
-        Cursor::create(connection, parameters, self)
+        Cursor::create(connection, parameters, self, base_iri)
     }
 
     pub(crate) fn as_c_string(&self) -> Result<CString, Error> {

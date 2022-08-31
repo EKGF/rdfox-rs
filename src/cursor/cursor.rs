@@ -3,10 +3,13 @@
 
 use std::{ffi::CString, ptr, sync::Arc};
 
+use iref::Iri;
+
 use super::{CursorRow, OpenedCursor};
 use crate::{
     database_call,
     error::Error,
+    namespace::DEFAULT_BASE_IRI,
     root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
     DataStoreConnection,
     Parameters,
@@ -39,12 +42,17 @@ impl<'a> Cursor<'a> {
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
         statement: Statement<'a>,
+        base_iri: Option<Iri>,
     ) -> Result<Self, Error> {
         assert!(!connection.inner.is_null());
         assert!(!statement.prefixes.inner.is_null());
         assert!(!statement.prefixes.inner.is_null());
         let mut c_cursor: *mut CCursor = ptr::null_mut();
-        // let base_iri: *const std::os::raw::c_char = ptr::null();
+        let c_base_iri = if let Some(base_iri) = base_iri {
+            CString::new(base_iri.as_str()).unwrap()
+        } else {
+            CString::new(DEFAULT_BASE_IRI).unwrap()
+        };
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len: u64 = c_query.as_bytes().len() as u64;
         log::trace!("Starting cursor for {:?}", c_query);
@@ -52,7 +60,7 @@ impl<'a> Cursor<'a> {
             "creating a cursor",
             CDataStoreConnection_createCursor(
                 connection.inner,
-                ptr::null(),
+                c_base_iri.as_ptr(),
                 statement.prefixes.inner,
                 c_query.as_ptr(),
                 c_query_len,

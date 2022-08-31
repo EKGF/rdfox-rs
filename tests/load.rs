@@ -118,7 +118,7 @@ fn test_cursor_with_lexical_value(
 ) -> Result<(), Error> {
     log::info!("test_cursor_with_lexical_value");
     let graph = graph_connection.graph.as_display_iri();
-    let prefixes = Prefixes::default()?;
+    let prefixes = Prefixes::empty()?;
     let query = Statement::new(
         &prefixes,
         formatdoc!(
@@ -136,6 +136,7 @@ fn test_cursor_with_lexical_value(
     let mut cursor = query.clone().cursor(
         graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
+        None,
     )?;
 
     let count = cursor.consume(tx, 10000, |row| {
@@ -157,7 +158,7 @@ fn test_cursor_with_resource_value(
 ) -> Result<(), Error> {
     log::info!("test_cursor_with_resource_value");
     let graph = graph_connection.graph.as_display_iri();
-    let prefixes = Prefixes::default()?;
+    let prefixes = Prefixes::empty()?;
     let query = Statement::new(
         &prefixes,
         formatdoc!(
@@ -175,6 +176,7 @@ fn test_cursor_with_resource_value(
     let mut cursor = query.clone().cursor(
         graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
+        None,
     )?;
 
     let count = cursor.consume(tx, 10000, |row| {
@@ -195,7 +197,7 @@ fn test_run_query_to_nquads_buffer(
     ds_connection: &DataStoreConnection,
 ) -> Result<(), Error> {
     log::info!("test_run_query_to_nquads_buffer");
-    let prefixes = Prefixes::default()?;
+    let prefixes = Prefixes::empty()?;
     let nquads_query = Statement::nquads_query(&prefixes)?;
     let writer = std::io::stdout();
     ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref())?;

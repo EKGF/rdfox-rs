@@ -83,13 +83,16 @@ impl<'a> GraphConnection<'a> {
             .import_rdf_from_directory(root, &self.graph)
     }
 
+    /// Get the number of triples using the given transaction.
+    ///
+    /// TODO: Implement this with SPARQL COUNT (and compare performance)
     pub fn get_triples_count(
         &self,
         tx: Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         Statement::new(
-            &Prefixes::default()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?s ?p ?o
@@ -105,6 +108,7 @@ impl<'a> GraphConnection<'a> {
         .cursor(
             self.data_store_connection,
             &Parameters::empty()?.fact_domain(fact_domain)?,
+            None,
         )?
         .count(tx)
     }

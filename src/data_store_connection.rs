@@ -126,7 +126,7 @@ impl<'a> DataStoreConnection<'a> {
         );
 
         let c_graph_name = graph.as_c_string()?;
-        let prefixes = Prefixes::default()?;
+        let prefixes = Prefixes::empty()?;
         let file_name = CString::new(rdf_file).unwrap();
         let format_name = CString::new(TEXT_TURTLE.as_ref()).unwrap();
 
@@ -281,7 +281,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::default()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?graph ?s ?p ?o
@@ -297,7 +297,7 @@ impl<'a> DataStoreConnection<'a> {
             )
             .as_str(),
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
@@ -308,7 +308,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::default()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?subject
@@ -326,7 +326,7 @@ impl<'a> DataStoreConnection<'a> {
             )
             .as_str(),
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
@@ -337,7 +337,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::default()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?predicate
@@ -355,7 +355,7 @@ impl<'a> DataStoreConnection<'a> {
             )
             .as_str(),
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
@@ -366,7 +366,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::default()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?ontology
@@ -384,7 +384,7 @@ impl<'a> DataStoreConnection<'a> {
             )
             .as_str(),
         )?
-        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?)?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 

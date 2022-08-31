@@ -1,13 +1,14 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{collections::HashMap, ffi::CString, fmt::Display, ptr};
+use std::{collections::HashMap, ffi::CString, ops::Deref, ptr};
 
 use iref::{Iri, IriBuf};
 
 use crate::{
     database_call,
     error::Error,
+    namespace::{PREFIX_RDF, PREFIX_RDFS},
     root::{
         CPrefixes,
         CPrefixes_DeclareResult as PrefixDeclareResult,
@@ -22,10 +23,10 @@ pub struct Prefixes {
     map:              HashMap<String, Prefix>,
 }
 
-impl Display for Prefixes {
+impl std::fmt::Display for Prefixes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for prefix in self.map.values() {
-            writeln!(f, "PREFIX {prefix}")?
+        for _prefix in self.map.values() {
+            writeln!(f, "PREFIX {_prefix}")?
         }
         Ok(())
     }
@@ -34,7 +35,7 @@ impl Display for Prefixes {
 impl Prefixes {
     pub fn builder() -> PrefixesBuilder { PrefixesBuilder::default() }
 
-    pub fn default() -> Result<Self, Error> {
+    pub fn empty() -> Result<Self, Error> {
         let mut prefixes = Self {
             inner: ptr::null_mut(),
             map:   HashMap::new(),
@@ -44,6 +45,13 @@ impl Prefixes {
             CPrefixes_newDefaultPrefixes(&mut prefixes.inner)
         )?;
         Ok(prefixes)
+    }
+
+    /// Return the RDF and RDFS prefixes
+    pub fn default() -> Result<Self, Error> {
+        Self::empty()?
+            .add_prefix(PREFIX_RDF.deref())?
+            .add_prefix(PREFIX_RDFS.deref())
     }
 
     pub fn declare_prefix<'a>(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
@@ -157,7 +165,7 @@ impl<'a> PrefixesBuilder {
     }
 
     pub fn build(self) -> Result<Prefixes, Error> {
-        let mut to_build = Prefixes::default()?;
+        let mut to_build = Prefixes::empty()?;
         for prefix in self.prefixes {
             to_build.declare_prefix(&prefix)?;
         }

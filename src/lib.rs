@@ -21,6 +21,7 @@ use lazy_static::lazy_static;
 pub use lexical_value::LexicalValue;
 pub use license::{find_license, RDFOX_DEFAULT_LICENSE_FILE_NAME, RDFOX_HOME};
 pub use mime::Mime;
+pub use namespace::*;
 pub use parameters::{FactDomain, Parameters, PersistenceMode};
 pub use predicate::Predicate;
 pub use prefixes::{Prefix, Prefixes, PrefixesBuilder};
@@ -31,6 +32,7 @@ pub use statement::Statement;
 pub use streamer::Streamer;
 pub use transaction::Transaction;
 
+// All supported MIME types
 lazy_static! {
     // As documented here: https://docs.oxfordsemantic.tech/5.6/programmatic-access-APIs.html#formats-encoding-sparql-query-results
     pub static ref TEXT_TSV: Mime = Mime::from_str("text/tab-separated-values").unwrap();
@@ -73,6 +75,7 @@ mod graph;
 mod graph_connection;
 mod lexical_value;
 mod license;
+mod namespace;
 mod parameters;
 mod predicate;
 mod prefixes;

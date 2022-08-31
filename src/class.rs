@@ -74,6 +74,7 @@ impl Class {
             .cursor(
                 tx.connection,
                 &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
+                None,
             )?
             .count(tx);
         #[allow(clippy::let_and_return)]
@@ -101,6 +102,7 @@ impl Class {
             .cursor(
                 graph_connection.data_store_connection,
                 &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
+                None,
             )?
             .count(tx);
         #[allow(clippy::let_and_return)]
