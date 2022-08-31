@@ -1,5 +1,6 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
+use std::sync::Arc;
 /// We're using `#[test_log::test]` tests in this file which allows
 /// you to see the log in your test runner if you set the environment
 /// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
@@ -86,7 +87,7 @@ fn test_create_graph<'a>(
 
 #[allow(dead_code)]
 fn test_count_some_stuff_in_the_store(
-    tx: &Transaction,
+    tx: Arc<Transaction>,
     ds_connection: &DataStoreConnection,
 ) -> Result<(), Error> {
     log::info!("test_count_some_stuff_in_the_store");
@@ -99,7 +100,7 @@ fn test_count_some_stuff_in_the_store(
 
 #[allow(dead_code)]
 fn test_count_some_stuff_in_the_graph(
-    tx: &Transaction,
+    tx: Arc<Transaction>,
     graph_connection: &GraphConnection,
 ) -> Result<(), Error> {
     log::info!("test_count_some_stuff_in_the_graph");
@@ -112,7 +113,7 @@ fn test_count_some_stuff_in_the_graph(
 
 #[allow(dead_code)]
 fn test_cursor_with_lexical_value(
-    tx: &Transaction,
+    tx: Arc<Transaction>,
     graph_connection: &GraphConnection,
 ) -> Result<(), Error> {
     log::info!("test_cursor_with_lexical_value");
@@ -151,7 +152,7 @@ fn test_cursor_with_lexical_value(
 
 #[allow(dead_code)]
 fn test_cursor_with_resource_value(
-    tx: &Transaction,
+    tx: Arc<Transaction>,
     graph_connection: &GraphConnection,
 ) -> Result<(), Error> {
     log::info!("test_cursor_with_resource_value");
@@ -190,7 +191,7 @@ fn test_cursor_with_resource_value(
 
 #[allow(dead_code)]
 fn test_run_query_to_nquads_buffer(
-    _tx: &Transaction, // TODO: consider passing tx to evaluate_to_stream()
+    _tx: Arc<Transaction>, // TODO: consider passing tx to evaluate_to_stream()
     ds_connection: &DataStoreConnection,
 ) -> Result<(), Error> {
     log::info!("test_run_query_to_nquads_buffer");
@@ -220,13 +221,13 @@ fn load_rdfox() -> Result<(), Error> {
         graph_connection.import_data_from_file("tests/test.ttl")?;
 
         Transaction::begin_read_only(&ds_connection)?.execute_and_rollback(|tx| {
-            test_count_some_stuff_in_the_store(tx, &ds_connection)?;
-            test_count_some_stuff_in_the_graph(tx, &graph_connection)?;
+            test_count_some_stuff_in_the_store(tx.clone(), &ds_connection)?;
+            test_count_some_stuff_in_the_graph(tx.clone(), &graph_connection)?;
 
-            test_cursor_with_lexical_value(tx, &graph_connection)?;
-            test_cursor_with_resource_value(tx, &graph_connection)?;
+            test_cursor_with_lexical_value(tx.clone(), &graph_connection)?;
+            test_cursor_with_resource_value(tx.clone(), &graph_connection)?;
 
-            test_run_query_to_nquads_buffer(tx, &ds_connection)
+            test_run_query_to_nquads_buffer(tx.clone(), &ds_connection)
         })?;
     }
 

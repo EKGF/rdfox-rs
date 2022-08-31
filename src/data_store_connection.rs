@@ -10,6 +10,7 @@ use std::{
     path::Path,
     ptr,
     ptr::null_mut,
+    sync::Arc,
     time::Instant,
 };
 
@@ -275,7 +276,7 @@ impl<'a> DataStoreConnection<'a> {
 
     pub fn get_triples_count(
         &self,
-        tx: &Transaction,
+        tx: std::sync::Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
@@ -300,7 +301,11 @@ impl<'a> DataStoreConnection<'a> {
         .count(tx)
     }
 
-    pub fn get_subjects_count(&self, tx: &Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_subjects_count(
+        &self,
+        tx: Arc<Transaction>,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -325,7 +330,11 @@ impl<'a> DataStoreConnection<'a> {
         .count(tx)
     }
 
-    pub fn get_predicates_count(&self, tx: &Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_predicates_count(
+        &self,
+        tx: Arc<Transaction>,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,
@@ -350,7 +359,11 @@ impl<'a> DataStoreConnection<'a> {
         .count(tx)
     }
 
-    pub fn get_ontologies_count(&self, tx: &Transaction, fact_domain: FactDomain) -> Result<u64, Error> {
+    pub fn get_ontologies_count(
+        &self,
+        tx: Arc<Transaction>,
+        fact_domain: FactDomain,
+    ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
             &Prefixes::default()?,

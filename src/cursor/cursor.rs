@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr};
+use std::{ffi::CString, ptr, sync::Arc};
 
 use super::{CursorRow, OpenedCursor};
 use crate::{
@@ -70,12 +70,19 @@ impl<'a> Cursor<'a> {
         Ok(cursor)
     }
 
-    pub fn count(&mut self, tx: &Transaction) -> Result<u64, Error> {
+    pub fn count(&mut self, tx: Arc<Transaction>) -> Result<u64, Error> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
-    pub fn consume<T>(&mut self, tx: &Transaction, max_row: u64, mut f: T) -> Result<u64, Error>
-    where T: FnMut(CursorRow) -> Result<(), Error> {
+    pub fn consume<T>(
+        &mut self,
+        tx: Arc<Transaction>,
+        max_row: u64,
+        mut f: T,
+    ) -> Result<u64, Error>
+    where
+        T: FnMut(CursorRow) -> Result<(), Error>,
+    {
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, &tx)?;
         let mut rowid = 0_u64;
         let mut count = 0_u64;
@@ -109,19 +116,19 @@ impl<'a> Cursor<'a> {
 
     pub fn update_and_commit<T, U>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
-        let mut tx = Transaction::begin_read_write(self.connection)?;
-        self.update_and_commit_in_transaction(&mut tx, maxrow, f)
+        let tx = Transaction::begin_read_write(self.connection)?;
+        self.update_and_commit_in_transaction(tx, maxrow, f)
     }
 
     pub fn execute_and_rollback<T>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
-        let mut tx = Transaction::begin_read_only(self.connection)?;
-        self.execute_and_rollback_in_transaction(&mut tx, maxrow, f)
+        let tx = Transaction::begin_read_only(self.connection)?;
+        self.execute_and_rollback_in_transaction(tx, maxrow, f)
     }
 
     pub fn execute_and_rollback_in_transaction<T>(
         &mut self,
-        tx: &mut Transaction,
+        tx: Arc<Transaction>,
         maxrow: u64,
         f: T,
     ) -> Result<u64, Error>
@@ -133,7 +140,7 @@ impl<'a> Cursor<'a> {
 
     pub fn update_and_commit_in_transaction<T>(
         &mut self,
-        tx: &mut Transaction,
+        tx: Arc<Transaction>,
         maxrow: u64,
         f: T,
     ) -> Result<u64, Error>

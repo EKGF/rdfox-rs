@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ops::Deref;
+use std::{ops::Deref, sync::Arc};
 
 use indoc::formatdoc;
 
@@ -52,7 +52,7 @@ impl Class {
         TurtleClass(self)
     }
 
-    pub fn number_of_individuals(&self, tx: &Transaction) -> Result<u64, Error> {
+    pub fn number_of_individuals(&self, tx: Arc<Transaction>) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"
@@ -82,7 +82,7 @@ impl Class {
 
     pub fn number_of_individuals_in_graph(
         &self,
-        tx: &Transaction,
+        tx: Arc<Transaction>,
         graph_connection: &GraphConnection,
     ) -> Result<u64, Error> {
         let graph = graph_connection.graph.as_display_iri();

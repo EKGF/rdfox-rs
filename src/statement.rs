@@ -6,14 +6,7 @@ use std::{ffi::CString, ops::Deref};
 
 use indoc::formatdoc;
 
-use crate::{
-    error::Error,
-    Cursor,
-    DataStoreConnection,
-    Parameters,
-    Prefixes,
-    DEFAULT_GRAPH,
-};
+use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH};
 
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Clone)]
@@ -52,9 +45,7 @@ impl<'a> Statement<'a> {
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
-    pub fn nquads_query(
-        prefixes: &'a Prefixes,
-    ) -> Result<Statement<'a>, Error> {
+    pub fn nquads_query(prefixes: &'a Prefixes) -> Result<Statement<'a>, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let statement = Statement::new(
             prefixes,

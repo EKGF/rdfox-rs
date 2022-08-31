@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr};
+use std::{collections::HashMap, ffi::CString, fmt::Display, ptr};
 
 use iref::{Iri, IriBuf};
 
@@ -19,6 +19,16 @@ use crate::{
 #[derive(Debug, PartialEq)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
+    map:              HashMap<String, Prefix>,
+}
+
+impl Display for Prefixes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for prefix in self.map.values() {
+            writeln!(f, "PREFIX {prefix}")?
+        }
+        Ok(())
+    }
 }
 
 impl Prefixes {
@@ -27,6 +37,7 @@ impl Prefixes {
     pub fn default() -> Result<Self, Error> {
         let mut prefixes = Self {
             inner: ptr::null_mut(),
+            map:   HashMap::new(),
         };
         database_call!(
             "allocating prefixes",
@@ -35,8 +46,11 @@ impl Prefixes {
         Ok(prefixes)
     }
 
-    pub fn declare_prefix<'a>(&self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
+    pub fn declare_prefix<'a>(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
         log::trace!("Register prefix {prefix}");
+        if let Some(_already_registered) = self.map.insert(prefix.name.clone(), prefix.clone()) {
+            return Ok(PrefixDeclareResult::PREFIXES_NO_CHANGE)
+        }
         let c_name = CString::new(prefix.name.as_str()).unwrap();
         let c_iri = CString::new(prefix.iri.as_str()).unwrap();
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
@@ -66,14 +80,14 @@ impl Prefixes {
     }
 
     pub fn declare<'a, Base: Into<Iri<'a>>>(
-        &self,
+        &mut self,
         name: &str,
         iri: Base,
     ) -> Result<PrefixDeclareResult, Error> {
         self.declare_prefix(&Prefix::declare(name, iri))
     }
 
-    pub fn add_prefix(self, prefix: &Prefix) -> Result<Self, Error> {
+    pub fn add_prefix(mut self, prefix: &Prefix) -> Result<Self, Error> {
         self.declare_prefix(prefix).map(|_result| self)
     }
 }
@@ -143,7 +157,7 @@ impl<'a> PrefixesBuilder {
     }
 
     pub fn build(self) -> Result<Prefixes, Error> {
-        let to_build = Prefixes::default()?;
+        let mut to_build = Prefixes::default()?;
         for prefix in self.prefixes {
             to_build.declare_prefix(&prefix)?;
         }
