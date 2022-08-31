@@ -77,6 +77,7 @@ impl<'a> Transaction<'a> {
                 "committing a transaction",
                 CDataStoreConnection_commitTransaction(self.connection.inner)
             )?;
+            log::debug!("Committed transaction");
         }
         Ok(())
     }
@@ -90,6 +91,7 @@ impl<'a> Transaction<'a> {
                 "rolling back a transaction",
                 CDataStoreConnection_rollbackTransaction(self.connection.inner)
             )?;
+            log::debug!("Rolled back transaction");
         }
         Ok(())
     }
