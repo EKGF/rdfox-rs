@@ -92,7 +92,7 @@ impl<'a> GraphConnection<'a> {
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         Statement::new(
-            &Prefixes::empty()?,
+            Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?s ?p ?o

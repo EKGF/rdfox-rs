@@ -22,7 +22,7 @@ pub struct Cursor<'a> {
     #[allow(dead_code)]
     pub inner:             *mut CCursor,
     pub(crate) connection: &'a DataStoreConnection<'a>,
-    statement:             Statement<'a>,
+    statement:             Statement,
 }
 
 impl<'a> Drop for Cursor<'a> {
@@ -41,7 +41,7 @@ impl<'a> Cursor<'a> {
     pub fn create(
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
-        statement: Statement<'a>,
+        statement: Statement,
         base_iri: Option<Iri>,
     ) -> Result<Self, Error> {
         assert!(!connection.inner.is_null());

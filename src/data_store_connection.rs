@@ -234,7 +234,7 @@ impl<'a> DataStoreConnection<'a> {
 
     pub fn evaluate_update<'b>(
         &self,
-        statement: &'b Statement<'b>,
+        statement: &'b Statement,
         parameters: &Parameters,
         base_iri: Option<Iri>,
     ) -> Result<(), Error> {
@@ -266,12 +266,12 @@ impl<'a> DataStoreConnection<'a> {
     pub fn evaluate_to_stream<W>(
         &'a self,
         writer: W,
-        statement: &'a Statement<'a>,
+        statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Option<Iri>,
     ) -> Result<Streamer<'a, W>, Error>
     where
-        W: 'a + Write + Debug,
+        W: 'a + Write,
     {
         Streamer::run(
             self,
@@ -295,7 +295,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?graph ?s ?p ?o
@@ -322,7 +322,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?subject
@@ -351,7 +351,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?predicate
@@ -380,7 +380,7 @@ impl<'a> DataStoreConnection<'a> {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?ontology

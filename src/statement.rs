@@ -11,28 +11,29 @@ use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEF
 
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Clone)]
-pub struct Statement<'a> {
-    pub prefixes:    &'a Prefixes,
+pub struct Statement {
+    pub prefixes:    Prefixes,
     pub(crate) text: String,
 }
 
-impl Display for Statement<'_> {
+impl Display for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(f, "SPARQL Statement:\n{}", self.text)
     }
 }
 
-impl<'a> Statement<'a> {
-    pub fn new(prefixes: &'a Prefixes, statement: &str) -> Result<Self, Error> {
+impl Statement {
+    pub fn new(prefixes: Prefixes, statement: &str) -> Result<Self, Error> {
+        let text = format!("{}\n{}", &prefixes.to_string(), statement.trim());
         let s = Self {
             prefixes,
-            text: statement.trim().into(),
+            text,
         };
-        log::trace!("{:}", s);
+        log::trace!(target: crate::LOG_TARGET_SPARQL, "{:}", s);
         Ok(s)
     }
 
-    pub fn cursor<'b>(
+    pub fn cursor<'a>(
         self,
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
@@ -47,7 +48,7 @@ impl<'a> Statement<'a> {
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
-    pub fn nquads_query(prefixes: &'a Prefixes) -> Result<Statement<'a>, Error> {
+    pub fn nquads_query(prefixes: Prefixes) -> Result<Statement, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let statement = Statement::new(
             prefixes,

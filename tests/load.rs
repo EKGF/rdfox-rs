@@ -120,7 +120,7 @@ fn test_cursor_with_lexical_value(
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Prefixes::empty()?;
     let query = Statement::new(
-        &prefixes,
+        prefixes,
         formatdoc!(
             r##"
                 SELECT ?subject ?predicate ?object
@@ -160,7 +160,7 @@ fn test_cursor_with_resource_value(
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Prefixes::empty()?;
     let query = Statement::new(
-        &prefixes,
+        prefixes,
         formatdoc!(
             r##"
                 SELECT ?subject ?predicate ?object
@@ -198,7 +198,7 @@ fn test_run_query_to_nquads_buffer(
 ) -> Result<(), Error> {
     log::info!("test_run_query_to_nquads_buffer");
     let prefixes = Prefixes::empty()?;
-    let nquads_query = Statement::nquads_query(&prefixes)?;
+    let nquads_query = Statement::nquads_query(prefixes)?;
     let writer = std::io::stdout();
     ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref(), None)?;
     log::info!("test_run_query_to_nquads_buffer passed");

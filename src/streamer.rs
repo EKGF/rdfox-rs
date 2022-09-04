@@ -25,11 +25,11 @@ use crate::{
 };
 
 #[derive(PartialEq, Debug)]
-struct RefToSelf<'a, W: 'a + Write + Debug> {
+struct RefToSelf<'a, W: 'a + Write> {
     streamer: *mut Streamer<'a, W>,
 }
 
-impl<'a, W: 'a + Write + Debug> Drop for RefToSelf<'a, W> {
+impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
     fn drop(&mut self) {
         log::trace!("{:p}: Dropping RefToSelf ({self:p})", self.streamer);
     }
@@ -38,27 +38,27 @@ impl<'a, W: 'a + Write + Debug> Drop for RefToSelf<'a, W> {
 /// A `Streamer` is a helper-object that's created by `evaluate_to_stream`
 /// to handle the various callbacks from the underlying C-API to RDFox.
 #[derive(PartialEq, Debug)]
-pub struct Streamer<'a, W: 'a + Write + Debug> {
+pub struct Streamer<'a, W: 'a + Write> {
     pub connection: &'a DataStoreConnection<'a>,
     pub writer:     W,
-    pub statement:  &'a Statement<'a>,
+    pub statement:  &'a Statement,
     pub mime_type:  &'static Mime,
     pub base_iri:   Prefix,
     pub instant:    std::time::Instant,
     self_p:         String,
 }
 
-impl<'a, W: 'a + Write + Debug> Drop for Streamer<'a, W> {
+impl<'a, W: 'a + Write> Drop for Streamer<'a, W> {
     fn drop(&mut self) {
         log::trace!("{}: Dropped streamer", self.self_p);
     }
 }
 
-impl<'a, W: 'a + Write + Debug> Streamer<'a, W> {
+impl<'a, W: 'a + Write> Streamer<'a, W> {
     pub fn run(
         connection: &'a DataStoreConnection,
         writer: W,
-        statement: &'a Statement<'a>,
+        statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Prefix,
     ) -> Result<Self, Error> {
@@ -173,7 +173,7 @@ trait StreamerWithCallbacks {
     fn write(&mut self, data: &[u8]) -> bool;
 }
 
-impl<'a, W: 'a + Write + Debug> StreamerWithCallbacks for Streamer<'a, W> {
+impl<'a, W: 'a + Write> StreamerWithCallbacks for Streamer<'a, W> {
     fn flush(&mut self) -> bool {
         log::trace!("{self:p}: flush");
         let y = if let Err(err) = self.writer.flush() {

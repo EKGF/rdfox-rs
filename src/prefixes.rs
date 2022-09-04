@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
     map:              HashMap<String, Prefix>,
