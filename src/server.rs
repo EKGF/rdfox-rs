@@ -1,7 +1,14 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr};
+use std::{
+    ffi::CString,
+    ptr,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+};
 
 use crate::{
     database_call,
@@ -19,9 +26,10 @@ use crate::{
     ServerConnection,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Server {
     default_role_creds: RoleCreds,
+    running:            AtomicBool,
 }
 
 impl Drop for Server {
@@ -35,20 +43,23 @@ impl std::fmt::Display for Server {
 }
 
 impl Server {
-    pub fn start(role_creds: RoleCreds) -> Result<Self, Error> {
+    pub fn is_running(&self) -> bool { self.running.load(Ordering::Relaxed) }
+
+    pub fn start(role_creds: RoleCreds) -> Result<Arc<Self>, Error> {
         Self::start_with_parameters(role_creds, &Parameters::empty()?)
     }
 
     pub fn start_with_parameters(
         role_creds: RoleCreds,
         params: &Parameters,
-    ) -> Result<Self, Error> {
+    ) -> Result<Arc<Self>, Error> {
         database_call!(
             "Starting a local server",
             CServer_startLocalServer(params.inner)
         )?;
         let server = Server {
             default_role_creds: role_creds,
+            running:            AtomicBool::new(true),
         };
 
         if server.get_number_of_local_server_roles()? == 0 {
@@ -56,7 +67,7 @@ impl Server {
         }
 
         log::debug!("Local RDFox server has been started");
-        Ok(server)
+        Ok(Arc::new(server))
     }
 
     pub fn create_role(&self, role_creds: &RoleCreds) -> Result<(), Error> {
@@ -78,11 +89,12 @@ impl Server {
         Ok(number_of_roles as u16)
     }
 
-    pub fn connection_with_default_role(&self) -> Result<ServerConnection, Error> {
-        self.connection(&self.default_role_creds)
+    pub fn connection_with_default_role(self: &Arc<Self>) -> Result<ServerConnection, Error> {
+        let role_creds = &self.default_role_creds;
+        self.connection(role_creds.clone())
     }
 
-    pub fn connection(&self, role_creds: &RoleCreds) -> Result<ServerConnection, Error> {
+    pub fn connection(self: &Arc<Self>, role_creds: RoleCreds) -> Result<ServerConnection, Error> {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         let mut server_connection_ptr: *mut CServerConnection = ptr::null_mut();
@@ -100,14 +112,15 @@ impl Server {
         } else {
             log::debug!("Established connection to server");
             Ok(ServerConnection::new(
-                role_creds,
-                self,
+                role_creds.clone(),
+                self.clone(),
                 server_connection_ptr,
             ))
         }
     }
 
-    pub fn stop(&self) {
+    pub fn stop(&mut self) {
+        *self.running.get_mut() = false;
         unsafe {
             CServer_stopLocalServer();
         }

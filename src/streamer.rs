@@ -37,7 +37,7 @@ impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
 
 /// A `Streamer` is a helper-object that's created by `evaluate_to_stream`
 /// to handle the various callbacks from the underlying C-API to RDFox.
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct Streamer<'a, W: 'a + Write> {
     pub connection: &'a DataStoreConnection<'a>,
     pub writer:     W,

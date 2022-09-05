@@ -35,12 +35,12 @@ impl CException {
                     match res {
                         Ok(..) => Ok(()),
                         Err(err) => {
-                            panic!("RDFox panicked while performing {action}: {err:?}")
+                            panic!("RDFox panicked while {action}: {err:?}")
                         },
                     }
                 },
                 Err(err) => {
-                    panic!("RDFox panicked while performing {action}: {err:?}")
+                    panic!("RDFox panicked while {action}: {err:?}")
                 },
             }
         }

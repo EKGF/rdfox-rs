@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr};
+use std::{ffi::CString, ptr, sync::Arc};
 
 use crate::{
     database_call,
@@ -21,31 +21,35 @@ use crate::{
     Server,
 };
 
-#[derive(Debug, PartialEq)]
-pub struct ServerConnection<'a> {
+#[derive(Debug)]
+pub struct ServerConnection {
     #[allow(dead_code)]
     role_creds: RoleCreds,
-    server:     &'a Server,
+    server:     Arc<Server>,
     inner:      *mut CServerConnection,
 }
 
-impl<'a> Drop for ServerConnection<'a> {
+impl Drop for ServerConnection {
     fn drop(&mut self) { self.destroy() }
 }
 
-impl<'a> std::fmt::Display for ServerConnection<'a> {
+impl std::fmt::Display for ServerConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "connection to {:})", self.server)
     }
 }
 
-impl<'a> ServerConnection<'a> {
+impl ServerConnection {
     pub(crate) fn new(
-        role_creds: &RoleCreds,
-        server: &'a Server,
+        role_creds: RoleCreds,
+        server: Arc<Server>,
         server_connection_ptr: *mut CServerConnection,
     ) -> Self {
         assert!(!server_connection_ptr.is_null());
+        assert!(
+            server.is_running(),
+            "cannot connect to an RDFox server that is not running"
+        );
         Self {
             role_creds: role_creds.clone(),
             server,
@@ -67,6 +71,7 @@ impl<'a> ServerConnection<'a> {
         &self,
         number_of_threads: std::os::raw::c_ulong,
     ) -> Result<(), Error> {
+        assert!(!self.inner.is_null());
         let msg = format!("Setting the number of threads to {}", number_of_threads);
         database_call!(
             msg.as_str(),
@@ -75,6 +80,7 @@ impl<'a> ServerConnection<'a> {
     }
 
     pub fn delete_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
+        assert!(!self.inner.is_null());
         let msg = format!("Deleting {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
@@ -85,6 +91,7 @@ impl<'a> ServerConnection<'a> {
 
     pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
         log::trace!("Creating {data_store}");
+        assert!(!self.inner.is_null());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
             "creating a datastore",
@@ -103,6 +110,7 @@ impl<'a> ServerConnection<'a> {
         data_store: &'b DataStore,
     ) -> Result<DataStoreConnection<'b>, Error> {
         log::debug!("Connecting to {}", data_store);
+        assert!(!self.inner.is_null());
         let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(

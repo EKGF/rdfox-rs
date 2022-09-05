@@ -57,6 +57,10 @@ impl Display for Parameters {
 
 impl Drop for Parameters {
     fn drop(&mut self) {
+        assert!(
+            !self.inner.is_null(),
+            "Parameters-object was already dropped"
+        );
         unsafe {
             CParameters_destroy(self.inner);
             log::trace!("Destroyed params");

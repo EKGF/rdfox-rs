@@ -52,10 +52,10 @@ use crate::{
     TEXT_TURTLE,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct DataStoreConnection<'a> {
     pub data_store:        &'a DataStore,
-    pub server_connection: &'a ServerConnection<'a>,
+    pub server_connection: &'a ServerConnection,
     pub(crate) inner:      *mut CDataStoreConnection,
     started_at:            Instant,
 }
@@ -82,7 +82,7 @@ impl<'a> Drop for DataStoreConnection<'a> {
 
 impl<'a> DataStoreConnection<'a> {
     pub(crate) fn new(
-        server_connection: &'a ServerConnection<'a>,
+        server_connection: &'a ServerConnection,
         data_store: &'a DataStore,
         inner: *mut CDataStoreConnection,
     ) -> Self {
