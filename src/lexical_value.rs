@@ -157,8 +157,20 @@ impl Clone for LexicalValue {
                     todo!("the situation where the blank_node in a lexical value is empty")
                 }
             },
+            DataType::String => {
+                if let Some(string) = self.as_string() {
+                    LexicalValue {
+                        data_type: self.data_type,
+                        value:     LexicalValueUnion {
+                            string: ManuallyDrop::new(string),
+                        },
+                    }
+                } else {
+                    todo!("the situation where the string in a lexical value is empty")
+                }
+            },
             _ => {
-                todo!("dealing with other datatypes")
+                todo!("dealing with other datatypes: {:?}", self.data_type)
             },
         }
     }

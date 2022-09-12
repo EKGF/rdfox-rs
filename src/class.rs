@@ -108,6 +108,8 @@ impl Class {
         #[allow(clippy::let_and_return)]
         count_result
     }
+
+    pub fn plural_label(&self) -> String { format!("{}s", self.local_name) } // TODO: Make this slightly smarter
 }
 
 #[cfg(test)]
