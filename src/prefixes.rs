@@ -20,7 +20,7 @@ use crate::{
 #[derive(Debug, PartialEq, Clone)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
-    map:              HashMap<String, Prefix>,
+    pub map:          HashMap<String, Prefix>,
 }
 
 impl std::fmt::Display for Prefixes {
