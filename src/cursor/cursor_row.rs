@@ -4,7 +4,6 @@
 use std::{ffi::c_ulong, ptr};
 
 use crate::{
-    cursor::ResourceValue,
     database_call,
     root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
     DataType,
@@ -12,6 +11,7 @@ use crate::{
     Error::Unknown,
     LexicalValue,
     OpenedCursor,
+    ResourceValue,
 };
 
 #[derive(Debug)]
@@ -148,7 +148,7 @@ impl<'a> CursorRow<'a> {
             rowid = self.rowid,
             multiplicity = self.multiplicity
         );
-        if let Some(resource_id)= resource_id {
+        if let Some(resource_id) = resource_id {
             self.lexical_value_with_id(resource_id)
         } else {
             Ok(None)

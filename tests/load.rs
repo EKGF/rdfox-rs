@@ -34,7 +34,7 @@ fn test_define_data_store() -> Result<DataStore, Error> {
     DataStore::declare_with_parameters("example", data_store_params)
 }
 
-fn test_create_server() -> Result<Server, Error> {
+fn test_create_server() -> Result<Arc<Server>, Error> {
     log::info!("test_create_server");
     let server_params = &Parameters::empty()?
         .api_log(true)?
@@ -42,7 +42,7 @@ fn test_create_server() -> Result<Server, Error> {
     Server::start_with_parameters(RoleCreds::default(), server_params)
 }
 
-fn test_create_server_connection(server: &Server) -> Result<ServerConnection, Error> {
+fn test_create_server_connection(server: Arc<Server>) -> Result<ServerConnection, Error> {
     log::info!("test_create_server_connection");
 
     let server_connection = server.connection_with_default_role()?;
@@ -208,7 +208,7 @@ fn test_run_query_to_nquads_buffer(
 #[test_log::test]
 fn load_rdfox() -> Result<(), Error> {
     let server = test_create_server()?;
-    let server_connection = test_create_server_connection(&server)?;
+    let server_connection = test_create_server_connection(server.clone())?;
 
     let data_store = test_define_data_store()?;
 

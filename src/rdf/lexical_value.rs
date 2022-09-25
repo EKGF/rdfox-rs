@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use iref::IriBuf;
+use iref::{Iri, IriBuf};
 
 use crate::{DataType, Error, Error::Unknown};
 
@@ -282,5 +282,27 @@ impl LexicalValue {
                 Err(Unknown)
             },
         }
+    }
+
+    pub fn from_iri(iri: &Iri) -> Result<Self, Error> {
+        Ok(LexicalValue {
+            data_type: DataType::IriReference,
+            value:     LexicalValueUnion {
+                iri: ManuallyDrop::new(IriBuf::from(iri)),
+            },
+        })
+    }
+}
+
+impl FromStr for LexicalValue {
+    type Err = Error;
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        Ok(LexicalValue {
+            data_type: DataType::String,
+            value:     LexicalValueUnion {
+                string: ManuallyDrop::new(str.to_string()),
+            },
+        })
     }
 }
