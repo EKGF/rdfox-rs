@@ -9,6 +9,7 @@ use crate::Error;
 
 /// An RDF Term is either an IRI, a literal or a blank node.
 /// See https://www.w3.org/TR/rdf11-concepts/#section-triples
+#[derive(Debug)]
 pub enum Term {
     Iri(LexicalValue),
     Literal(LexicalValue),
@@ -17,6 +18,10 @@ pub enum Term {
 
 impl Term {
     pub fn new_iri(iri: &Iri) -> Result<Self, Error> { Ok(Term::Iri(LexicalValue::from_iri(iri)?)) }
+
+    pub fn new_iri_from_str(iri_str: &str) -> Result<Self, Error> {
+        Ok(Term::new_iri(&Iri::new(iri_str)?)?)
+    }
 
     pub fn new_str(str: &str) -> Result<Self, Error> {
         Ok(Term::Literal(LexicalValue::from_str(str)?))
