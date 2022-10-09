@@ -89,11 +89,6 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
     let url = rdfox_download_url();
     let file_name = rdfox_download_file();
 
-    println!(
-        "cargo:warning=\"aaaa0a\" file={}",
-        file_name.to_str().unwrap()
-    );
-
     if file_name.try_exists().unwrap_or_else(|_| {
         panic!(
             "cargo:warning=Can't check existence of file {}",
@@ -106,17 +101,11 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
         );
         return Ok(file_name)
     }
-    println!(
-        "cargo:warning=\"aaaa0b\" file={}",
-        file_name.to_str().unwrap()
-    );
 
     curl.url(url.as_str())?;
     curl.verbose(false)?;
     curl.progress(false)?;
     let _redirect = curl.follow_location(true);
-
-    println!("cargo:warning=\"aaaa1\"");
 
     let mut buffer = Vec::new();
     {
@@ -129,7 +118,6 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
             .unwrap();
         transfer.perform().unwrap();
     }
-    println!("cargo:warning=\"aaaa2\"");
     {
         let mut file = File::create(file_name.to_str().unwrap()).unwrap_or_else(|_err| {
             panic!(
@@ -148,7 +136,6 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
             file_name.to_str().unwrap()
         );
     }
-    println!("cargo:warning=\"aaaa3\"");
     Ok(file_name)
 }
 
