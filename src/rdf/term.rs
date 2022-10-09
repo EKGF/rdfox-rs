@@ -5,7 +5,7 @@ use std::str::FromStr;
 use iref::Iri;
 
 use super::LexicalValue;
-use crate::Error;
+use crate::{DataType, Error};
 
 /// An RDF Term is either an IRI, a literal or a blank node.
 /// See https://www.w3.org/TR/rdf11-concepts/#section-triples
@@ -20,11 +20,17 @@ impl Term {
     pub fn new_iri(iri: &Iri) -> Result<Self, Error> { Ok(Term::Iri(LexicalValue::from_iri(iri)?)) }
 
     pub fn new_iri_from_str(iri_str: &str) -> Result<Self, Error> {
-        Ok(Term::new_iri(&Iri::new(iri_str)?)?)
+        Term::new_iri(&Iri::new(iri_str)?)
     }
 
     pub fn new_str(str: &str) -> Result<Self, Error> {
         Ok(Term::Literal(LexicalValue::from_str(str)?))
+    }
+
+    pub fn new_blank_node(str: &str) -> Result<Self, Error> {
+        Ok(Term::BlankNode(
+            LexicalValue::from_type_and_buffer(DataType::BlankNode, str)?.unwrap(),
+        ))
     }
 
     pub fn display_turtle<'a, 'b>(&'a self) -> impl std::fmt::Display + 'a + 'b

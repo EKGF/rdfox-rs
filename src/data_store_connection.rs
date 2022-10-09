@@ -220,7 +220,7 @@ impl<'a> DataStoreConnection<'a> {
                     }
                     let rdf_file = dir_entry.path();
                     // log::debug!("entry {:?}", dir_entry);
-                    self.import_data_from_file(rdf_file, &graph)?;
+                    self.import_data_from_file(rdf_file, graph)?;
                     count += 1;
                 },
                 Err(error) => {
@@ -232,6 +232,7 @@ impl<'a> DataStoreConnection<'a> {
         Ok(count)
     }
 
+    // noinspection DuplicatedCode
     pub fn evaluate_update<'b>(
         &self,
         statement: &'b Statement,
@@ -283,7 +284,7 @@ impl<'a> DataStoreConnection<'a> {
                 base_iri
                     .as_ref()
                     .map(|iri| iri.as_str())
-                    .unwrap_or(DEFAULT_BASE_IRI.deref()),
+                    .unwrap_or_else(|| DEFAULT_BASE_IRI.deref()),
             ),
         )
     }
@@ -402,13 +403,13 @@ impl<'a> DataStoreConnection<'a> {
         .count(tx)
     }
 
+    // noinspection RsUnreachableCode
     fn destroy(&mut self) {
-        let duration = self.started_at.elapsed();
-
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
-        let self_msg = format!("{self}");
+        let duration = self.started_at.elapsed();
 
+        let self_msg = format!("{self}");
         unsafe {
             CDataStoreConnection_destroy(self.inner);
         }

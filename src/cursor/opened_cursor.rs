@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ptr;
+use std::{ptr, sync::Arc};
 
 use crate::{
     database_call,
@@ -23,7 +23,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct OpenedCursor<'a> {
-    pub tx:               &'a Transaction<'a>,
+    pub tx:               Arc<Transaction<'a>>,
     pub cursor:           &'a Cursor<'a>,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
@@ -38,7 +38,7 @@ impl<'a> OpenedCursor<'a> {
     /// as an `OpenedCursor` and the multiplicity of the first row.
     pub(crate) fn new(
         cursor: &'a mut Cursor,
-        tx: &'a Transaction<'a>,
+        tx: Arc<Transaction<'a>>,
     ) -> Result<(Self, u64), Error> {
         let c_cursor = cursor.inner;
         let multiplicity = Self::open(cursor.inner)?;
@@ -116,8 +116,8 @@ impl<'a> OpenedCursor<'a> {
                 Ok(Some(*resource_id))
             } else {
                 // log::error!(
-                //     "Could not get the resource ID from the arguments buffer with argument index \
-                //      {argument_index} and term index {term_index}"
+                //     "Could not get the resource ID from the arguments buffer with argument
+                // index \      {argument_index} and term index {term_index}"
                 // );
                 // Err(Unknown)
                 Ok(None)

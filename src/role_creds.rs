@@ -4,7 +4,7 @@
 const RDFOX_DEFAULT_ROLE_USERID: &str = "admin";
 const RDFOX_DEFAULT_ROLE_PASSWD: &str = "admin";
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct RoleCreds {
     pub(crate) role_name: String,
     pub(crate) password:  String,

@@ -44,7 +44,7 @@ impl PartialEq for LexicalValue {
     }
 }
 
-impl std::cmp::Eq for LexicalValue {}
+impl Eq for LexicalValue {}
 
 impl std::hash::Hash for LexicalValue {
     fn hash<H>(&self, state: &mut H)
@@ -131,6 +131,7 @@ impl Display for LexicalValue {
 }
 
 impl Clone for LexicalValue {
+    // noinspection RsUnreachableCode
     fn clone(&self) -> Self {
         match self.data_type {
             DataType::IriReference | DataType::AnyUri => {

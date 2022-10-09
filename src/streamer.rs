@@ -79,7 +79,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     fn evaluate(mut self) -> Result<Self, Error> {
         let statement_text = self.statement.as_c_string()?;
         let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
-        let parameters = Parameters::empty()?;
+        let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
         let query_answer_format_name = CString::new(self.mime_type.as_ref())?;
         let mut number_of_solutions = 0u64;
         let prefixes_ptr = self.prefixes_ptr();
@@ -117,6 +117,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 &mut number_of_solutions,
             )
         };
+        // std::thread::sleep(std::time::Duration::from_millis(1000));
         // Explicitly clean up the two boxes that we allocated
         unsafe {
             ptr::drop_in_place(ref_to_self_raw_ptr);
@@ -131,13 +132,13 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
     unsafe fn context_as_ref_to_self(context: *mut c_void) -> &'a mut RefToSelf<'a, W> {
         let ref_to_self = context as *mut RefToSelf<'a, W>;
-        let ref_to_self = &mut *ref_to_self;
-        ref_to_self
+        &mut *ref_to_self
     }
 
     extern "C" fn flush_function(context: *mut c_void) -> bool {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };
+        log::trace!("{streamer:p}: flush_function");
         streamer.flush()
     }
 
@@ -151,7 +152,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
         log::trace!("{streamer:p}: write_function");
 
-        match ptr_to_cstr(data as *const u8, number_of_bytes_to_write as usize) {
+        let result = match ptr_to_cstr(data as *const u8, number_of_bytes_to_write as usize) {
             Ok(data_c_str) => {
                 log::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
                 streamer.write(data_c_str.to_bytes_with_nul())
@@ -160,7 +161,9 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 log::error!("{streamer:p}: could not write: {error:?}");
                 false
             },
-        }
+        };
+        log::trace!("{streamer:p}: write_function result={result}");
+        result
     }
 
     fn prefixes_ptr(&self) -> *mut CPrefixes { self.statement.prefixes.inner }

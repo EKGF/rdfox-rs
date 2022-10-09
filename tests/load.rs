@@ -64,8 +64,8 @@ fn test_create_data_store<'a>(
 ) -> Result<DataStoreConnection<'a>, Error> {
     log::info!("test_create_data_store");
 
-    server_connection.create_data_store(&data_store)?;
-    server_connection.connect_to_data_store(&data_store)
+    server_connection.create_data_store(data_store)?;
+    server_connection.connect_to_data_store(data_store)
 }
 
 fn test_create_graph<'a>(
@@ -133,7 +133,7 @@ fn test_cursor_with_lexical_value(
         )
         .as_str(),
     )?;
-    let mut cursor = query.clone().cursor(
+    let mut cursor = query.cursor(
         graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
         None,
@@ -173,7 +173,7 @@ fn test_cursor_with_resource_value(
         )
         .as_str(),
     )?;
-    let mut cursor = query.clone().cursor(
+    let mut cursor = query.cursor(
         graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
         None,
@@ -208,7 +208,7 @@ fn test_run_query_to_nquads_buffer(
 #[test_log::test]
 fn load_rdfox() -> Result<(), Error> {
     let server = test_create_server()?;
-    let server_connection = test_create_server_connection(server.clone())?;
+    let server_connection = test_create_server_connection(server)?;
 
     let data_store = test_define_data_store()?;
 

@@ -38,6 +38,7 @@ impl<'a> Drop for Cursor<'a> {
 }
 
 impl<'a> Cursor<'a> {
+    // noinspection DuplicatedCode
     pub fn create(
         connection: &'a DataStoreConnection,
         parameters: &Parameters,
@@ -91,7 +92,8 @@ impl<'a> Cursor<'a> {
     where
         T: FnMut(CursorRow) -> Result<(), Error>,
     {
-        let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, &tx)?;
+        let sparql_str = self.statement.text.clone();
+        let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, tx.clone())?;
         let mut rowid = 0_u64;
         let mut count = 0_u64;
         while multiplicity > 0 {
@@ -99,14 +101,14 @@ impl<'a> Cursor<'a> {
                 return Err(Error::MultiplicityExceededMaximumNumberOfRows {
                     maxrow: max_row,
                     multiplicity,
-                    query: self.statement.text.clone(),
+                    query: sparql_str,
                 })
             }
             rowid += 1;
             if rowid >= max_row {
                 return Err(Error::ExceededMaximumNumberOfRows {
                     maxrow: max_row,
-                    query:  self.statement.text.clone(),
+                    query:  sparql_str,
                 })
             }
             count += multiplicity;

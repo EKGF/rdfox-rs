@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Prefixes {
     pub(crate) inner: *mut CPrefixes,
     pub map:          HashMap<String, Prefix>,
@@ -54,7 +54,7 @@ impl Prefixes {
             .add_prefix(PREFIX_RDFS.deref())
     }
 
-    pub fn declare_prefix<'a>(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
+    pub fn declare_prefix(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
         log::trace!("Register prefix {prefix}");
         if let Some(_already_registered) = self.map.insert(prefix.name.clone(), prefix.clone()) {
             return Ok(PrefixDeclareResult::PREFIXES_NO_CHANGE)

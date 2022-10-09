@@ -42,6 +42,7 @@ impl Class {
         }
     }
 
+    #[allow(clippy::needless_lifetimes)]
     pub fn display_turtle<'a>(&'a self) -> impl std::fmt::Display + 'a {
         struct TurtleClass<'a>(&'a Class);
         impl<'a> std::fmt::Display for TurtleClass<'a> {
@@ -120,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_a_class() {
-        let prefix = Prefix::declare("test:", Iri::new("http://whatever.com/test#").unwrap());
+        let prefix = Prefix::declare("test:", Iri::new("https://whatever.com/test#").unwrap());
         let class = Class::declare(prefix, "SomeClass");
         let s = format!("{:}", class);
         assert_eq!(s, "test:SomeClass")

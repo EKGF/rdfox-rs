@@ -37,6 +37,7 @@ impl Drop for Server {
 }
 
 impl std::fmt::Display for Server {
+    // noinspection RsUnreachableCode
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "server {self:p})")
     }
@@ -112,7 +113,7 @@ impl Server {
         } else {
             log::debug!("Established connection to server");
             Ok(ServerConnection::new(
-                role_creds.clone(),
+                role_creds,
                 self.clone(),
                 server_connection_ptr,
             ))

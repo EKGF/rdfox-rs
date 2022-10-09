@@ -9,6 +9,7 @@ pub use opened_cursor::OpenedCursor;
 
 use crate::Error;
 
+#[allow(clippy::module_inception)]
 mod cursor;
 mod cursor_row;
 mod opened_cursor;

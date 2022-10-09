@@ -6,13 +6,14 @@
 
 extern crate core;
 
-use std::fs::{File, OpenOptions};
-use std::io::{BufReader, Write};
-use std::option_env;
-use std::path::Path;
-use std::path::PathBuf;
-use std::process::Command;
-use std::{env, io};
+use std::{
+    env,
+    fs::File,
+    io::{BufReader, Write},
+    option_env,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use lazy_static::lazy_static;
 
@@ -25,11 +26,19 @@ const RDFOX_OS_NAME: &str = "win64";
 
 const ARCH: &str = env::consts::ARCH;
 
+const BLOCKLIST_ITEMS: &[&str] = &[
+    "std::integral_constant_value_type",
+    "std::remove_const_type",
+    "std::remove_volatile_type",
+    "^std::value$",
+    "^_Tp$",
+];
+
 lazy_static! {
     static ref RDFOX_DOWNLOAD_HOST: &'static str = option_env!("RDFOX_DOWNLOAD_HOST")
         .unwrap_or("https://rdfox-distribution.s3.eu-west-2.amazonaws.com/release");
     static ref RDFOX_VERSION_EXPECTED: &'static str =
-        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("5.6");
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("5.7");
 }
 
 fn rdfox_download_url() -> String {
@@ -47,7 +56,11 @@ fn rdfox_archive_name() -> String {
 
 fn rdfox_download_file() -> PathBuf {
     let dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    dir.parent().unwrap().parent().unwrap().join(format!("{}.zip", rdfox_archive_name()))
+    dir.parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join(format!("{}.zip", rdfox_archive_name()))
 }
 
 fn rdfox_dylib_dir() -> PathBuf {
@@ -76,18 +89,34 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
     let url = rdfox_download_url();
     let file_name = rdfox_download_file();
 
-    if file_name.exists() {
+    println!(
+        "cargo:warning=\"aaaa0a\" file={}",
+        file_name.to_str().unwrap()
+    );
+
+    if file_name.try_exists().unwrap_or_else(|_| {
+        panic!(
+            "cargo:warning=Can't check existence of file {}",
+            file_name.to_str().unwrap()
+        )
+    }) {
         println!(
             "cargo:warning=\"RDFox has already been downloaded: {}\"",
             file_name.to_str().unwrap()
         );
-        return Ok(file_name);
+        return Ok(file_name)
     }
+    println!(
+        "cargo:warning=\"aaaa0b\" file={}",
+        file_name.to_str().unwrap()
+    );
 
     curl.url(url.as_str())?;
     curl.verbose(false)?;
     curl.progress(false)?;
     let _redirect = curl.follow_location(true);
+
+    println!("cargo:warning=\"aaaa1\"");
 
     let mut buffer = Vec::new();
     {
@@ -100,6 +129,7 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
             .unwrap();
         transfer.perform().unwrap();
     }
+    println!("cargo:warning=\"aaaa2\"");
     {
         let mut file = File::create(file_name.to_str().unwrap()).unwrap_or_else(|_err| {
             panic!(
@@ -118,6 +148,7 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
             file_name.to_str().unwrap()
         );
     }
+    println!("cargo:warning=\"aaaa3\"");
     Ok(file_name)
 }
 
@@ -153,9 +184,7 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
 }
 
 fn set_llvm_path<P>(llvm_config_path: P) -> PathBuf
-where
-    P: AsRef<Path>,
-{
+where P: AsRef<Path> {
     // let path = llvm_config_path.as_ref();
     // println!("cargo:warning={}", path.display());
     assert!(llvm_config_path.as_ref().exists());
@@ -219,42 +248,41 @@ fn check_llvm_via_brew() -> Option<PathBuf> {
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-fn check_llvm_via_brew() -> Option<PathBuf> {
-    None
-}
+fn check_llvm_via_brew() -> Option<PathBuf> { None }
 
-//
 // The CRDFox.h file misses the `#include <cstddef>` statement which is
 // needed to define the symbol `nullptr_t`. This is only an issue on Linux,
 // things compile fine on Darwin.
 //
-fn write_workaround_header<P: AsRef<Path>>(workaround_h: P) -> io::Result<()> {
-    fn create_file<P: AsRef<Path>>(path: P) -> io::Result<File> {
-        let file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(path.as_ref())?;
-        Ok(file)
-    }
-
-    let mut file = create_file(workaround_h)?;
-
-    writeln!(
-        file,
-        "namespace std {{ typedef decltype(nullptr) nullptr_t; }}"
-    )?;
-    writeln!(file, "typedef decltype(nullptr) nullptr_t;")?;
-
-    Ok(())
-}
+// fn write_workaround_header<P: AsRef<Path>>(workaround_h: P) -> io::Result<()>
+// {     fn create_file<P: AsRef<Path>>(path: P) -> io::Result<File> {
+//         let file = OpenOptions::new()
+//             .write(true)
+//             .truncate(true)
+//             .create(true)
+//             .open(path.as_ref())?;
+//         Ok(file)
+//     }
+//
+//     let mut file = create_file(workaround_h)?;
+//
+//     writeln!(
+//         file,
+//         "namespace std {{ typedef decltype(nullptr) nullptr_t; }}"
+//     )?;
+//     writeln!(file, "typedef decltype(nullptr) nullptr_t;")?;
+//
+//     Ok(())
+// }
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    let workaround_h = PathBuf::from(format!("{}/workaround.h", out_path.display()));
+    // let workaround_h = PathBuf::from(format!("{}/workaround.h",
+    // out_path.display()));
 
-    write_workaround_header(&workaround_h).expect("cargo:warning=Could not generate workaround.h");
+    // write_workaround_header(&workaround_h).expect("cargo:warning=Could not
+    // generate workaround.h");
 
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/lib.rs");
@@ -279,12 +307,12 @@ fn main() {
     // "-x" and "c++" must be separate due to a bug
     let clang_args: Vec<&str> = vec!["-x", "c++", "-std=c++17"];
 
-    let bindings = bindgen::Builder::default()
+    let mut builder = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        .header(workaround_h.to_str().unwrap())
+        // .header(workaround_h.to_str().unwrap())
         .header(format!(
-            "{}/{}/include/CRDFox.h",
+            "{}/{}/include/CRDFox/CRDFox.h",
             out_path.display(),
             rdfox_archive_name()
         ))
@@ -303,8 +331,16 @@ fn main() {
         .respect_cxx_access_specs(true)
         .vtable_generation(true)
         .enable_function_attribute_detection()
-        .generate_inline_functions(true)
-        // Finish the builder and generate the bindings.
+        .generate_inline_functions(true);
+
+    for item in BLOCKLIST_ITEMS {
+        builder = builder.blocklist_type(item);
+        builder = builder.blocklist_item(item);
+        builder = builder.blocklist_function(item);
+    }
+
+    // Finish the builder and generate the bindings.
+    let bindings = builder
         .generate()
         // Unwrap the Result and panic on failure.
         .expect("Unable to generate bindings");

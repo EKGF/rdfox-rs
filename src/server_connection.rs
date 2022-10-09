@@ -51,7 +51,7 @@ impl ServerConnection {
             "cannot connect to an RDFox server that is not running"
         );
         Self {
-            role_creds: role_creds.clone(),
+            role_creds,
             server,
             inner: server_connection_ptr,
         }

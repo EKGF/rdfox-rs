@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Perl5Settings">
+    <option name="SIMPLE_MAIN_RESOLUTION" value="false" />
+    <option name="AUTOMATIC_HEREDOC_INJECTIONS" value="false" />
+  </component>
+</project>

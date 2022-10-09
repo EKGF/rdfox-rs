@@ -1,12 +1,12 @@
 [package]
 name = "rdfox"
 description = "RDFox for Rust, a high-performance in-memory semantic graph database"
-version = "5.6.0"
+version = "5.7.0"
 edition = "2021"
 links = "RDFox"
 authors = [
     "Jacobus Geluk <jacobus.geluk@ekgf.org>",
-    "Marcelo Barbieri <marcelo.barbieri@agnos.ai"
+    "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
 ]
 publish = false
 repository = "https://github.com/EKGF/rdfox-rs"

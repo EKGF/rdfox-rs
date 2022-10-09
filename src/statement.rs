@@ -10,7 +10,7 @@ use iref::Iri;
 use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH};
 
 /// SPARQL Statement
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Statement {
     pub prefixes:    Prefixes,
     pub(crate) text: String,
