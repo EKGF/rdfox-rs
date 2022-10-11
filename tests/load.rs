@@ -210,6 +210,8 @@ fn load_rdfox() -> Result<(), Error> {
     let server = test_create_server()?;
     let server_connection = test_create_server_connection(server)?;
 
+    log::info!("Server version is {}", server_connection.get_version()?);
+
     let data_store = test_define_data_store()?;
 
     // Create a separate scope to control the life-time of `ds_connection` which

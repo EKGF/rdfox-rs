@@ -1,7 +1,11 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr, sync::Arc};
+use std::{
+    ffi::{CStr, CString},
+    ptr,
+    sync::Arc,
+};
 
 use crate::{
     database_call,
@@ -12,6 +16,7 @@ use crate::{
         CServerConnection_deleteDataStore,
         CServerConnection_destroy,
         CServerConnection_getNumberOfThreads,
+        CServerConnection_getVersion,
         CServerConnection_newDataStoreConnection,
         CServerConnection_setNumberOfThreads,
     },
@@ -55,6 +60,23 @@ impl ServerConnection {
             server,
             inner: server_connection_ptr,
         }
+    }
+
+    /// Return the version number of the underlying database engine
+    ///
+    /// CRDFOX const CException*
+    /// CServerConnection_getVersion(
+    ///     CServerConnection* serverConnection,
+    ///     const char** version
+    /// );
+    pub fn get_version(&self) -> Result<String, Error> {
+        let mut c_buf: *const std::os::raw::c_char = ptr::null();
+        database_call!(
+            "Getting the version",
+            CServerConnection_getVersion(self.inner, &mut c_buf)
+        )?;
+        let c_version = unsafe { CStr::from_ptr(c_buf) };
+        Ok(c_version.to_str().unwrap().to_owned())
     }
 
     pub fn get_number_of_threads(&self) -> Result<std::os::raw::c_ulong, Error> {
