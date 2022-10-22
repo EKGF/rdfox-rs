@@ -198,7 +198,7 @@ impl LexicalValue {
             DataType::IriReference | DataType::AnyUri => {
                 self.as_iri().map(|iri| String::from(iri.as_str()))
             },
-            DataType::String | DataType::PlainLiteral => unsafe {
+            DataType::String | DataType::PlainLiteral | DataType::Literal => unsafe {
                 let LexicalValue {
                     value: LexicalValueUnion {
                         string,
@@ -300,7 +300,7 @@ impl FromStr for LexicalValue {
 
     fn from_str(str: &str) -> Result<Self, Self::Err> {
         Ok(LexicalValue {
-            data_type: DataType::String,
+            data_type: DataType::PlainLiteral,
             value:     LexicalValueUnion {
                 string: ManuallyDrop::new(str.to_string()),
             },

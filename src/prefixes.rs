@@ -140,6 +140,17 @@ impl Prefix {
     pub fn with_local_name(&self, name: &str) -> Result<IriBuf, iref::Error> {
         IriBuf::new(format!("{}{}", self.iri.as_str(), name).as_str())
     }
+
+    #[cfg(feature = "rdftk_support")]
+    pub fn as_rdftk_iri_ref(&self) -> Result<rdftk_iri::IRIRef, rdftk_iri::error::Error> {
+        Ok(rdftk_iri::IRIRef::new(self.as_rdftk_iri()?))
+    }
+
+    #[cfg(feature = "rdftk_support")]
+    pub fn as_rdftk_iri(&self) -> Result<rdftk_iri::IRI, rdftk_iri::error::Error> {
+        use std::str::FromStr;
+        rdftk_iri::IRI::from_str(self.iri.as_str())
+    }
 }
 
 #[derive(Default)]

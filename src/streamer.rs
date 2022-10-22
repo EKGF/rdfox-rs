@@ -39,13 +39,14 @@ impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
 /// to handle the various callbacks from the underlying C-API to RDFox.
 #[derive(Debug)]
 pub struct Streamer<'a, W: 'a + Write> {
-    pub connection: &'a DataStoreConnection<'a>,
-    pub writer:     W,
-    pub statement:  &'a Statement,
-    pub mime_type:  &'static Mime,
-    pub base_iri:   Prefix,
-    pub instant:    std::time::Instant,
-    self_p:         String,
+    pub connection:   &'a DataStoreConnection<'a>,
+    pub writer:       W,
+    pub statement:    &'a Statement,
+    pub mime_type:    &'static Mime,
+    pub base_iri:     Prefix,
+    pub instant:      std::time::Instant,
+    self_p:           String,
+    remaining_buffer: std::cell::RefCell<Option<String>>,
 }
 
 impl<'a, W: 'a + Write> Drop for Streamer<'a, W> {
@@ -70,6 +71,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
             base_iri,
             instant: std::time::Instant::now(),
             self_p: "".to_string(),
+            remaining_buffer: std::cell::RefCell::default(),
         };
         streamer.evaluate()
     }
@@ -155,7 +157,46 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         let result = match ptr_to_cstr(data as *const u8, number_of_bytes_to_write as usize) {
             Ok(data_c_str) => {
                 log::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
-                streamer.write(data_c_str.to_bytes_with_nul())
+                let data = if streamer.remaining_buffer.borrow().is_some() {
+                    // If we have some remaining bytes from the previous call to `write_function`
+                    // then concatenate them here with the new buffer..
+                    [
+                        streamer
+                            .remaining_buffer
+                            .borrow()
+                            .as_ref()
+                            .unwrap()
+                            .as_bytes(),
+                        data_c_str.to_bytes_with_nul(),
+                    ]
+                    .concat()
+                } else {
+                    data_c_str.to_bytes_with_nul().to_vec()
+                };
+                let data_len = data.len();
+                match streamer.writer.write(&data) {
+                    Ok(len) => {
+                        log::trace!("{streamer:p}: wrote {len} bytes out of {}", data_len);
+                        if len < data_len {
+                            // When we didn't process the last part of the buffer (probably because
+                            // the last N-Triple line was not complete), then save the remainder
+                            // in `remaining_buffer` for the next call to `write_function`
+                            streamer.remaining_buffer.replace(Some(unsafe {
+                                String::from_utf8_unchecked(data[len ..].to_vec())
+                            }));
+                            log::trace!(
+                                "{streamer:p}: remaining buffer: {}",
+                                streamer.remaining_buffer.borrow().as_ref().unwrap()
+                            );
+                        } else {
+                            streamer.remaining_buffer.replace(None);
+                        }
+                        true
+                    },
+                    Err(err) => {
+                        panic!("{streamer:p}: could not write: {err:?}")
+                    },
+                }
             },
             Err(error) => {
                 log::error!("{streamer:p}: could not write: {error:?}");
@@ -173,7 +214,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
 trait StreamerWithCallbacks {
     fn flush(&mut self) -> bool;
-    fn write(&mut self, data: &[u8]) -> bool;
+    // fn write(&mut self, data: &[u8]) -> bool;
 }
 
 impl<'a, W: 'a + Write> StreamerWithCallbacks for Streamer<'a, W> {
@@ -188,16 +229,16 @@ impl<'a, W: 'a + Write> StreamerWithCallbacks for Streamer<'a, W> {
         y
     }
 
-    fn write(&mut self, data: &[u8]) -> bool {
-        log::trace!("{self:p}: writing {} bytes (b)", data.len());
-        match self.writer.write(data) {
-            Ok(len) => {
-                log::trace!("{self:p}: wrote {len} bytes");
-                true
-            },
-            Err(err) => {
-                panic!("{self:p}: could not write: {err:?}")
-            },
-        }
-    }
+    // fn write(&mut self, data: &[u8]) -> bool {
+    //     log::trace!("{self:p}: writing {} bytes (b)", data.len());
+    //     match self.writer.write(data) {
+    //         Ok(len) => {
+    //             log::trace!("{self:p}: wrote {len} bytes out of {}", data.len());
+    //             true
+    //         },
+    //         Err(err) => {
+    //             panic!("{self:p}: could not write: {err:?}")
+    //         },
+    //     }
+    // }
 }

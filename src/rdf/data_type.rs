@@ -53,4 +53,16 @@ impl DataType {
             }
         })
     }
+
+    pub fn from_xsd_iri(iri: &str) -> Result<Self, Error> {
+        match iri {
+            "<http://www.w3.org/2001/XMLSchema#boolean>" => Ok(DataType::Boolean),
+            "<http://www.w3.org/2001/XMLSchema#string>" => Ok(DataType::String),
+            _ => {
+                Err(Error::UnknownXsdDatatype {
+                    datatype_iri: iri.to_string(),
+                })
+            },
+        }
+    }
 }
