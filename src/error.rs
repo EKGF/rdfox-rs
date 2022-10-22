@@ -12,6 +12,8 @@ pub enum Error {
     Unknown,
     #[error("Unknown data type {datatype_id}")]
     UnknownDatatype { datatype_id: u8 },
+    #[error("Unknown XSD data type {datatype_iri}")]
+    UnknownXsdDatatype { datatype_iri: String },
     #[error(
         "The multiplicity ({multiplicity}) of a cursor row exceeded the maximum number of rows \
          ({maxrow}) for query:\n{query}"
@@ -47,4 +49,14 @@ pub enum Error {
     IriParseError(#[from] iref::Error),
     #[error(transparent)]
     CApiError(#[from] std::ffi::NulError),
+}
+
+#[cfg(feature = "nom_support")]
+impl<I: From<&'static str>> From<Error> for nom::Err<nom::error::Error<I>> {
+    fn from(_: Error) -> Self {
+        nom::Err::Error(nom::error::Error::new(
+            "unknown rdfox error".into(),
+            nom::error::ErrorKind::Fail,
+        ))
+    }
 }
