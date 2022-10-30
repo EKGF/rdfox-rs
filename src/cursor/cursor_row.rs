@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::c_ulong, ptr};
+use std::ptr;
 
 use crate::{
     database_call,
@@ -32,9 +32,9 @@ impl<'a> CursorRow<'a> {
     /// Returns the resource bound to the given index in the current answer row.
     fn resource_value_with_id(&self, resource_id: u64) -> Result<ResourceValue, Error> {
         let mut data: *const u8 = ptr::null_mut();
-        let mut data_size: std::os::raw::c_ulong = 0;
+        let mut data_size: usize = 0;
         let mut namespace: *const u8 = ptr::null_mut();
-        let mut namespace_size: std::os::raw::c_ulong = 0;
+        let mut namespace_size: usize = 0;
         let mut datatype_id = 0 as CDatatypeID;
         let mut resource_resolved = false;
         log::trace!("CCursor_getResourceValue({resource_id}):");
@@ -107,7 +107,7 @@ impl<'a> CursorRow<'a> {
     /// Returns the resource bound to the given index in the current answer row.
     fn lexical_value_with_id(&self, resource_id: u64) -> Result<Option<LexicalValue>, Error> {
         let mut buffer = [0u8; 1024];
-        let mut lexical_form_size = 0 as c_ulong;
+        let mut lexical_form_size = 0 as usize;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
         let mut resource_resolved = false;
         log::trace!("CCursor_getResourceLexicalForm({resource_id}):");
@@ -117,7 +117,7 @@ impl<'a> CursorRow<'a> {
                 self.opened.cursor.inner,
                 resource_id,
                 buffer.as_mut_ptr() as *mut i8,
-                buffer.len() as c_ulong,
+                buffer.len(),
                 &mut lexical_form_size,
                 &mut datatype_id as *mut u8,
                 &mut resource_resolved,

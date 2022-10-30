@@ -79,25 +79,22 @@ impl ServerConnection {
         Ok(c_version.to_str().unwrap().to_owned())
     }
 
-    pub fn get_number_of_threads(&self) -> Result<std::os::raw::c_ulong, Error> {
-        let mut number_of_threads = 0 as std::os::raw::c_ulong;
+    pub fn get_number_of_threads(&self) -> Result<u32, Error> {
+        let mut number_of_threads = 0_usize;
         database_call!(
             "Getting the number of threads",
             CServerConnection_getNumberOfThreads(self.inner, &mut number_of_threads)
         )?;
         log::debug!("Number of threads is {}", number_of_threads);
-        Ok(number_of_threads)
+        Ok(number_of_threads as u32)
     }
 
-    pub fn set_number_of_threads(
-        &self,
-        number_of_threads: std::os::raw::c_ulong,
-    ) -> Result<(), Error> {
+    pub fn set_number_of_threads(&self, number_of_threads: u32) -> Result<(), Error> {
         assert!(!self.inner.is_null());
         let msg = format!("Setting the number of threads to {}", number_of_threads);
         database_call!(
             msg.as_str(),
-            CServerConnection_setNumberOfThreads(self.inner, number_of_threads)
+            CServerConnection_setNumberOfThreads(self.inner, number_of_threads as usize)
         )
     }
 

@@ -5,15 +5,24 @@ extern crate alloc;
 
 use thiserror::Error;
 
+use crate::DataType;
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[allow(dead_code)]
     #[error("Unknown Error")]
     Unknown,
-    #[error("Unknown data type {datatype_id}")]
-    UnknownDatatype { datatype_id: u8 },
-    #[error("Unknown XSD data type {datatype_iri}")]
-    UnknownXsdDatatype { datatype_iri: String },
+    #[error("Unknown data type {data_type_id}")]
+    UnknownDataType { data_type_id: u8 },
+    #[error("Unknown value [{value}] for data type {data_type:?}")]
+    UnknownValueForDataType {
+        data_type: DataType,
+        value:     String,
+    },
+    #[error("Unknown XSD data type {data_type_iri}")]
+    UnknownXsdDataType { data_type_iri: String },
+    #[error("Unknown literal value in N-Triples format: {value}")]
+    UnknownNTriplesValue { value: String },
     #[error(
         "The multiplicity ({multiplicity}) of a cursor row exceeded the maximum number of rows \
          ({maxrow}) for query:\n{query}"

@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 use num_enum::TryFromPrimitive;
 
-use crate::{Error, Error::UnknownDatatype};
+use crate::{Error, Error::UnknownDataType};
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, TryFromPrimitive)]
 #[repr(u8)]
@@ -46,23 +46,87 @@ pub enum DataType {
 }
 
 impl DataType {
-    pub fn from_datatype_id(datatype_id: u8) -> Result<DataType, Error> {
-        DataType::try_from(datatype_id).map_err(|_err| {
-            UnknownDatatype {
-                datatype_id,
+    pub fn from_datatype_id(data_type_id: u8) -> Result<DataType, Error> {
+        DataType::try_from(data_type_id).map_err(|_err| {
+            UnknownDataType {
+                data_type_id,
             }
         })
     }
 
     pub fn from_xsd_iri(iri: &str) -> Result<Self, Error> {
         match iri {
-            "<http://www.w3.org/2001/XMLSchema#boolean>" => Ok(DataType::Boolean),
-            "<http://www.w3.org/2001/XMLSchema#string>" => Ok(DataType::String),
+            "http://www.w3.org/2001/XMLSchema#boolean" => Ok(DataType::Boolean),
+            "http://www.w3.org/2001/XMLSchema#string" => Ok(DataType::String),
             _ => {
-                Err(Error::UnknownXsdDatatype {
-                    datatype_iri: iri.to_string(),
+                Err(Error::UnknownXsdDataType {
+                    data_type_iri: iri.to_string(),
                 })
             },
+        }
+    }
+
+    #[inline]
+    pub fn is_string(&self) -> bool {
+        // STRING_TYPES
+        match self {
+            DataType::String | DataType::PlainLiteral => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_iri(&self) -> bool {
+        // IRI_TYPES
+        match self {
+            DataType::AnyUri | DataType::IriReference => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_boolean(&self) -> bool {
+        // IRI_TYPES
+        match self {
+            DataType::Boolean => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_signed_integer(&self) -> bool {
+        // IRI_TYPES
+        match self {
+            DataType::Int |
+            DataType::Integer |
+            DataType::NegativeInteger |
+            DataType::NonPositiveInteger |
+            DataType::Long |
+            DataType::Short => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_unsigned_integer(&self) -> bool {
+        // IRI_TYPES
+        match self {
+            DataType::PositiveInteger |
+            DataType::NonNegativeInteger |
+            DataType::UnsignedByte |
+            DataType::UnsignedInt |
+            DataType::UnsignedShort |
+            DataType::UnsignedLong => true,
+            _ => false,
+        }
+    }
+
+    #[inline]
+    pub fn is_blank_node(&self) -> bool {
+        // BLANK_NODE_TYPES
+        match self {
+            DataType::BlankNode => true,
+            _ => false,
         }
     }
 }

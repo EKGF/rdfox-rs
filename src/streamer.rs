@@ -11,7 +11,6 @@ use crate::{
     cursor::ptr_to_cstr,
     database_call,
     root::{
-        size_t,
         CDataStoreConnection,
         CDataStoreConnection_evaluateStatement,
         COutputStream,
@@ -80,10 +79,10 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     /// writer, then return the streamer (i.e. self).
     fn evaluate(mut self) -> Result<Self, Error> {
         let statement_text = self.statement.as_c_string()?;
-        let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
+        let statement_text_len = statement_text.as_bytes().len();
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
         let query_answer_format_name = CString::new(self.mime_type.as_ref())?;
-        let mut number_of_solutions = 0u64;
+        let mut number_of_solutions = 0_usize;
         let prefixes_ptr = self.prefixes_ptr();
         let connection_ptr = self.connection_ptr();
         let c_base_iri = CString::new(self.base_iri.iri.as_str()).unwrap();
@@ -147,7 +146,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     extern "C" fn write_function(
         context: *mut c_void,
         data: *const c_void,
-        number_of_bytes_to_write: size_t,
+        number_of_bytes_to_write: usize,
     ) -> bool {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };

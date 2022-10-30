@@ -55,7 +55,7 @@ impl<'a> Cursor<'a> {
             CString::new(DEFAULT_BASE_IRI).unwrap()
         };
         let c_query = CString::new(statement.text.as_str()).unwrap();
-        let c_query_len: u64 = c_query.as_bytes().len() as u64;
+        let c_query_len = c_query.as_bytes().len();
         log::trace!("Starting cursor for {:?}", c_query);
         database_call!(
             "creating a cursor",

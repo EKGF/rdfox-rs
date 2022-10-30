@@ -56,19 +56,19 @@ impl<'a> OpenedCursor<'a> {
     }
 
     fn open(c_cursor: *mut CCursor) -> Result<u64, Error> {
-        let mut multiplicity = 0 as std::os::raw::c_ulong;
+        let mut multiplicity = 0 as usize;
         database_call!(
             "opening a cursor",
             CCursor_open(c_cursor, &mut multiplicity)
         )?;
         log::debug!("CCursor_open ok multiplicity={multiplicity}");
-        Ok(multiplicity)
+        Ok(multiplicity as u64)
     }
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
     fn arity(c_cursor: *mut CCursor) -> Result<u16, Error> {
-        let mut arity = 0_u64;
+        let mut arity = 0_usize;
         database_call!("getting the arity", CCursor_getArity(c_cursor, &mut arity))?;
         // Trimming it down, we don't expect more than 2^16 columns do we?
         Ok(arity as u16)
@@ -131,7 +131,7 @@ impl<'a> OpenedCursor<'a> {
     /// TODO: Check why this panics when called after previous call returned
     /// zero
     pub fn advance(&mut self) -> Result<u64, Error> {
-        let mut multiplicity = 0 as std::os::raw::c_ulong;
+        let mut multiplicity = 0_usize;
         database_call!(
             "advancing the cursor",
             CCursor_advance(self.cursor.inner, &mut multiplicity)
@@ -140,7 +140,7 @@ impl<'a> OpenedCursor<'a> {
             "cursor {:?} advanced, multiplicity={multiplicity}",
             self.cursor.inner
         );
-        Ok(multiplicity)
+        Ok(multiplicity as u64)
     }
 
     pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, Error>

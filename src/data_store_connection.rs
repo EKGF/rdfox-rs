@@ -246,7 +246,7 @@ impl<'a> DataStoreConnection<'a> {
             CString::new(DEFAULT_BASE_IRI).unwrap()
         };
         let statement_text = statement.as_c_string()?;
-        let statement_text_len: u64 = statement_text.as_bytes().len() as u64;
+        let statement_text_len = statement_text.as_bytes().len();
         let mut statement_result: CStatementResult = Default::default();
         database_call!(
             "evaluating an update statement",

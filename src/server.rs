@@ -82,7 +82,7 @@ impl Server {
     }
 
     pub fn get_number_of_local_server_roles(&self) -> Result<u16, Error> {
-        let mut number_of_roles = 0_u64;
+        let mut number_of_roles = 0_usize;
         database_call!(
             "Getting the number of local server roles",
             CServer_getNumberOfLocalServerRoles(&mut number_of_roles)

@@ -315,6 +315,7 @@ fn main() {
             non_exhaustive: true,
         })
         .enable_cxx_namespaces()
+        .size_t_is_usize(true)
         .respect_cxx_access_specs(true)
         .vtable_generation(true)
         .enable_function_attribute_detection()

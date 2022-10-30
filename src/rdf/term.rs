@@ -43,7 +43,7 @@ impl Term {
                     Term::Literal(value) => value,
                     Term::BlankNode(value) => value,
                 };
-                write!(f, "{:?}", value)
+                value.display_turtle().fmt(f)
             }
         }
         TurtleTerm(self)
@@ -54,6 +54,10 @@ impl FromStr for Term {
     type Err = Error;
 
     fn from_str(str: &str) -> Result<Self, Self::Err> { Term::new_str(str) }
+}
+
+impl From<LexicalValue> for Term {
+    fn from(value: LexicalValue) -> Self { value.as_term() }
 }
 
 #[cfg(test)]
