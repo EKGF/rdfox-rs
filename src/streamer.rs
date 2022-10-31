@@ -3,6 +3,7 @@ use std::{
     fmt::Debug,
     io::Write,
     ptr,
+    sync::Arc,
 };
 
 use mime::Mime;
@@ -38,7 +39,7 @@ impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
 /// to handle the various callbacks from the underlying C-API to RDFox.
 #[derive(Debug)]
 pub struct Streamer<'a, W: 'a + Write> {
-    pub connection:   &'a DataStoreConnection<'a>,
+    pub connection:   Arc<DataStoreConnection>,
     pub writer:       W,
     pub statement:    &'a Statement,
     pub mime_type:    &'static Mime,
@@ -56,14 +57,14 @@ impl<'a, W: 'a + Write> Drop for Streamer<'a, W> {
 
 impl<'a, W: 'a + Write> Streamer<'a, W> {
     pub fn run(
-        connection: &'a DataStoreConnection,
+        connection: &Arc<DataStoreConnection>,
         writer: W,
         statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Prefix,
     ) -> Result<Self, Error> {
         let streamer = Self {
-            connection,
+            connection: connection.clone(),
             writer,
             statement,
             mime_type,

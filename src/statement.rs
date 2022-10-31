@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 
 use core::fmt::{Display, Formatter};
-use std::{ffi::CString, ops::Deref};
+use std::{ffi::CString, ops::Deref, sync::Arc};
 
 use indoc::formatdoc;
 use iref::Iri;
@@ -35,10 +35,10 @@ impl Statement {
 
     pub fn cursor<'a>(
         self,
-        connection: &'a DataStoreConnection,
+        connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
         base_iri: Option<Iri>,
-    ) -> Result<Cursor<'a>, Error> {
+    ) -> Result<Cursor, Error> {
         Cursor::create(connection, parameters, self, base_iri)
     }
 

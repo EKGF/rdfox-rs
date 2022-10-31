@@ -23,8 +23,8 @@ use crate::{
 
 #[derive(Debug)]
 pub struct OpenedCursor<'a> {
-    pub tx:               Arc<Transaction<'a>>,
-    pub cursor:           &'a Cursor<'a>,
+    pub tx:               Arc<Transaction>,
+    pub cursor:           &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
     pub arity:            u16,
@@ -36,10 +36,7 @@ impl<'a> OpenedCursor<'a> {
     /// Open the cursor, get the details like arity and argument info and
     /// return it as a tuple with all the details (except multiplicity)
     /// as an `OpenedCursor` and the multiplicity of the first row.
-    pub(crate) fn new(
-        cursor: &'a mut Cursor,
-        tx: Arc<Transaction<'a>>,
-    ) -> Result<(Self, u64), Error> {
+    pub(crate) fn new(cursor: &'a mut Cursor, tx: Arc<Transaction>) -> Result<(Self, u64), Error> {
         let c_cursor = cursor.inner;
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
@@ -145,11 +142,11 @@ impl<'a> OpenedCursor<'a> {
 
     pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, Error>
     where T: FnOnce(&mut OpenedCursor) -> Result<U, Error> {
-        Transaction::begin_read_write(self.cursor.connection)?.update_and_commit(|_tx| f(self))
+        Transaction::begin_read_write(&self.cursor.connection)?.update_and_commit(|_tx| f(self))
     }
 
     pub fn execute_and_rollback<T, U>(&mut self, f: T) -> Result<U, Error>
     where T: FnOnce(&mut OpenedCursor) -> Result<U, Error> {
-        Transaction::begin_read_only(self.cursor.connection)?.execute_and_rollback(|_tx| f(self))
+        Transaction::begin_read_only(&self.cursor.connection)?.execute_and_rollback(|_tx| f(self))
     }
 }

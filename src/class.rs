@@ -73,7 +73,7 @@ impl Class {
         log::debug!(target: "sparql", "\n{sparql}");
         let count_result = Statement::new(prefixes, sparql.as_str())?
             .cursor(
-                tx.connection,
+                &tx.connection,
                 &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
                 None,
             )?
@@ -101,7 +101,7 @@ impl Class {
         log::debug!(target: "sparql", "\n{sparql}");
         let count_result = Statement::new(prefixes, sparql.as_str())?
             .cursor(
-                graph_connection.data_store_connection,
+                &graph_connection.data_store_connection,
                 &Parameters::empty()?.fact_domain(FactDomain::ALL)?,
                 None,
             )?

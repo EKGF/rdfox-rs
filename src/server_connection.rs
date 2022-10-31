@@ -125,9 +125,9 @@ impl ServerConnection {
     }
 
     pub fn connect_to_data_store<'b>(
-        &'b self,
-        data_store: &'b DataStore,
-    ) -> Result<DataStoreConnection<'b>, Error> {
+        self: &'b Arc<Self>,
+        data_store: &Arc<DataStore>,
+    ) -> Result<Arc<DataStoreConnection>, Error> {
         log::debug!("Connecting to {}", data_store);
         assert!(!self.inner.is_null());
         let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
@@ -141,7 +141,7 @@ impl ServerConnection {
             )
         )?;
         log::debug!("Connected to {}", data_store);
-        Ok(ds_connection)
+        Ok(Arc::new(ds_connection))
     }
 
     fn destroy(&mut self) {

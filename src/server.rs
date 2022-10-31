@@ -90,12 +90,15 @@ impl Server {
         Ok(number_of_roles as u16)
     }
 
-    pub fn connection_with_default_role(self: &Arc<Self>) -> Result<ServerConnection, Error> {
+    pub fn connection_with_default_role(self: &Arc<Self>) -> Result<Arc<ServerConnection>, Error> {
         let role_creds = &self.default_role_creds;
         self.connection(role_creds.clone())
     }
 
-    pub fn connection(self: &Arc<Self>, role_creds: RoleCreds) -> Result<ServerConnection, Error> {
+    pub fn connection(
+        self: &Arc<Self>,
+        role_creds: RoleCreds,
+    ) -> Result<Arc<ServerConnection>, Error> {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         let mut server_connection_ptr: *mut CServerConnection = ptr::null_mut();
@@ -112,11 +115,11 @@ impl Server {
             Err(CouldNotConnectToServer)
         } else {
             log::debug!("Established connection to server");
-            Ok(ServerConnection::new(
+            Ok(Arc::new(ServerConnection::new(
                 role_creds,
                 self.clone(),
                 server_connection_ptr,
-            ))
+            )))
         }
     }
 

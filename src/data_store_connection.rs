@@ -53,14 +53,14 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct DataStoreConnection<'a> {
-    pub data_store:        &'a DataStore,
-    pub server_connection: &'a ServerConnection,
+pub struct DataStoreConnection {
+    pub data_store:        Arc<DataStore>,
+    pub server_connection: Arc<ServerConnection>,
     pub(crate) inner:      *mut CDataStoreConnection,
     started_at:            Instant,
 }
 
-impl<'a> Display for DataStoreConnection<'a> {
+impl Display for DataStoreConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str("connection").unwrap();
         // match self.get_id() {
@@ -76,19 +76,19 @@ impl<'a> Display for DataStoreConnection<'a> {
     }
 }
 
-impl<'a> Drop for DataStoreConnection<'a> {
+impl Drop for DataStoreConnection {
     fn drop(&mut self) { self.destroy() }
 }
 
-impl<'a> DataStoreConnection<'a> {
+impl DataStoreConnection {
     pub(crate) fn new(
-        server_connection: &'a ServerConnection,
-        data_store: &'a DataStore,
+        server_connection: &Arc<ServerConnection>,
+        data_store: &Arc<DataStore>,
         inner: *mut CDataStoreConnection,
     ) -> Self {
         Self {
-            data_store,
-            server_connection,
+            data_store: data_store.clone(),
+            server_connection: server_connection.clone(),
             inner,
             started_at: Instant::now(),
         }
@@ -264,8 +264,8 @@ impl<'a> DataStoreConnection<'a> {
         Ok(())
     }
 
-    pub fn evaluate_to_stream<W>(
-        &'a self,
+    pub fn evaluate_to_stream<'a, W>(
+        self: &Arc<Self>,
         writer: W,
         statement: &'a Statement,
         mime_type: &'static Mime,
@@ -290,7 +290,7 @@ impl<'a> DataStoreConnection<'a> {
     }
 
     pub fn get_triples_count(
-        &self,
+        self: &Arc<Self>,
         tx: Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
@@ -317,7 +317,7 @@ impl<'a> DataStoreConnection<'a> {
     }
 
     pub fn get_subjects_count(
-        &self,
+        self: &Arc<Self>,
         tx: Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
@@ -346,7 +346,7 @@ impl<'a> DataStoreConnection<'a> {
     }
 
     pub fn get_predicates_count(
-        &self,
+        self: &Arc<Self>,
         tx: Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
@@ -375,7 +375,7 @@ impl<'a> DataStoreConnection<'a> {
     }
 
     pub fn get_ontologies_count(
-        &self,
+        self: &Arc<Self>,
         tx: Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {

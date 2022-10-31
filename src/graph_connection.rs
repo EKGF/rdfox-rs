@@ -21,29 +21,29 @@ use crate::{
     Transaction,
 };
 
-pub struct GraphConnection<'a> {
-    pub data_store_connection: &'a DataStoreConnection<'a>,
+pub struct GraphConnection {
+    pub data_store_connection: Arc<DataStoreConnection>,
     started_at:                Instant,
     pub graph:                 Graph,
     pub ontology_graph:        Option<Graph>,
 }
 
-impl<'a> Display for GraphConnection<'a> {
+impl Display for GraphConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "connection to {:}", self.graph)
     }
 }
 
-impl<'a> Drop for GraphConnection<'a> {
+impl Drop for GraphConnection {
     fn drop(&mut self) {
         let duration = self.started_at.elapsed();
         log::trace!("Dropped {self} after {:?}", duration)
     }
 }
 
-impl<'a> GraphConnection<'a> {
+impl GraphConnection {
     pub fn new(
-        data_store_connection: &'a DataStoreConnection,
+        data_store_connection: Arc<DataStoreConnection>,
         graph: Graph,
         ontology_graph: Option<Graph>,
     ) -> Self {
@@ -106,7 +106,7 @@ impl<'a> GraphConnection<'a> {
             .as_str(),
         )?
         .cursor(
-            self.data_store_connection,
+            &self.data_store_connection,
             &Parameters::empty()?.fact_domain(fact_domain)?,
             None,
         )?

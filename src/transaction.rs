@@ -16,12 +16,12 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Transaction<'a> {
-    pub connection: &'a DataStoreConnection<'a>,
+pub struct Transaction {
+    pub connection: Arc<DataStoreConnection>,
     committed:      AtomicBool,
 }
 
-impl<'a> Drop for Transaction<'a> {
+impl Drop for Transaction {
     fn drop(&mut self) {
         if self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             log::debug!("Ended transaction");
@@ -31,9 +31,9 @@ impl<'a> Drop for Transaction<'a> {
     }
 }
 
-impl<'a> Transaction<'a> {
+impl Transaction {
     fn begin(
-        connection: &'a DataStoreConnection,
+        connection: &Arc<DataStoreConnection>,
         tx_type: CTransactionType,
     ) -> Result<Arc<Self>, Error> {
         assert!(!connection.inner.is_null());
@@ -43,21 +43,21 @@ impl<'a> Transaction<'a> {
         )?;
         log::debug!("Started transaction");
         Ok(Arc::new(Self {
-            connection,
-            committed: AtomicBool::new(false),
+            connection: connection.clone(),
+            committed:  AtomicBool::new(false),
         }))
     }
 
-    pub fn begin_read_only(connection: &'a DataStoreConnection) -> Result<Arc<Self>, Error> {
-        Self::begin(connection, CTransactionType::TRANSACTION_TYPE_READ_ONLY)
+    pub fn begin_read_only(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
+        Self::begin(&connection, CTransactionType::TRANSACTION_TYPE_READ_ONLY)
     }
 
-    pub fn begin_read_write(connection: &'a DataStoreConnection) -> Result<Arc<Self>, Error> {
+    pub fn begin_read_write(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
         Self::begin(connection, CTransactionType::TRANSACTION_TYPE_READ_WRITE)
     }
 
     pub fn begin_read_write_do<T, F>(
-        connection: &'a DataStoreConnection,
+        connection: &Arc<DataStoreConnection>,
         f: F,
     ) -> Result<T, Error>
     where

@@ -18,14 +18,13 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct Cursor<'a> {
-    #[allow(dead_code)]
+pub struct Cursor {
     pub inner:             *mut CCursor,
-    pub(crate) connection: &'a DataStoreConnection<'a>,
+    pub(crate) connection: Arc<DataStoreConnection>,
     statement:             Statement,
 }
 
-impl<'a> Drop for Cursor<'a> {
+impl Drop for Cursor {
     fn drop(&mut self) {
         unsafe {
             if !self.inner.is_null() {
@@ -37,10 +36,10 @@ impl<'a> Drop for Cursor<'a> {
     }
 }
 
-impl<'a> Cursor<'a> {
+impl Cursor {
     // noinspection DuplicatedCode
     pub fn create(
-        connection: &'a DataStoreConnection,
+        connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
         statement: Statement,
         base_iri: Option<Iri>,
@@ -71,7 +70,7 @@ impl<'a> Cursor<'a> {
         )?;
         let cursor = Cursor {
             inner: c_cursor,
-            connection,
+            connection: connection.clone(),
             statement,
         };
         log::debug!("Created cursor for {:}", &cursor.statement);
@@ -126,13 +125,13 @@ impl<'a> Cursor<'a> {
 
     pub fn update_and_commit<T, U>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
-        let tx = Transaction::begin_read_write(self.connection)?;
+        let tx = Transaction::begin_read_write(&self.connection)?;
         self.update_and_commit_in_transaction(tx, maxrow, f)
     }
 
     pub fn execute_and_rollback<T>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
-        let tx = Transaction::begin_read_only(self.connection)?;
+        let tx = Transaction::begin_read_only(&self.connection)?;
         self.execute_and_rollback_in_transaction(tx, maxrow, f)
     }
 
