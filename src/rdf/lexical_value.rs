@@ -18,24 +18,27 @@ pub struct LexicalValue {
 
 impl PartialEq for LexicalValue {
     fn eq(&self, other: &Self) -> bool {
-        if self.data_type != other.data_type {
+        let data_type = self.data_type;
+        if data_type != other.data_type {
             return false
         }
         unsafe {
-            if self.data_type.is_iri() {
+            if data_type.is_iri() {
                 self.value.iri == other.value.iri
-            } else if self.data_type.is_string() {
+            } else if data_type.is_string() {
                 self.value.string == other.value.string
-            } else if self.data_type.is_boolean() {
+            } else if data_type.is_boolean() {
                 self.value.boolean == other.value.boolean
-            } else if self.data_type.is_signed_integer() {
+            } else if data_type.is_signed_integer() {
                 self.value.signed_integer == other.value.signed_integer
-            } else if self.data_type.is_unsigned_integer() {
+            } else if data_type.is_unsigned_integer() {
                 self.value.unsigned_integer == other.value.unsigned_integer
-            } else if self.data_type.is_blank_node() {
+            } else if data_type.is_blank_node() {
                 self.value.blank_node == other.value.blank_node
+            } else if data_type.is_decimal() {
+                self.value.string == other.value.string
             } else {
-                panic!("Cannot compare, unimplemented datatype")
+                panic!("Cannot compare, unimplemented datatype {data_type:?}")
             }
         }
     }
@@ -46,22 +49,27 @@ impl Eq for LexicalValue {}
 impl std::hash::Hash for LexicalValue {
     fn hash<H>(&self, state: &mut H)
     where H: std::hash::Hasher {
-        self.data_type.hash(state);
+        let data_type = self.data_type;
+        data_type.hash(state);
         unsafe {
-            if self.data_type.is_iri() {
+            if data_type.is_iri() {
                 self.value.iri.hash(state)
-            } else if self.data_type.is_string() {
+            } else if data_type.is_string() {
                 self.value.string.hash(state)
-            } else if self.data_type.is_blank_node() {
+            } else if data_type.is_blank_node() {
                 self.value.blank_node.hash(state)
-            } else if self.data_type.is_boolean() {
+            } else if data_type.is_boolean() {
                 self.value.boolean.hash(state)
-            } else if self.data_type.is_signed_integer() {
+            } else if data_type.is_signed_integer() {
                 self.value.signed_integer.hash(state)
-            } else if self.data_type.is_unsigned_integer() {
+            } else if data_type.is_unsigned_integer() {
                 self.value.unsigned_integer.hash(state)
+            } else if data_type.is_decimal() {
+                self.value.string.hash(state)
+            } else if data_type.is_duration() {
+                self.value.string.hash(state)
             } else {
-                panic!("Cannot hash, unimplemented datatype")
+                panic!("Cannot hash, unimplemented datatype {data_type:?}")
             }
         }
     }
@@ -69,74 +77,32 @@ impl std::hash::Hash for LexicalValue {
 
 impl Debug for LexicalValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "LexicalValue({:?},", self.data_type)?;
+        let data_type = self.data_type;
+        write!(f, "LexicalValue({:?},", data_type)?;
         unsafe {
-            if self.data_type.is_iri() {
+            if data_type.is_iri() {
                 write!(f, "<{}>)", self.value.iri.as_str())?
-            } else if self.data_type.is_string() {
+            } else if data_type.is_string() {
                 write!(f, "\"{}\"", self.value.string.as_str())?
-            } else if self.data_type.is_blank_node() {
+            } else if data_type.is_blank_node() {
                 write!(f, "_:{}", self.value.blank_node.as_str())?
-            } else if self.data_type.is_boolean() {
+            } else if data_type.is_boolean() {
                 write!(f, "{}", self.value.boolean)?
-            } else if self.data_type.is_signed_integer() {
+            } else if data_type.is_signed_integer() {
                 write!(f, "{}", self.value.signed_integer)?
-            } else if self.data_type.is_unsigned_integer() {
+            } else if data_type.is_unsigned_integer() {
                 write!(f, "{}", self.value.unsigned_integer)?
+            } else if data_type.is_decimal() {
+                write!(f, "{}", self.value.string.as_str())?
+            } else if data_type.is_duration() {
+                write!(f, "{}", self.value.string.as_str())?
             } else {
-                panic!("Cannot compare, unimplemented datatype")
+                panic!("Cannot format, unimplemented datatype {data_type:?}")
             }
         }
         write!(f, ")")
     }
 }
-
-// impl Debug for LexicalValue {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         // Just show the value in its most turtle-like form
-//         unsafe {
-//             match self {
-//                 LexicalValue {
-//                     data_type: DataType::AnyUri | DataType::IriReference,
-//                     value: LexicalValueUnion {
-//                         iri,
-//                     },
-//                 } => {
-//                     write!(f, "<{}>", iri.deref())
-//                 },
-//                 LexicalValue {
-//                     data_type: DataType::String | DataType::PlainLiteral,
-//                     value: LexicalValueUnion {
-//                         string,
-//                     },
-//                 } => {
-//                     write!(f, "{:?}", string.deref())
-//                 },
-//                 LexicalValue {
-//                     data_type: DataType::Boolean,
-//                     value:
-//                         LexicalValueUnion {
-//                             boolean,
-//                         },
-//                 } => {
-//                     write!(f, "{}", boolean)
-//                 },
-//                 LexicalValue {
-//                     data_type: DataType::BlankNode,
-//                     value:
-//                         LexicalValueUnion {
-//                             blank_node,
-//                         },
-//                 } => {
-//                     write!(f, "_:{}", blank_node.as_str())
-//                 },
-//                 &_ => {
-//                     write!(f, "unsupported type {:?}", self.data_type)
-//                 },
-//             }
-//         }
-//     }
-// }
 
 impl Display for LexicalValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -185,6 +151,36 @@ impl Clone for LexicalValue {
             } else {
                 todo!("the situation where the boolean in a lexical value is not a boolean")
             }
+        } else if self.data_type.is_date_time() {
+            if let Some(date_time) = self.as_date_time() {
+                LexicalValue::new_date_time_with_datatype(date_time, self.data_type).unwrap()
+            } else {
+                todo!("the situation where the boolean in a lexical value is not a boolean")
+            }
+        } else if self.data_type.is_signed_integer() {
+            if let Some(long) = self.as_signed_long() {
+                LexicalValue::new_signed_integer_with_datatype(long, self.data_type).unwrap()
+            } else {
+                todo!("the situation where the signed integer value is not a long")
+            }
+        } else if self.data_type.is_unsigned_integer() {
+            if let Some(long) = self.as_unsigned_long() {
+                LexicalValue::new_unsigned_integer_with_datatype(long, self.data_type).unwrap()
+            } else {
+                todo!("the situation where the unsigned integer value is not a long")
+            }
+        } else if self.data_type.is_decimal() {
+            if let Some(decimal) = self.as_decimal() {
+                LexicalValue::new_decimal_with_datatype(decimal, self.data_type).unwrap()
+            } else {
+                todo!("the situation where the decimal value is not a decimal")
+            }
+        } else if self.data_type.is_duration() {
+            if let Some(duration) = self.as_duration() {
+                LexicalValue::new_duration_with_datatype(duration, self.data_type).unwrap()
+            } else {
+                todo!("the situation where the duration value is not a duration")
+            }
         } else {
             todo!("dealing with other datatypes: {:?}", self.data_type)
         }
@@ -227,6 +223,10 @@ impl LexicalValue {
                     Some("false")
                 }
             }
+        } else if self.data_type.is_decimal() {
+            unsafe { Some(self.value.string.as_str()) }
+        } else if self.data_type.is_duration() {
+            unsafe { Some(self.value.string.as_str()) }
         } else {
             panic!("Data type {:?} not yet supported", self.data_type);
         }
@@ -254,6 +254,27 @@ impl LexicalValue {
             Some(unsafe { self.value.unsigned_integer })
         } else {
             None
+        }
+    }
+
+    pub fn as_date_time(&self) -> Option<&str> {
+        match self.data_type {
+            DataType::DateTime => Some(unsafe { &self.value.string }),
+            _ => None,
+        }
+    }
+
+    pub fn as_decimal(&self) -> Option<&str> {
+        match self.data_type {
+            DataType::Decimal => Some(unsafe { &self.value.string }),
+            _ => None,
+        }
+    }
+
+    pub fn as_duration(&self) -> Option<&str> {
+        match self.data_type {
+            DataType::Duration => Some(unsafe { &self.value.string }),
+            _ => None,
         }
     }
 
@@ -311,6 +332,16 @@ impl LexicalValue {
                     buffer, data_type,
                 )?))
             },
+            DataType::DateTime => {
+                Ok(Some(LexicalValue::new_date_time_with_datatype(
+                    buffer, data_type,
+                )?))
+            },
+            DataType::Decimal => {
+                Ok(Some(LexicalValue::new_duration_with_datatype(
+                    buffer, data_type,
+                )?))
+            },
             DataType::UnboundValue => Ok(None),
             _ => {
                 log::warn!("Unsupported datatype: {data_type:?} value={buffer}");
@@ -338,6 +369,30 @@ impl LexicalValue {
 
     pub fn new_string_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
         assert!(&data_type.is_string(), "{data_type:?} is not a string type");
+        Ok(LexicalValue {
+            data_type,
+            value: LexicalValueUnion::new_string(str),
+        })
+    }
+
+    pub fn new_date_time_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
+        assert!(&data_type.is_date_time(), "{data_type:?} is not a dateTime");
+        Ok(LexicalValue {
+            data_type,
+            value: LexicalValueUnion::new_string(str),
+        })
+    }
+
+    pub fn new_decimal_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
+        assert!(&data_type.is_decimal(), "{data_type:?} is not a decimal");
+        Ok(LexicalValue {
+            data_type,
+            value: LexicalValueUnion::new_string(str),
+        })
+    }
+
+    pub fn new_duration_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
+        assert!(&data_type.is_duration(), "{data_type:?} is not a duration");
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -465,8 +520,14 @@ impl LexicalValue {
                         write!(f, "{}", self.0.value.signed_integer)?
                     } else if data_type.is_unsigned_integer() {
                         write!(f, "{}", self.0.value.unsigned_integer)?
+                    } else if data_type.is_date_time() {
+                        write!(f, "{}", self.0.value.string.as_str())?
+                    } else if data_type.is_decimal() {
+                        write!(f, "{}", self.0.value.string.as_str())?
+                    } else if data_type.is_duration() {
+                        write!(f, "\"{}\"^^xsd:duration", self.0.value.string.as_str())?
                     } else {
-                        panic!("Cannot compare, unimplemented datatype")
+                        panic!("Cannot format for turtle, unimplemented datatype {data_type:?}")
                     }
                 }
                 Ok(())
