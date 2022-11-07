@@ -14,6 +14,14 @@ pub union LexicalValueUnion {
     pub blank_node:       ManuallyDrop<String>,
 }
 
+impl Default for LexicalValueUnion {
+    fn default() -> Self {
+        Self {
+            boolean: false
+        }
+    }
+}
+
 impl LexicalValueUnion {
     pub fn new_string(str: &str) -> Self {
         LexicalValueUnion {

@@ -11,6 +11,7 @@ use iref::{Iri, IriBuf};
 
 use crate::{rdf::LexicalValueUnion, DataType, Error, Error::Unknown, Term};
 
+#[derive(Default)]
 pub struct LexicalValue {
     pub data_type: DataType,
     value:         LexicalValueUnion,
