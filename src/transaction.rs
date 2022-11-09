@@ -13,20 +13,31 @@ use crate::{
         CTransactionType,
     },
     DataStoreConnection,
+    LOG_TARGET_DATABASE,
 };
 
 #[derive(Debug)]
 pub struct Transaction {
     pub connection: Arc<DataStoreConnection>,
     committed:      AtomicBool,
+    tx_type:        CTransactionType,
+    pub number:     usize,
 }
 
 impl Drop for Transaction {
     fn drop(&mut self) {
         if self.committed.load(std::sync::atomic::Ordering::Relaxed) {
-            log::debug!("Ended transaction");
+            log::debug!(
+                target: LOG_TARGET_DATABASE,
+                "Ended transaction #{} on connection #{}",
+                self.number,
+                self.connection.number
+            );
         } else {
-            panic!("Transaction was not committed nor rolled back");
+            panic!(
+                "Transaction #{} was not committed nor rolled back",
+                self.number
+            );
         }
     }
 }
@@ -37,15 +48,55 @@ impl Transaction {
         tx_type: CTransactionType,
     ) -> Result<Arc<Self>, Error> {
         assert!(!connection.inner.is_null());
+        let number = Self::get_number();
         database_call!(
-            "starting a transaction",
+            format!(
+                "starting transaction #{number} on connection #{}",
+                connection.number
+            )
+            .as_str(),
             CDataStoreConnection_beginTransaction(connection.inner, tx_type)
         )?;
-        log::debug!("Started transaction");
-        Ok(Arc::new(Self {
+        log::error!(
+            target: LOG_TARGET_DATABASE,
+            "Started transaction #{number} on connection #{}",
+            connection.number
+        );
+        let tx = Arc::new(Self {
             connection: connection.clone(),
-            committed:  AtomicBool::new(false),
-        }))
+            committed: AtomicBool::new(false),
+            number,
+            tx_type,
+        });
+        log::error!(
+            target: LOG_TARGET_DATABASE,
+            "Started {}",
+            tx.get_title().as_str()
+        );
+        Ok(tx)
+    }
+
+    fn get_title(&self) -> String {
+        match self.tx_type {
+            CTransactionType::TRANSACTION_TYPE_READ_ONLY => {
+                format!(
+                    "Read-Only Transaction #{} on connection #{}",
+                    self.number, self.connection.number
+                )
+            },
+            CTransactionType::TRANSACTION_TYPE_READ_WRITE => {
+                format!(
+                    "Read-Write Transaction #{} on connection #{}",
+                    self.number, self.connection.number
+                )
+            },
+        }
+    }
+
+    fn get_number() -> usize {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        static COUNTER: AtomicUsize = AtomicUsize::new(1);
+        COUNTER.fetch_add(1, Ordering::Relaxed)
     }
 
     pub fn begin_read_only(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
@@ -74,10 +125,14 @@ impl Transaction {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             database_call!(
-                "committing a transaction",
+                format!("committing {}", self.get_title().as_str()).as_str(),
                 CDataStoreConnection_commitTransaction(self.connection.inner)
             )?;
-            log::debug!("Committed transaction");
+            log::debug!(
+                target: LOG_TARGET_DATABASE,
+                "Committed {}",
+                self.get_title().as_str()
+            );
         }
         Ok(())
     }
@@ -88,16 +143,20 @@ impl Transaction {
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
             database_call!(
-                "rolling back a transaction",
+                format!("rolling back {}", self.get_title().as_str()).as_str(),
                 CDataStoreConnection_rollbackTransaction(self.connection.inner)
             )?;
-            log::debug!("Rolled back transaction");
+            log::debug!(
+                target: LOG_TARGET_DATABASE,
+                "Rolled back {}",
+                self.get_title().as_str()
+            );
         }
         Ok(())
     }
 
-    pub fn update_and_commit<T, F>(self: &Arc<Self>, f: F) -> Result<T, Error>
-    where F: FnOnce(Arc<Transaction>) -> Result<T, Error> {
+    pub fn update_and_commit<T, E: From<Error>, F>(self: &Arc<Self>, f: F) -> Result<T, E>
+    where F: FnOnce(Arc<Transaction>) -> Result<T, E> {
         let result = f(self.clone());
         if result.is_ok() {
             self.commit()?;
@@ -112,10 +171,18 @@ impl Transaction {
         let result = f(self.clone());
         match &result {
             Err(err) => {
-                log::error!("Error occurred during transaction: {err}");
+                log::error!(
+                    target: LOG_TARGET_DATABASE,
+                    "Error occurred during {}: {err}",
+                    self.get_title().as_str()
+                );
             },
             Ok(..) => {
-                log::debug!("Readonly-transaction was successful (but still rolling back)");
+                log::debug!(
+                    target: LOG_TARGET_DATABASE,
+                    "{} was successful (but rolling it back anyway)",
+                    self.get_title().as_str()
+                );
             },
         }
         self.rollback()?;

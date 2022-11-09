@@ -57,6 +57,19 @@ impl GraphConnection {
         result
     }
 
+    /// Create a clone with another `DataStoreConnection`
+    pub fn with_data_store_connection(
+        &self,
+        data_store_connection: &Arc<DataStoreConnection>,
+    ) -> Arc<Self> {
+        Arc::new(Self {
+            data_store_connection: data_store_connection.clone(),
+            started_at:            self.started_at,
+            graph:                 self.graph.clone(),
+            ontology_graph:        self.ontology_graph.clone(),
+        })
+    }
+
     pub fn import_data_from_file<P>(&self, file: P) -> Result<(), Error>
     where P: AsRef<Path> {
         self.data_store_connection

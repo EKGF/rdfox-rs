@@ -72,7 +72,7 @@ impl Display for CException {
 macro_rules! database_call {
     ($action:expr, $function:expr) => {{
         // log::trace!("{} at line {}", stringify!($function), line!());
-        log::trace!("{}", $action);
+        log::trace!(target: $crate::LOG_TARGET_DATABASE, "{}", $action);
         $crate::exception::CException::handle(
             $action,
             core::panic::AssertUnwindSafe(|| unsafe { $function }),

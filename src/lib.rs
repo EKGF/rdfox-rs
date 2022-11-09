@@ -34,6 +34,7 @@ pub use transaction::Transaction;
 pub const LOG_TARGET_CONFIG: &str = "config";
 pub const LOG_TARGET_SPARQL: &str = "sparql";
 pub const LOG_TARGET_FILES: &str = "files";
+pub const LOG_TARGET_DATABASE: &str = "database";
 
 // All supported MIME types
 lazy_static! {

@@ -132,6 +132,11 @@ impl ServerConnection {
         assert!(!self.inner.is_null());
         let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
+        log::error!(
+            target: crate::LOG_TARGET_DATABASE,
+            "Creating datastore connection {}",
+            ds_connection.number
+        );
         database_call!(
             "creating a datastore connection",
             CServerConnection_newDataStoreConnection(
@@ -140,7 +145,11 @@ impl ServerConnection {
                 &mut ds_connection.inner,
             )
         )?;
-        log::debug!("Connected to {}", data_store);
+        log::error!(
+            target: crate::LOG_TARGET_DATABASE,
+            "Connected to {}",
+            data_store
+        );
         Ok(Arc::new(ds_connection))
     }
 

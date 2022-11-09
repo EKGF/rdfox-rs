@@ -82,14 +82,10 @@ impl Cursor {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
-    pub fn consume<T>(
-        &mut self,
-        tx: Arc<Transaction>,
-        max_row: u64,
-        mut f: T,
-    ) -> Result<u64, Error>
+    pub fn consume<T, E>(&mut self, tx: Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
     where
-        T: FnMut(CursorRow) -> Result<(), Error>,
+        T: FnMut(CursorRow) -> Result<(), E>,
+        E: From<Error>,
     {
         let sparql_str = self.statement.text.clone();
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, tx.clone())?;
@@ -101,14 +97,16 @@ impl Cursor {
                     maxrow: max_row,
                     multiplicity,
                     query: sparql_str,
-                })
+                }
+                .into())
             }
             rowid += 1;
             if rowid >= max_row {
                 return Err(Error::ExceededMaximumNumberOfRows {
                     maxrow: max_row,
                     query:  sparql_str,
-                })
+                }
+                .into())
             }
             count += multiplicity;
             let row = CursorRow {

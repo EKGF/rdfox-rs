@@ -58,6 +58,7 @@ pub struct DataStoreConnection {
     pub server_connection: Arc<ServerConnection>,
     pub(crate) inner:      *mut CDataStoreConnection,
     started_at:            Instant,
+    pub number:            usize,
 }
 
 impl Display for DataStoreConnection {
@@ -91,7 +92,16 @@ impl DataStoreConnection {
             server_connection: server_connection.clone(),
             inner,
             started_at: Instant::now(),
+            number: Self::get_number(),
         }
+    }
+
+    pub fn same(self: &Arc<Self>, other: &Arc<Self>) -> bool { self.number == other.number }
+
+    fn get_number() -> usize {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        static COUNTER: AtomicUsize = AtomicUsize::new(1);
+        COUNTER.fetch_add(1, Ordering::Relaxed)
     }
 
     pub fn get_id(&self) -> Result<u32, Error> {
