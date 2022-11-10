@@ -1,15 +1,20 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{
-    fmt::{Debug, Display, Formatter},
-    mem::ManuallyDrop,
-    str::FromStr,
+use {
+    crate::{
+        rdf::LexicalValueUnion,
+        DataType,
+        Error::{self, Unknown},
+        Term,
+    },
+    iref::{Iri, IriBuf},
+    std::{
+        fmt::{Debug, Display, Formatter},
+        mem::ManuallyDrop,
+        str::FromStr,
+    },
 };
-
-use iref::{Iri, IriBuf};
-
-use crate::{rdf::LexicalValueUnion, DataType, Error, Error::Unknown, Term};
 
 #[derive(Default)]
 pub struct LexicalValue {
@@ -95,7 +100,11 @@ impl Debug for LexicalValue {
                 write!(f, "{}", self.value.unsigned_integer)?
             } else if data_type.is_decimal() {
                 write!(f, "{}", self.value.string.as_str())?
-            } else if data_type.is_duration() {
+            } else if data_type.is_duration() ||
+                data_type.is_date_time() ||
+                data_type.is_date() ||
+                data_type.is_date_time_stamp()
+            {
                 write!(f, "{}", self.value.string.as_str())?
             } else {
                 panic!("Cannot format, unimplemented datatype {data_type:?}")
@@ -111,13 +120,22 @@ impl Display for LexicalValue {
             write!(f, "<{}>", self.as_iri().unwrap().as_str())
         } else if self.data_type.is_blank_node() {
             write!(f, "_:{}", self.as_string().unwrap().as_str())
+        } else if self.data_type.is_string() {
+            if let Some(strng) = self.as_string() {
+                write!(f, "\"{}\"", strng.as_str())
+            } else {
+                write!(f, "ERROR, could not convert to String")
+            }
         } else {
-            write!(
-                f,
-                "{:?}={}",
-                self.data_type,
-                self.as_string().unwrap().as_str()
-            )
+            if let Some(strng) = self.as_string() {
+                write!(f, "{} ({:?})", strng.as_str(), self.data_type)
+            } else {
+                write!(
+                    f,
+                    "ERROR, could not convert to String ({:?})",
+                    self.data_type
+                )
+            }
         }
     }
 }
@@ -183,7 +201,10 @@ impl Clone for LexicalValue {
                 todo!("the situation where the duration value is not a duration")
             }
         } else {
-            todo!("dealing with other datatypes: {:?}", self.data_type)
+            todo!(
+                "dealing with other datatypes: {:?}",
+                self.data_type
+            )
         }
     }
 }
@@ -227,6 +248,8 @@ impl LexicalValue {
         } else if self.data_type.is_decimal() {
             unsafe { Some(self.value.string.as_str()) }
         } else if self.data_type.is_duration() {
+            unsafe { Some(self.value.string.as_str()) }
+        } else if self.data_type.is_date_time() {
             unsafe { Some(self.value.string.as_str()) }
         } else {
             panic!("Data type {:?} not yet supported", self.data_type);
@@ -321,11 +344,7 @@ impl LexicalValue {
                             data_type,
                         )?))
                     },
-                    _ => {
-                        Err(Error::UnknownNTriplesValue {
-                            value: buffer.to_string(),
-                        })
-                    },
+                    _ => Err(Error::UnknownNTriplesValue { value: buffer.to_string() }),
                 }
             },
             DataType::String | DataType::PlainLiteral => {
@@ -338,7 +357,34 @@ impl LexicalValue {
                     buffer, data_type,
                 )?))
             },
+            DataType::Int |
+            DataType::Integer |
+            DataType::NegativeInteger |
+            DataType::NonPositiveInteger |
+            DataType::Long |
+            DataType::Short => {
+                let signed_integer: i64 = buffer.parse().unwrap(); // TODO: Remove unwrap
+                Ok(Some(
+                    LexicalValue::new_signed_integer_with_datatype(signed_integer, data_type)?,
+                ))
+            },
+            DataType::PositiveInteger |
+            DataType::NonNegativeInteger |
+            DataType::UnsignedByte |
+            DataType::UnsignedInt |
+            DataType::UnsignedShort |
+            DataType::UnsignedLong => {
+                let unsigned_integer: u64 = buffer.parse().unwrap(); // TODO: Remove unwrap
+                Ok(Some(
+                    LexicalValue::new_unsigned_integer_with_datatype(unsigned_integer, data_type)?,
+                ))
+            },
             DataType::Decimal => {
+                Ok(Some(LexicalValue::new_decimal_with_datatype(
+                    buffer, data_type,
+                )?))
+            },
+            DataType::Duration => {
                 Ok(Some(LexicalValue::new_duration_with_datatype(
                     buffer, data_type,
                 )?))
@@ -354,9 +400,7 @@ impl LexicalValue {
     pub fn from_iri(iri: &Iri) -> Result<Self, Error> {
         Ok(LexicalValue {
             data_type: DataType::IriReference,
-            value:     LexicalValueUnion {
-                iri: ManuallyDrop::new(IriBuf::from(iri)),
-            },
+            value:     LexicalValueUnion { iri: ManuallyDrop::new(IriBuf::from(iri)) },
         })
     }
 
@@ -365,11 +409,17 @@ impl LexicalValue {
     }
 
     pub fn new_plain_literal_boolean(boolean: bool) -> Result<Self, Error> {
-        Self::new_string_with_datatype(boolean.to_string().as_str(), DataType::PlainLiteral)
+        Self::new_string_with_datatype(
+            boolean.to_string().as_str(),
+            DataType::PlainLiteral,
+        )
     }
 
     pub fn new_string_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(&data_type.is_string(), "{data_type:?} is not a string type");
+        assert!(
+            &data_type.is_string(),
+            "{data_type:?} is not a string type"
+        );
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -377,7 +427,10 @@ impl LexicalValue {
     }
 
     pub fn new_date_time_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(&data_type.is_date_time(), "{data_type:?} is not a dateTime");
+        assert!(
+            &data_type.is_date_time(),
+            "{data_type:?} is not a dateTime"
+        );
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -385,7 +438,10 @@ impl LexicalValue {
     }
 
     pub fn new_decimal_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(&data_type.is_decimal(), "{data_type:?} is not a decimal");
+        assert!(
+            &data_type.is_decimal(),
+            "{data_type:?} is not a decimal"
+        );
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -393,7 +449,10 @@ impl LexicalValue {
     }
 
     pub fn new_duration_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(&data_type.is_duration(), "{data_type:?} is not a duration");
+        assert!(
+            &data_type.is_duration(),
+            "{data_type:?} is not a duration"
+        );
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -409,11 +468,11 @@ impl LexicalValue {
     }
 
     pub fn new_iri_with_datatype(iri: &Iri, data_type: DataType) -> Result<Self, Error> {
-        assert!(&data_type.is_iri(), "{data_type:?} is not an IRI type");
-        Ok(LexicalValue {
-            data_type,
-            value: LexicalValueUnion::new_iri(iri),
-        })
+        assert!(
+            &data_type.is_iri(),
+            "{data_type:?} is not an IRI type"
+        );
+        Ok(LexicalValue { data_type, value: LexicalValueUnion::new_iri(iri) })
     }
 
     pub fn new_blank_node_with_datatype(id: &str, data_type: DataType) -> Result<Self, Error> {
@@ -443,10 +502,7 @@ impl LexicalValue {
             "true" => Self::new_boolean_with_datatype(true, data_type),
             "false" => Self::new_boolean_with_datatype(false, data_type),
             &_ => {
-                Err(Error::UnknownValueForDataType {
-                    data_type,
-                    value: boolean_string.to_string(),
-                })
+                Err(Error::UnknownValueForDataType { data_type, value: boolean_string.to_string() })
             },
         }
     }
@@ -526,7 +582,11 @@ impl LexicalValue {
                     } else if data_type.is_decimal() {
                         write!(f, "{}", self.0.value.string.as_str())?
                     } else if data_type.is_duration() {
-                        write!(f, "\"{}\"^^xsd:duration", self.0.value.string.as_str())?
+                        write!(
+                            f,
+                            "\"{}\"^^xsd:duration",
+                            self.0.value.string.as_str()
+                        )?
                     } else {
                         panic!("Cannot format for turtle, unimplemented datatype {data_type:?}")
                     }

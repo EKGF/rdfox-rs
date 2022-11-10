@@ -1,19 +1,20 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::sync::{atomic::AtomicBool, Arc};
-
-use crate::{
-    database_call,
-    error::Error,
-    root::{
-        CDataStoreConnection_beginTransaction,
-        CDataStoreConnection_commitTransaction,
-        CDataStoreConnection_rollbackTransaction,
-        CTransactionType,
+use {
+    crate::{
+        database_call,
+        error::Error,
+        root::{
+            CDataStoreConnection_beginTransaction,
+            CDataStoreConnection_commitTransaction,
+            CDataStoreConnection_rollbackTransaction,
+            CTransactionType,
+        },
+        DataStoreConnection,
+        LOG_TARGET_DATABASE,
     },
-    DataStoreConnection,
-    LOG_TARGET_DATABASE,
+    std::sync::{atomic::AtomicBool, Arc},
 };
 
 #[derive(Debug)]
@@ -57,7 +58,7 @@ impl Transaction {
             .as_str(),
             CDataStoreConnection_beginTransaction(connection.inner, tx_type)
         )?;
-        log::error!(
+        log::debug!(
             target: LOG_TARGET_DATABASE,
             "Started transaction #{number} on connection #{}",
             connection.number
@@ -68,7 +69,7 @@ impl Transaction {
             number,
             tx_type,
         });
-        log::error!(
+        log::debug!(
             target: LOG_TARGET_DATABASE,
             "Started {}",
             tx.get_title().as_str()
@@ -100,11 +101,17 @@ impl Transaction {
     }
 
     pub fn begin_read_only(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
-        Self::begin(&connection, CTransactionType::TRANSACTION_TYPE_READ_ONLY)
+        Self::begin(
+            &connection,
+            CTransactionType::TRANSACTION_TYPE_READ_ONLY,
+        )
     }
 
     pub fn begin_read_write(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
-        Self::begin(connection, CTransactionType::TRANSACTION_TYPE_READ_WRITE)
+        Self::begin(
+            connection,
+            CTransactionType::TRANSACTION_TYPE_READ_WRITE,
+        )
     }
 
     pub fn begin_read_write_do<T, F>(
