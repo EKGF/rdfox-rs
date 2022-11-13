@@ -1,25 +1,43 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ptr;
-
-use crate::{
-    database_call,
-    root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
-    DataType,
-    Error,
-    Error::Unknown,
-    LexicalValue,
-    OpenedCursor,
-    ResourceValue,
+use {
+    crate::{
+        database_call,
+        root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
+        DataType,
+        Error::{self, Unknown},
+        LexicalValue,
+        OpenedCursor,
+        ResourceValue,
+    },
+    std::ptr,
 };
 
-#[derive(Debug)]
 pub struct CursorRow<'a> {
     pub opened:       &'a OpenedCursor<'a>,
     pub multiplicity: u64,
     pub count:        u64,
     pub rowid:        u64,
+}
+
+impl<'a> std::fmt::Debug for CursorRow<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Row(")?;
+        for term_index in 0..self.opened.arity {
+            match self.lexical_value(term_index) {
+                Ok(some_value) => {
+                    if let Some(value) = some_value {
+                        write!(f, "{term_index}={:?}:{value:},", value.data_type)?;
+                    } else {
+                        write!(f, "{term_index}=UNDEF,")?
+                    }
+                },
+                Err(err) => write!(f, "{term_index}=ERROR: {err:?},")?,
+            }
+        }
+        write!(f, ")")
+    }
 }
 
 impl<'a> CursorRow<'a> {
@@ -142,7 +160,7 @@ impl<'a> CursorRow<'a> {
     /// current row with the given term index.
     pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, Error> {
         let resource_id = self.resource_id(term_index)?;
-        log::debug!(
+        log::trace!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
              resource_id={resource_id:?}:",
             rowid = self.rowid,

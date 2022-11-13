@@ -1,20 +1,20 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr, sync::Arc};
-
-use iref::Iri;
-
-use super::{CursorRow, OpenedCursor};
-use crate::{
-    database_call,
-    error::Error,
-    namespace::DEFAULT_BASE_IRI,
-    root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
-    DataStoreConnection,
-    Parameters,
-    Statement,
-    Transaction,
+use {
+    super::{CursorRow, OpenedCursor},
+    crate::{
+        database_call,
+        error::Error,
+        namespace::DEFAULT_BASE_IRI,
+        root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
+        DataStoreConnection,
+        Parameters,
+        Statement,
+        Transaction,
+    },
+    iref::Iri,
+    std::{ffi::CString, ptr, sync::Arc},
 };
 
 #[derive(Debug)]
@@ -41,7 +41,7 @@ impl Cursor {
     pub fn create(
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
-        statement: Statement,
+        statement: &Statement,
         base_iri: Option<Iri>,
     ) -> Result<Self, Error> {
         assert!(!connection.inner.is_null());
@@ -69,9 +69,9 @@ impl Cursor {
             )
         )?;
         let cursor = Cursor {
-            inner: c_cursor,
+            inner:      c_cursor,
             connection: connection.clone(),
-            statement,
+            statement:  statement.clone(),
         };
         log::debug!("Created cursor for {:}", &cursor.statement);
         log::debug!("Cursor {:?}", cursor);
@@ -109,12 +109,7 @@ impl Cursor {
                 .into())
             }
             count += multiplicity;
-            let row = CursorRow {
-                opened: &opened_cursor,
-                multiplicity,
-                count,
-                rowid,
-            };
+            let row = CursorRow { opened: &opened_cursor, multiplicity, count, rowid };
             f(row)?;
             multiplicity = opened_cursor.advance()?;
         }

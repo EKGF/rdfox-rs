@@ -1,13 +1,13 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use core::fmt::{Display, Formatter};
-use std::{ffi::CString, ops::Deref, sync::Arc};
-
-use indoc::formatdoc;
-use iref::Iri;
-
-use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH};
+use {
+    crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH},
+    core::fmt::{Display, Formatter},
+    indoc::formatdoc,
+    iref::Iri,
+    std::{ffi::CString, ops::Deref, sync::Arc},
+};
 
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -25,16 +25,13 @@ impl Display for Statement {
 impl Statement {
     pub fn new(prefixes: Prefixes, statement: &str) -> Result<Self, Error> {
         let text = format!("{}\n{}", &prefixes.to_string(), statement.trim());
-        let s = Self {
-            prefixes,
-            text,
-        };
+        let s = Self { prefixes, text };
         log::trace!(target: crate::LOG_TARGET_SPARQL, "{:}", s);
         Ok(s)
     }
 
     pub fn cursor<'a>(
-        self,
+        &self,
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
         base_iri: Option<Iri>,
