@@ -1,20 +1,20 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{collections::HashMap, ffi::CString, ops::Deref, ptr};
-
-use iref::{Iri, IriBuf};
-
-use crate::{
-    database_call,
-    error::Error,
-    namespace::{PREFIX_RDF, PREFIX_RDFS},
-    root::{
-        CPrefixes,
-        CPrefixes_DeclareResult as PrefixDeclareResult,
-        CPrefixes_declarePrefix,
-        CPrefixes_newDefaultPrefixes,
+use {
+    crate::{
+        database_call,
+        error::Error,
+        namespace::{PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
+        root::{
+            CPrefixes,
+            CPrefixes_DeclareResult as PrefixDeclareResult,
+            CPrefixes_declarePrefix,
+            CPrefixes_newDefaultPrefixes,
+        },
     },
+    iref::{Iri, IriBuf},
+    std::{collections::HashMap, ffi::CString, ops::Deref, ptr},
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -36,10 +36,7 @@ impl Prefixes {
     pub fn builder() -> PrefixesBuilder { PrefixesBuilder::default() }
 
     pub fn empty() -> Result<Self, Error> {
-        let mut prefixes = Self {
-            inner: ptr::null_mut(),
-            map:   HashMap::new(),
-        };
+        let mut prefixes = Self { inner: ptr::null_mut(), map: HashMap::new() };
         database_call!(
             "allocating prefixes",
             CPrefixes_newDefaultPrefixes(&mut prefixes.inner)
@@ -51,7 +48,9 @@ impl Prefixes {
     pub fn default() -> Result<Self, Error> {
         Self::empty()?
             .add_prefix(PREFIX_RDF.deref())?
-            .add_prefix(PREFIX_RDFS.deref())
+            .add_prefix(PREFIX_RDFS.deref())?
+            .add_prefix(PREFIX_OWL.deref())?
+            .add_prefix(PREFIX_XSD.deref())
     }
 
     pub fn declare_prefix(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
@@ -64,7 +63,12 @@ impl Prefixes {
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
         database_call!(
             "declaring a prefix",
-            CPrefixes_declarePrefix(self.inner, c_name.as_ptr(), c_iri.as_ptr(), &mut result)
+            CPrefixes_declarePrefix(
+                self.inner,
+                c_name.as_ptr(),
+                c_iri.as_ptr(),
+                &mut result
+            )
         )?;
         match result {
             PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
@@ -81,7 +85,10 @@ impl Prefixes {
                 Ok(result)
             },
             _ => {
-                log::error!("Result of registering prefix {prefix} is {:?}", result);
+                log::error!(
+                    "Result of registering prefix {prefix} is {:?}",
+                    result
+                );
                 Ok(result)
             },
         }
@@ -110,7 +117,12 @@ pub struct Prefix {
 
 impl std::fmt::Display for Prefix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} <{}>", self.name.as_str(), self.iri.as_str())
+        write!(
+            f,
+            "{} <{}>",
+            self.name.as_str(),
+            self.iri.as_str()
+        )
     }
 }
 
@@ -118,12 +130,7 @@ impl Prefix {
     pub fn declare<'a, Base: Into<Iri<'a>>>(name: &str, iri: Base) -> Self {
         let iri = iri.into();
         match iri.as_str().chars().last().unwrap() {
-            '/' | '#' => {
-                Self {
-                    name: name.to_string(),
-                    iri:  IriBuf::from(iri),
-                }
-            },
+            '/' | '#' => Self { name: name.to_string(), iri: IriBuf::from(iri) },
             _ => {
                 Self {
                     name: name.to_string(),
@@ -159,11 +166,7 @@ pub struct PrefixesBuilder {
 }
 
 impl<'a> PrefixesBuilder {
-    pub fn default() -> Self {
-        PrefixesBuilder {
-            prefixes: Vec::new(),
-        }
-    }
+    pub fn default() -> Self { PrefixesBuilder { prefixes: Vec::new() } }
 
     pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
         self.prefixes.push(Prefix::declare(name, iri));
@@ -186,13 +189,14 @@ impl<'a> PrefixesBuilder {
 
 #[cfg(test)]
 mod tests {
-    use iref::Iri;
-
-    use crate::Prefix;
+    use {crate::Prefix, iref::Iri};
 
     #[test]
     fn test_a_prefix() -> Result<(), iref::Error> {
-        let prefix = Prefix::declare("test:", Iri::new("http://whatever.kom/test#").unwrap());
+        let prefix = Prefix::declare(
+            "test:",
+            Iri::new("http://whatever.kom/test#").unwrap(),
+        );
         let x = prefix.with_local_name("abc")?;
 
         assert_eq!(x.as_str(), "http://whatever.kom/test#abc");

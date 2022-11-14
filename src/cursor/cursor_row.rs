@@ -124,7 +124,7 @@ impl<'a> CursorRow<'a> {
 
     /// Returns the resource bound to the given index in the current answer row.
     fn lexical_value_with_id(&self, resource_id: u64) -> Result<Option<LexicalValue>, Error> {
-        let mut buffer = [0u8; 1024];
+        let mut buffer = [0u8; 102400]; // TODO: Make this dependent on returned info about buffer size too small
         let mut lexical_form_size = 0 as usize;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
         let mut resource_resolved = false;
