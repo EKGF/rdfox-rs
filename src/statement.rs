@@ -20,7 +20,7 @@ impl Display for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(f, "SPARQL Statement:\n")?;
         for (number, line) in self.text.lines().enumerate() {
-            writeln!("{number:0>4}: {line}");
+            writeln!(f, "{number:0>4}: {line}")?;
         }
         Ok(())
     }
