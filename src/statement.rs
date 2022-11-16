@@ -20,7 +20,7 @@ impl Display for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(f, "SPARQL Statement:\n")?;
         for (number, line) in self.text.lines().enumerate() {
-            writeln!(f, "{number:0>4}: {line}")?;
+            writeln!(f, "{:0>4}: {line}", number + 1)?;
         }
         Ok(())
     }
@@ -46,6 +46,8 @@ impl Statement {
     pub(crate) fn as_c_string(&self) -> Result<CString, Error> {
         Ok(CString::new(self.text.as_str())?)
     }
+
+    pub fn as_str(&self) -> &str { self.text.as_str() }
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
