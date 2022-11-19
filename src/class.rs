@@ -42,6 +42,11 @@ impl Class {
         }
     }
 
+    pub fn as_iri(&self) -> Result<iref::IriBuf, Error> {
+        let iri = iref::IriBuf::new(format!("{}{}", self.prefix.iri, self.local_name).as_str())?;
+        Ok(iri)
+    }
+
     #[allow(clippy::needless_lifetimes)]
     pub fn display_turtle<'a>(&'a self) -> impl std::fmt::Display + 'a {
         struct TurtleClass<'a>(&'a Class);
@@ -115,15 +120,27 @@ impl Class {
 
 #[cfg(test)]
 mod tests {
-    use iref::Iri;
-
     use crate::{class::Class, Prefix};
 
     #[test]
-    fn test_a_class() {
-        let prefix = Prefix::declare("test:", Iri::new("https://whatever.com/test#").unwrap());
+    fn test_a_class_01() {
+        let prefix = Prefix::declare(
+            "test:",
+            iref::Iri::new("https://whatever.com/test#").unwrap(),
+        );
         let class = Class::declare(prefix, "SomeClass");
         let s = format!("{:}", class);
         assert_eq!(s, "test:SomeClass")
+    }
+
+    #[test]
+    fn test_a_class_02() {
+        let prefix = Prefix::declare(
+            "test:",
+            iref::Iri::new("https://whatever.com/test#").unwrap(),
+        );
+        let class = Class::declare(prefix, "SomeClass");
+        let s = format!("{}", class.as_iri().unwrap());
+        assert_eq!(s, "https://whatever.com/test#SomeClass");
     }
 }

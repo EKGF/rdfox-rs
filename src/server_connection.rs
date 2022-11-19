@@ -124,8 +124,8 @@ impl ServerConnection {
         Ok(())
     }
 
-    pub fn connect_to_data_store<'b>(
-        self: &'b Arc<Self>,
+    pub fn connect_to_data_store(
+        self: &Arc<Self>,
         data_store: &Arc<DataStore>,
     ) -> Result<Arc<DataStoreConnection>, Error> {
         log::debug!("Connecting to {}", data_store);

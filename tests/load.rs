@@ -1,6 +1,5 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-use std::sync::Arc;
 /// We're using `#[test_log::test]` tests in this file which allows
 /// you to see the log in your test runner if you set the environment
 /// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
@@ -10,25 +9,28 @@ use std::sync::Arc;
 /// TODO: Add test for "import axioms" (add test ontology)
 use std::{ops::Deref, path::Path};
 
-use indoc::formatdoc;
-use iref::Iri;
-use rdfox::{
-    DataStore,
-    DataStoreConnection,
-    Error,
-    FactDomain,
-    GraphConnection,
-    Parameters,
-    Prefixes,
-    RoleCreds,
-    Server,
-    ServerConnection,
-    Statement,
-    Transaction,
-    APPLICATION_N_QUADS,
+use {
+    indoc::formatdoc,
+    iref::Iri,
+    rdfox::{
+        DataStore,
+        DataStoreConnection,
+        Error,
+        FactDomain,
+        GraphConnection,
+        Parameters,
+        Prefixes,
+        RoleCreds,
+        Server,
+        ServerConnection,
+        Statement,
+        Transaction,
+        APPLICATION_N_QUADS,
+    },
+    std::sync::Arc,
 };
 
-fn test_define_data_store() -> Result<DataStore, Error> {
+fn test_define_data_store() -> Result<Arc<DataStore>, Error> {
     log::info!("test_define_data_store");
     let data_store_params = Parameters::empty()?;
     DataStore::declare_with_parameters("example", data_store_params)
@@ -42,7 +44,7 @@ fn test_create_server() -> Result<Arc<Server>, Error> {
     Server::start_with_parameters(RoleCreds::default(), server_params)
 }
 
-fn test_create_server_connection(server: Arc<Server>) -> Result<ServerConnection, Error> {
+fn test_create_server_connection(server: Arc<Server>) -> Result<Arc<ServerConnection>, Error> {
     log::info!("test_create_server_connection");
 
     let server_connection = server.connection_with_default_role()?;
@@ -58,22 +60,24 @@ fn test_create_server_connection(server: Arc<Server>) -> Result<ServerConnection
     Ok(server_connection)
 }
 
-fn test_create_data_store<'a>(
-    server_connection: &'a ServerConnection,
-    data_store: &'a DataStore,
-) -> Result<DataStoreConnection<'a>, Error> {
+fn test_create_data_store_connection(
+    server_connection: &Arc<ServerConnection>,
+    data_store: &Arc<DataStore>,
+) -> Result<Arc<DataStoreConnection>, Error> {
     log::info!("test_create_data_store");
 
     server_connection.create_data_store(data_store)?;
     server_connection.connect_to_data_store(data_store)
 }
 
-fn test_create_graph<'a>(
-    ds_connection: &'a DataStoreConnection,
-) -> Result<GraphConnection<'a>, Error> {
+fn test_create_graph(
+    ds_connection: &Arc<DataStoreConnection>,
+) -> Result<Arc<GraphConnection>, Error> {
     log::info!("test_create_graph");
-    let graph_base_iri =
-        rdfox::Prefix::declare("graph:", Iri::new("http://whatever.kom/graph/").unwrap());
+    let graph_base_iri = rdfox::Prefix::declare(
+        "graph:",
+        Iri::new("http://whatever.kom/graph/").unwrap(),
+    );
     let test_graph = rdfox::Graph::declare(graph_base_iri, "test");
 
     assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
@@ -82,13 +86,17 @@ fn test_create_graph<'a>(
         "<http://whatever.kom/graph/test>"
     );
 
-    Ok(GraphConnection::new(ds_connection, test_graph, None))
+    Ok(GraphConnection::new(
+        ds_connection.clone(),
+        test_graph,
+        None,
+    ))
 }
 
 #[allow(dead_code)]
 fn test_count_some_stuff_in_the_store(
     tx: Arc<Transaction>,
-    ds_connection: &DataStoreConnection,
+    ds_connection: &Arc<DataStoreConnection>,
 ) -> Result<(), Error> {
     log::info!("test_count_some_stuff_in_the_store");
     let count = ds_connection.get_triples_count(tx, FactDomain::ALL);
@@ -114,7 +122,7 @@ fn test_count_some_stuff_in_the_graph(
 #[allow(dead_code)]
 fn test_cursor_with_lexical_value(
     tx: Arc<Transaction>,
-    graph_connection: &GraphConnection,
+    graph_connection: &Arc<GraphConnection>,
 ) -> Result<(), Error> {
     log::info!("test_cursor_with_lexical_value");
     let graph = graph_connection.graph.as_display_iri();
@@ -134,18 +142,18 @@ fn test_cursor_with_lexical_value(
         .as_str(),
     )?;
     let mut cursor = query.cursor(
-        graph_connection.data_store_connection,
+        &graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
         None,
     )?;
 
     let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
-        for term_index in 0 .. row.opened.arity {
+        for term_index in 0..row.opened.arity {
             let value = row.lexical_value(term_index)?;
             log::info!("{value:?}");
         }
-        Ok(())
+        Result::<(), Error>::Ok(())
     })?;
     log::info!("Number of rows processed: {count}");
     Ok(())
@@ -154,7 +162,7 @@ fn test_cursor_with_lexical_value(
 #[allow(dead_code)]
 fn test_cursor_with_resource_value(
     tx: Arc<Transaction>,
-    graph_connection: &GraphConnection,
+    graph_connection: &Arc<GraphConnection>,
 ) -> Result<(), Error> {
     log::info!("test_cursor_with_resource_value");
     let graph = graph_connection.graph.as_display_iri();
@@ -174,18 +182,18 @@ fn test_cursor_with_resource_value(
         .as_str(),
     )?;
     let mut cursor = query.cursor(
-        graph_connection.data_store_connection,
+        &graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
         None,
     )?;
 
     let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
-        for term_index in 0 .. row.opened.arity {
+        for term_index in 0..row.opened.arity {
             let value = row.resource_value(term_index)?;
             log::info!("{value:?}");
         }
-        Ok(())
+        Result::<(), Error>::Ok(())
     })?;
     log::info!("Number of rows processed: {count}");
     Ok(())
@@ -194,13 +202,18 @@ fn test_cursor_with_resource_value(
 #[allow(dead_code)]
 fn test_run_query_to_nquads_buffer(
     _tx: Arc<Transaction>, // TODO: consider passing tx to evaluate_to_stream()
-    ds_connection: &DataStoreConnection,
+    ds_connection: &Arc<DataStoreConnection>,
 ) -> Result<(), Error> {
     log::info!("test_run_query_to_nquads_buffer");
     let prefixes = Prefixes::empty()?;
     let nquads_query = Statement::nquads_query(prefixes)?;
     let writer = std::io::stdout();
-    ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref(), None)?;
+    ds_connection.evaluate_to_stream(
+        writer,
+        &nquads_query,
+        APPLICATION_N_QUADS.deref(),
+        None,
+    )?;
     log::info!("test_run_query_to_nquads_buffer passed");
     Ok(())
 }
@@ -210,7 +223,10 @@ fn load_rdfox() -> Result<(), Error> {
     let server = test_create_server()?;
     let server_connection = test_create_server_connection(server)?;
 
-    log::info!("Server version is {}", server_connection.get_version()?);
+    log::info!(
+        "Server version is {}",
+        server_connection.get_version()?
+    );
 
     let data_store = test_define_data_store()?;
 
@@ -218,7 +234,7 @@ fn load_rdfox() -> Result<(), Error> {
     // will ensure that the DataStoreConnection created by
     // `test_create_data_store()` is destroyed at the end of this scope.
     {
-        let ds_connection = test_create_data_store(&server_connection, &data_store)?;
+        let ds_connection = test_create_data_store_connection(&server_connection, &data_store)?;
 
         let graph_connection = test_create_graph(&ds_connection)?;
 
