@@ -127,8 +127,8 @@ impl std::fmt::Display for Prefix {
 impl Prefix {
     pub fn declare<'a, Base: Into<Iri<'a>>>(name: &str, iri: Base) -> Self {
         let iri = iri.into();
-        match iri.as_str().chars().last().unwrap() {
-            '/' | '#' => {
+        match iri.as_str().chars().last() {
+            Some('/') | Some('#') => {
                 Self {
                     name: name.to_string(),
                     iri:  IriBuf::from(iri),
@@ -148,7 +148,16 @@ impl Prefix {
     }
 
     pub fn with_local_name(&self, name: &str) -> Result<IriBuf, iref::Error> {
-        IriBuf::new(format!("{}{}", self.iri.as_str(), name).as_str())
+        let binding = self.iri.as_iri_ref();
+        match binding.path().as_str().chars().last() {
+            Some(char) if char == '/' => {
+                IriBuf::new(format!("{}{}", self.iri.as_str(), name).as_str())
+            },
+            Some(char) if char == '#' => {
+                IriBuf::new(format!("{}{}", self.iri.as_str(), name).as_str())
+            },
+            _ => IriBuf::new(format!("{}/{}", self.iri.as_str(), name).as_str()),
+        }
     }
 
     #[cfg(feature = "rdftk_support")]

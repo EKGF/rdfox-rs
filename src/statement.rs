@@ -1,13 +1,13 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use {
-    crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH},
-    core::fmt::{Display, Formatter},
-    indoc::formatdoc,
-    iref::Iri,
-    std::{ffi::CString, ops::Deref, sync::Arc},
-};
+use core::fmt::{Display, Formatter};
+use std::{borrow::Cow, ffi::CString, ops::Deref, sync::Arc};
+
+use indoc::formatdoc;
+use iref::Iri;
+
+use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH};
 
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -27,9 +27,12 @@ impl Display for Statement {
 }
 
 impl Statement {
-    pub fn new(prefixes: Prefixes, statement: &str) -> Result<Self, Error> {
+    pub fn new(prefixes: Prefixes, statement: Cow<str>) -> Result<Self, Error> {
         let text = format!("{}\n{}", &prefixes.to_string(), statement.trim());
-        let s = Self { prefixes, text };
+        let s = Self {
+            prefixes,
+            text,
+        };
         log::trace!(target: crate::LOG_TARGET_SPARQL, "{:}", s);
         Ok(s)
     }
@@ -48,6 +51,22 @@ impl Statement {
     }
 
     pub fn as_str(&self) -> &str { self.text.as_str() }
+
+    pub fn no_comments(&self) -> String {
+        use std::fmt::Write;
+
+        use regex::Regex;
+        let re = Regex::new(r".*#[^>]").unwrap();
+        let mut output = String::new();
+        for line in self.as_str().lines() {
+            if let Some(mat) = re.find(line) {
+                write!(&mut output, "{}\n", &line[.. mat.start()]).unwrap();
+            } else {
+                write!(&mut output, "{}\n", line).unwrap();
+            }
+        }
+        output
+    }
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
@@ -68,7 +87,7 @@ impl Statement {
                 }}
             "##
             )
-            .as_str(),
+            .into(),
         )?;
         Ok(statement)
     }

@@ -270,7 +270,7 @@ impl DataStoreConnection {
                 statement_result.as_mut_ptr(),
             )
         )?;
-        log::debug!("evaluated update statement: {:?}", statement_result);
+        log::error!("evaluated update statement: {:?}", statement_result);
         Ok(())
     }
 
@@ -320,7 +320,7 @@ impl DataStoreConnection {
                 }}
             "##
             )
-            .as_str(),
+            .into(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
@@ -349,7 +349,7 @@ impl DataStoreConnection {
                 }}
             "##
             )
-            .as_str(),
+            .into(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
@@ -378,7 +378,7 @@ impl DataStoreConnection {
                 }}
             "##
             )
-            .as_str(),
+            .into(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
@@ -407,7 +407,7 @@ impl DataStoreConnection {
                 }}
                 "##
             )
-            .as_str(),
+            .into(),
         )?
         .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)

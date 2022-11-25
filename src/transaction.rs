@@ -35,10 +35,12 @@ impl Drop for Transaction {
                 self.connection.number
             );
         } else {
-            panic!(
-                "Transaction #{} was not committed nor rolled back",
-                self.number
-            );
+            if let Err(err) = self._rollback() {
+                panic!(
+                    "Transaction #{} could not be rolled back: {err}",
+                    self.number
+                );
+            }
         }
     }
 }
@@ -145,6 +147,26 @@ impl Transaction {
     }
 
     pub fn rollback(self: &Arc<Self>) -> Result<(), Error> {
+        if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
+            self.committed
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+            assert!(!self.connection.inner.is_null());
+            database_call!(
+                format!("rolling back {}", self.get_title().as_str()).as_str(),
+                CDataStoreConnection_rollbackTransaction(self.connection.inner)
+            )?;
+            log::debug!(
+                target: LOG_TARGET_DATABASE,
+                "Rolled back {}",
+                self.get_title().as_str()
+            );
+        }
+        Ok(())
+    }
+
+    /// A duplicate of `rollback()` that takes a `&mut Transaction` rather than
+    /// an `Arc<Transaction>`, only to be used by `drop()`
+    fn _rollback(&mut self) -> Result<(), Error> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);

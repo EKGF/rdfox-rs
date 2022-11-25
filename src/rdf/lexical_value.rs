@@ -1,19 +1,19 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use {
-    crate::{
-        rdf::LexicalValueUnion,
-        DataType,
-        Error::{self, Unknown},
-        Term,
-    },
-    iref::{Iri, IriBuf},
-    std::{
-        fmt::{Debug, Display, Formatter},
-        mem::ManuallyDrop,
-        str::FromStr,
-    },
+use std::{
+    fmt::{Debug, Display, Formatter},
+    mem::ManuallyDrop,
+    str::FromStr,
+};
+
+use iref::{Iri, IriBuf};
+
+use crate::{
+    rdf::LexicalValueUnion,
+    DataType,
+    Error::{self, Unknown},
+    Term,
 };
 
 #[derive(Default)]
@@ -201,10 +201,7 @@ impl Clone for LexicalValue {
                 todo!("the situation where the duration value is not a duration")
             }
         } else {
-            todo!(
-                "dealing with other datatypes: {:?}",
-                self.data_type
-            )
+            todo!("dealing with other datatypes: {:?}", self.data_type)
         }
     }
 }
@@ -224,6 +221,26 @@ impl LexicalValue {
         } else {
             None
         }
+    }
+
+    pub fn as_local_name(&self) -> Option<String> {
+        self.as_iri().as_ref().and_then(|iri| {
+            let iri_str = iri.as_str();
+            match regex::Regex::new(r#"(?:.*)[#/](.*)"#) {
+                Ok(re) => {
+                    if let Some(captures) = re.captures(iri_str) {
+                        if let Some(mat) = captures.get(1) {
+                            Some(String::from(mat.as_str()))
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                },
+                Err(_err) => None,
+            }
+        })
     }
 
     pub fn as_str(&self) -> Option<&str> {
@@ -344,7 +361,11 @@ impl LexicalValue {
                             data_type,
                         )?))
                     },
-                    _ => Err(Error::UnknownNTriplesValue { value: buffer.to_string() }),
+                    _ => {
+                        Err(Error::UnknownNTriplesValue {
+                            value: buffer.to_string(),
+                        })
+                    },
                 }
             },
             DataType::String | DataType::PlainLiteral => {
@@ -364,9 +385,10 @@ impl LexicalValue {
             DataType::Long |
             DataType::Short => {
                 let signed_integer: i64 = buffer.parse().unwrap(); // TODO: Remove unwrap
-                Ok(Some(
-                    LexicalValue::new_signed_integer_with_datatype(signed_integer, data_type)?,
-                ))
+                Ok(Some(LexicalValue::new_signed_integer_with_datatype(
+                    signed_integer,
+                    data_type,
+                )?))
             },
             DataType::PositiveInteger |
             DataType::NonNegativeInteger |
@@ -375,9 +397,10 @@ impl LexicalValue {
             DataType::UnsignedShort |
             DataType::UnsignedLong => {
                 let unsigned_integer: u64 = buffer.parse().unwrap(); // TODO: Remove unwrap
-                Ok(Some(
-                    LexicalValue::new_unsigned_integer_with_datatype(unsigned_integer, data_type)?,
-                ))
+                Ok(Some(LexicalValue::new_unsigned_integer_with_datatype(
+                    unsigned_integer,
+                    data_type,
+                )?))
             },
             DataType::Decimal => {
                 Ok(Some(LexicalValue::new_decimal_with_datatype(
@@ -400,7 +423,9 @@ impl LexicalValue {
     pub fn from_iri(iri: &Iri) -> Result<Self, Error> {
         Ok(LexicalValue {
             data_type: DataType::IriReference,
-            value:     LexicalValueUnion { iri: ManuallyDrop::new(IriBuf::from(iri)) },
+            value:     LexicalValueUnion {
+                iri: ManuallyDrop::new(IriBuf::from(iri)),
+            },
         })
     }
 
@@ -409,17 +434,11 @@ impl LexicalValue {
     }
 
     pub fn new_plain_literal_boolean(boolean: bool) -> Result<Self, Error> {
-        Self::new_string_with_datatype(
-            boolean.to_string().as_str(),
-            DataType::PlainLiteral,
-        )
+        Self::new_string_with_datatype(boolean.to_string().as_str(), DataType::PlainLiteral)
     }
 
     pub fn new_string_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(
-            &data_type.is_string(),
-            "{data_type:?} is not a string type"
-        );
+        assert!(&data_type.is_string(), "{data_type:?} is not a string type");
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -427,10 +446,7 @@ impl LexicalValue {
     }
 
     pub fn new_date_time_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(
-            &data_type.is_date_time(),
-            "{data_type:?} is not a dateTime"
-        );
+        assert!(&data_type.is_date_time(), "{data_type:?} is not a dateTime");
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -438,10 +454,7 @@ impl LexicalValue {
     }
 
     pub fn new_decimal_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(
-            &data_type.is_decimal(),
-            "{data_type:?} is not a decimal"
-        );
+        assert!(&data_type.is_decimal(), "{data_type:?} is not a decimal");
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -449,10 +462,7 @@ impl LexicalValue {
     }
 
     pub fn new_duration_with_datatype(str: &str, data_type: DataType) -> Result<Self, Error> {
-        assert!(
-            &data_type.is_duration(),
-            "{data_type:?} is not a duration"
-        );
+        assert!(&data_type.is_duration(), "{data_type:?} is not a duration");
         Ok(LexicalValue {
             data_type,
             value: LexicalValueUnion::new_string(str),
@@ -468,11 +478,11 @@ impl LexicalValue {
     }
 
     pub fn new_iri_with_datatype(iri: &Iri, data_type: DataType) -> Result<Self, Error> {
-        assert!(
-            &data_type.is_iri(),
-            "{data_type:?} is not an IRI type"
-        );
-        Ok(LexicalValue { data_type, value: LexicalValueUnion::new_iri(iri) })
+        assert!(&data_type.is_iri(), "{data_type:?} is not an IRI type");
+        Ok(LexicalValue {
+            data_type,
+            value: LexicalValueUnion::new_iri(iri),
+        })
     }
 
     pub fn new_blank_node_with_datatype(id: &str, data_type: DataType) -> Result<Self, Error> {
@@ -502,7 +512,10 @@ impl LexicalValue {
             "true" => Self::new_boolean_with_datatype(true, data_type),
             "false" => Self::new_boolean_with_datatype(false, data_type),
             &_ => {
-                Err(Error::UnknownValueForDataType { data_type, value: boolean_string.to_string() })
+                Err(Error::UnknownValueForDataType {
+                    data_type,
+                    value: boolean_string.to_string(),
+                })
             },
         }
     }
@@ -582,11 +595,7 @@ impl LexicalValue {
                     } else if data_type.is_decimal() {
                         write!(f, "{}", self.0.value.string.as_str())?
                     } else if data_type.is_duration() {
-                        write!(
-                            f,
-                            "\"{}\"^^xsd:duration",
-                            self.0.value.string.as_str()
-                        )?
+                        write!(f, "\"{}\"^^xsd:duration", self.0.value.string.as_str())?
                     } else {
                         panic!("Cannot format for turtle, unimplemented datatype {data_type:?}")
                     }
@@ -602,4 +611,37 @@ impl FromStr for LexicalValue {
     type Err = Error;
 
     fn from_str(str: &str) -> Result<Self, Self::Err> { Self::new_plain_literal_string(str) }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use iref::IriBuf;
+
+    use crate::{Error, LexicalValue};
+
+    #[test]
+    fn test_as_local_name_01() -> Result<(), Error> {
+        let val = LexicalValue::from_iri(&IriBuf::from_str("https://whatever.kg/id/abc")?.as_iri());
+        assert!(val.is_ok());
+        let val = val.unwrap();
+        let name = val.as_local_name();
+        assert!(name.is_some());
+        let name = name.unwrap();
+        assert_eq!(name, "abc");
+        Ok(())
+    }
+
+    #[test]
+    fn test_as_local_name_02() -> Result<(), Error> {
+        let val = LexicalValue::from_iri(&IriBuf::from_str("https://whatever.kg/id#abc")?.as_iri());
+        assert!(val.is_ok());
+        let val = val.unwrap();
+        let name = val.as_local_name();
+        assert!(name.is_some());
+        let name = name.unwrap();
+        assert_eq!(name, "abc");
+        Ok(())
+    }
 }

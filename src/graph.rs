@@ -5,7 +5,7 @@ use std::ffi::CString;
 
 use lazy_static::lazy_static;
 
-use crate::Prefix;
+use crate::{LexicalValue, Prefix};
 
 lazy_static! {
     pub static ref NS_RDFOX: Prefix =
@@ -53,7 +53,7 @@ impl Graph {
         )
     }
 
-    pub fn as_iri(&self) -> Result<iref::IriBuf, crate::Error> {
+    pub fn as_iri_buf(&self) -> Result<iref::IriBuf, crate::Error> {
         self.namespace
             .with_local_name(self.local_name.as_str())
             .map_err(crate::Error::from)
@@ -66,7 +66,11 @@ impl Graph {
     }
 
     pub fn as_c_string(&self) -> Result<CString, crate::Error> {
-        CString::new(self.as_iri()?.as_str()).map_err(crate::Error::from)
+        CString::new(self.as_iri_buf()?.as_str()).map_err(crate::Error::from)
+    }
+
+    pub fn as_lexical_value(&self) -> Result<LexicalValue, crate::Error> {
+        Ok(LexicalValue::from_iri(&self.as_iri_buf()?.as_iri())?)
     }
 }
 
