@@ -1,20 +1,20 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use {
-    super::{CursorRow, OpenedCursor},
-    crate::{
-        database_call,
-        error::Error,
-        namespace::DEFAULT_BASE_IRI,
-        root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
-        DataStoreConnection,
-        Parameters,
-        Statement,
-        Transaction,
-    },
-    iref::Iri,
-    std::{ffi::CString, ptr, sync::Arc},
+use std::{ffi::CString, ptr, sync::Arc};
+
+use iref::Iri;
+
+use super::{CursorRow, OpenedCursor};
+use crate::{
+    database_call,
+    error::Error,
+    namespace::DEFAULT_BASE_IRI,
+    root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
+    DataStoreConnection,
+    Parameters,
+    Statement,
+    Transaction,
 };
 
 #[derive(Debug)]
@@ -30,7 +30,7 @@ impl Drop for Cursor {
             if !self.inner.is_null() {
                 CCursor_destroy(self.inner);
                 self.inner = ptr::null_mut();
-                log::debug!("Destroyed cursor");
+                tracing::debug!("Destroyed cursor");
             }
         }
     }
@@ -55,7 +55,7 @@ impl Cursor {
         };
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len = c_query.as_bytes().len();
-        log::trace!("Starting cursor for {:?}", c_query);
+        tracing::trace!("Starting cursor for {:?}", c_query);
         database_call!(
             "creating a cursor",
             CDataStoreConnection_createCursor(
@@ -73,16 +73,16 @@ impl Cursor {
             connection: connection.clone(),
             statement:  statement.clone(),
         };
-        log::debug!("Created cursor for {:}", &cursor.statement);
-        log::debug!("Cursor {:?}", cursor);
+        tracing::debug!("Created cursor for {:}", &cursor.statement);
+        tracing::debug!("Cursor {:?}", cursor);
         Ok(cursor)
     }
 
-    pub fn count(&mut self, tx: Arc<Transaction>) -> Result<u64, Error> {
+    pub fn count(&mut self, tx: &Arc<Transaction>) -> Result<u64, Error> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
-    pub fn consume<T, E>(&mut self, tx: Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
+    pub fn consume<T, E>(&mut self, tx: &Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
     where
         T: FnMut(CursorRow) -> Result<(), E>,
         E: From<Error>,
@@ -109,7 +109,12 @@ impl Cursor {
                 .into())
             }
             count += multiplicity;
-            let row = CursorRow { opened: &opened_cursor, multiplicity, count, rowid };
+            let row = CursorRow {
+                opened: &opened_cursor,
+                multiplicity,
+                count,
+                rowid,
+            };
             f(row)?;
             multiplicity = opened_cursor.advance()?;
         }
@@ -125,19 +130,19 @@ impl Cursor {
     pub fn execute_and_rollback<T>(&mut self, maxrow: u64, f: T) -> Result<u64, Error>
     where T: FnMut(CursorRow) -> Result<(), Error> {
         let tx = Transaction::begin_read_only(&self.connection)?;
-        self.execute_and_rollback_in_transaction(tx, maxrow, f)
+        self.execute_and_rollback_in_transaction(&tx, maxrow, f)
     }
 
     pub fn execute_and_rollback_in_transaction<T>(
         &mut self,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         maxrow: u64,
         f: T,
     ) -> Result<u64, Error>
     where
         T: FnMut(CursorRow) -> Result<(), Error>,
     {
-        tx.execute_and_rollback(|tx| self.consume(tx, maxrow, f))
+        tx.execute_and_rollback(|ref tx| self.consume(tx, maxrow, f))
     }
 
     pub fn update_and_commit_in_transaction<T>(
@@ -149,6 +154,6 @@ impl Cursor {
     where
         T: FnMut(CursorRow) -> Result<(), Error>,
     {
-        tx.update_and_commit(|tx| self.consume(tx, maxrow, f))
+        tx.update_and_commit(|ref tx| self.consume(tx, maxrow, f))
     }
 }

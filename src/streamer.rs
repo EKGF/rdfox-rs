@@ -31,7 +31,7 @@ struct RefToSelf<'a, W: 'a + Write> {
 
 impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
     fn drop(&mut self) {
-        log::trace!("{:p}: Dropping RefToSelf ({self:p})", self.streamer);
+        tracing::trace!("{:p}: Dropping RefToSelf ({self:p})", self.streamer);
     }
 }
 
@@ -51,7 +51,7 @@ pub struct Streamer<'a, W: 'a + Write> {
 
 impl<'a, W: 'a + Write> Drop for Streamer<'a, W> {
     fn drop(&mut self) {
-        log::trace!("{}: Dropped streamer", self.self_p);
+        tracing::trace!("{}: Dropped streamer", self.self_p);
     }
 }
 
@@ -91,7 +91,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         let self_p = format!("{:p}", &self);
         self.self_p = self_p.clone();
 
-        log::debug!("{self_p}: evaluate statement with mime={query_answer_format_name:?}");
+        tracing::debug!("{self_p}: evaluate statement with mime={query_answer_format_name:?}");
 
         let ref_to_self = Box::new(RefToSelf {
             streamer: &mut self as *mut Self,
@@ -128,7 +128,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
         result?; // we're doing this after the drop_in_place calls to avoid memory leak
 
-        log::debug!("{self_p}: number_of_solutions={number_of_solutions}");
+        tracing::debug!("{self_p}: number_of_solutions={number_of_solutions}");
         Ok(self)
     }
 
@@ -140,7 +140,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     extern "C" fn flush_function(context: *mut c_void) -> bool {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };
-        log::trace!("{streamer:p}: flush_function");
+        tracing::trace!("{streamer:p}: flush_function");
         streamer.flush()
     }
 
@@ -152,11 +152,11 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };
 
-        log::trace!("{streamer:p}: write_function");
+        tracing::trace!("{streamer:p}: write_function");
 
         let result = match ptr_to_cstr(data as *const u8, number_of_bytes_to_write as usize) {
             Ok(data_c_str) => {
-                log::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
+                tracing::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
                 let data = if streamer.remaining_buffer.borrow().is_some() {
                     // If we have some remaining bytes from the previous call to `write_function`
                     // then concatenate them here with the new buffer..
@@ -176,7 +176,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 let data_len = data.len();
                 match streamer.writer.write(&data) {
                     Ok(len) => {
-                        log::trace!("{streamer:p}: wrote {len} bytes out of {}", data_len);
+                        tracing::trace!("{streamer:p}: wrote {len} bytes out of {}", data_len);
                         if len < data_len {
                             // When we didn't process the last part of the buffer (probably because
                             // the last N-Triple line was not complete), then save the remainder
@@ -184,7 +184,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                             streamer.remaining_buffer.replace(Some(unsafe {
                                 String::from_utf8_unchecked(data[len ..].to_vec())
                             }));
-                            log::trace!(
+                            tracing::trace!(
                                 "{streamer:p}: remaining buffer: {}",
                                 streamer.remaining_buffer.borrow().as_ref().unwrap()
                             );
@@ -199,11 +199,11 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 }
             },
             Err(error) => {
-                log::error!("{streamer:p}: could not write: {error:?}");
+                tracing::error!("{streamer:p}: could not write: {error:?}");
                 false
             },
         };
-        log::trace!("{streamer:p}: write_function result={result}");
+        tracing::trace!("{streamer:p}: write_function result={result}");
         result
     }
 
@@ -219,22 +219,22 @@ trait StreamerWithCallbacks {
 
 impl<'a, W: 'a + Write> StreamerWithCallbacks for Streamer<'a, W> {
     fn flush(&mut self) -> bool {
-        log::trace!("{self:p}: flush");
+        tracing::trace!("{self:p}: flush");
         let y = if let Err(err) = self.writer.flush() {
             panic!("{self:p}: Could not flush: {err:?}")
         } else {
             true
         };
-        log::trace!("{self:p}: flush returns {y:?}");
+        tracing::trace!("{self:p}: flush returns {y:?}");
         y
     }
 
     // fn write(&mut self, data: &[u8]) -> bool {
-    //     log::trace!("{self:p}: writing {} bytes (b)", data.len());
+    //     tracing::trace!("{self:p}: writing {} bytes (b)", data.len());
     //     match self.writer.write(data) {
     //         Ok(len) => {
-    //             log::trace!("{self:p}: wrote {len} bytes out of {}", data.len());
-    //             true
+    //             tracing::trace!("{self:p}: wrote {len} bytes out of {}",
+    // data.len());             true
     //         },
     //         Err(err) => {
     //             panic!("{self:p}: could not write: {err:?}")

@@ -325,12 +325,12 @@ impl LexicalValue {
     ) -> Result<Option<LexicalValue>, Error> {
         let str_buffer = std::ffi::CStr::from_bytes_until_nul(buffer)
             .map_err(|err| {
-                log::error!("Cannot read buffer: {err:?}");
+                tracing::error!("Cannot read buffer: {err:?}");
                 Unknown // TODO
             })?
             .to_str()
             .map_err(|err| {
-                log::error!("Cannot convert buffer to string: {err:?}");
+                tracing::error!("Cannot convert buffer to string: {err:?}");
                 Unknown // TODO
             })?;
         Self::from_type_and_buffer(data_type, str_buffer)
@@ -414,7 +414,7 @@ impl LexicalValue {
             },
             DataType::UnboundValue => Ok(None),
             _ => {
-                log::warn!("Unsupported datatype: {data_type:?} value={buffer}");
+                tracing::warn!("Unsupported datatype: {data_type:?} value={buffer}");
                 Err(Unknown)
             },
         }

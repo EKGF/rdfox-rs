@@ -58,7 +58,7 @@ impl<'a> OpenedCursor<'a> {
             "opening a cursor",
             CCursor_open(c_cursor, &mut multiplicity)
         )?;
-        log::debug!("CCursor_open ok multiplicity={multiplicity}");
+        tracing::debug!("CCursor_open ok multiplicity={multiplicity}");
         Ok(multiplicity as u64)
     }
 
@@ -86,7 +86,7 @@ impl<'a> OpenedCursor<'a> {
                 if resource_id == 0 {
                     break
                 }
-                log::trace!("{count} resource_id={:?}", resource_id);
+                tracing::trace!("{count} resource_id={:?}", resource_id);
                 p = p.offset(1);
             }
         }
@@ -112,7 +112,7 @@ impl<'a> OpenedCursor<'a> {
             if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
                 Ok(Some(*resource_id))
             } else {
-                // log::error!(
+                // tracing::error!(
                 //     "Could not get the resource ID from the arguments buffer with argument
                 // index \      {argument_index} and term index {term_index}"
                 // );
@@ -120,7 +120,7 @@ impl<'a> OpenedCursor<'a> {
                 Ok(None)
             }
         } else {
-            log::error!("Could not get the argument index for term index {term_index}");
+            tracing::error!("Could not get the argument index for term index {term_index}");
             Err(Unknown)
         }
     }
@@ -133,7 +133,7 @@ impl<'a> OpenedCursor<'a> {
             "advancing the cursor",
             CCursor_advance(self.cursor.inner, &mut multiplicity)
         )?;
-        log::trace!(
+        tracing::trace!(
             "cursor {:?} advanced, multiplicity={multiplicity}",
             self.cursor.inner
         );

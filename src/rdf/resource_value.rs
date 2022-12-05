@@ -25,7 +25,7 @@ impl ResourceValue {
                 cursor::ptr_to_cstr(namespace, namespace_len + 1)?
                     .to_str()
                     .map_err(|err| {
-                        log::error!("Couldn't convert namespace due to UTF-8 error: {err:?}");
+                        tracing::error!("Couldn't convert namespace due to UTF-8 error: {err:?}");
                         Unknown
                     })?,
             )

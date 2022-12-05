@@ -12,6 +12,8 @@ pub enum Error {
     #[allow(dead_code)]
     #[error("Unknown Error")]
     Unknown,
+    #[error("While {action}: {message}")]
+    Exception { action: String, message: String },
     #[error("Unknown data type {data_type_id}")]
     UnknownDataType { data_type_id: u8 },
     #[error("Unknown value [{value}] for data type {data_type:?}")]
@@ -58,6 +60,9 @@ pub enum Error {
     IriParseError(#[from] iref::Error),
     #[error(transparent)]
     CApiError(#[from] std::ffi::NulError),
+
+    #[error(transparent)]
+    R2D2Error(#[from] r2d2::Error),
 }
 
 #[cfg(feature = "nom_support")]

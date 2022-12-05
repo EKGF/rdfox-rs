@@ -33,7 +33,7 @@ impl Statement {
             prefixes,
             text,
         };
-        log::trace!(target: crate::LOG_TARGET_SPARQL, "{:}", s);
+        tracing::trace!(target: crate::LOG_TARGET_SPARQL, "{:}", s);
         Ok(s)
     }
 

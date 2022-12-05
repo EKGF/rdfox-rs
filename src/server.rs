@@ -21,9 +21,9 @@ use crate::{
         CServer_startLocalServer,
         CServer_stopLocalServer,
     },
+    server_connection::ServerConnection,
     Parameters,
     RoleCreds,
-    ServerConnection,
 };
 
 #[derive(Debug)]
@@ -55,7 +55,7 @@ impl Server {
         params: &Parameters,
     ) -> Result<Arc<Self>, Error> {
         database_call!(
-            "Starting a local server",
+            "starting a local RDFFox server",
             CServer_startLocalServer(params.inner)
         )?;
         let server = Server {
@@ -67,7 +67,7 @@ impl Server {
             server.create_role(&server.default_role_creds)?;
         }
 
-        log::debug!("Local RDFox server has been started");
+        tracing::debug!("Local RDFox server has been started");
         Ok(Arc::new(server))
     }
 
@@ -111,10 +111,10 @@ impl Server {
             )
         )?;
         if server_connection_ptr.is_null() {
-            log::error!("Could not establish connection to server");
+            tracing::error!("Could not establish connection to server");
             Err(CouldNotConnectToServer)
         } else {
-            log::debug!("Established connection to server");
+            tracing::debug!("Established connection to server");
             Ok(Arc::new(ServerConnection::new(
                 role_creds,
                 self.clone(),
@@ -128,6 +128,6 @@ impl Server {
         unsafe {
             CServer_stopLocalServer();
         }
-        log::trace!("Stopped local RDFox server");
+        tracing::trace!("Stopped local RDFox server");
     }
 }

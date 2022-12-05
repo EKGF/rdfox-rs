@@ -9,7 +9,7 @@ pub const RDFOX_DEFAULT_LICENSE_FILE_NAME: &str = "RDFox.lic";
 pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
     if dir.exists() {
         let license = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
-        log::debug!("Checking license file {license:?}");
+        tracing::debug!("Checking license file {license:?}");
         if license.exists() {
             return Ok(license)
         }
@@ -17,7 +17,7 @@ pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
     // Now check home directory ~/.RDFox/RDFox.lic
     //
     let license = PathBuf::from(format!("{RDFOX_HOME}/{RDFOX_DEFAULT_LICENSE_FILE_NAME}"));
-    log::debug!("Checking license file {license:?}");
+    tracing::debug!("Checking license file {license:?}");
     if license.exists() {
         return Ok(license)
     }

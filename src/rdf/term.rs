@@ -66,7 +66,7 @@ mod tests {
 
     use crate::{rdf::Term, Error};
 
-    #[test_log::test]
+    #[test_tracing::test]
     fn test_term_01() {
         let term = Term::new_iri(&Iri::new("https://whatever.url").unwrap()).unwrap();
 
@@ -75,7 +75,7 @@ mod tests {
         assert_eq!(turtle, "<https://whatever.url>");
     }
 
-    #[test_log::test]
+    #[test_tracing::test]
     fn test_term_02() {
         let term = Term::new_iri(&Iri::new("unknown-protocol://whatever.url").unwrap()).unwrap();
 
@@ -84,7 +84,7 @@ mod tests {
         assert_eq!(turtle, "<unknown-protocol://whatever.url>");
     }
 
-    #[test_log::test]
+    #[test_tracing::test]
     fn test_term_03() {
         // At the moment, we're even accepting wrongly formatted IRIs, we may want to
         // validate each IRI
@@ -95,7 +95,7 @@ mod tests {
         assert_eq!(turtle, "<https:/x/whatever.url>");
     }
 
-    #[test_log::test]
+    #[test_tracing::test]
     fn test_term_04() {
         let term = Term::new_str("some string").unwrap();
 
@@ -104,7 +104,7 @@ mod tests {
         assert_eq!(turtle, "\"some string\"");
     }
 
-    #[test_log::test]
+    #[test_tracing::test]
     fn test_term_05() -> Result<(), Error> {
         let term: Term = "some string".parse()?;
 
@@ -115,7 +115,7 @@ mod tests {
         Ok(())
     }
 
-    #[test_log::test]
+    #[test_tracing::test]
     fn test_term_06() -> Result<(), Error> {
         let term: Term = "\"some string\"^^xsd:string".parse()?;
 

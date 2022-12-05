@@ -19,8 +19,10 @@ use crate::{
     Prefixes,
     Statement,
     Transaction,
+    LOG_TARGET_DATABASE,
 };
 
+#[derive(Debug)]
 pub struct GraphConnection {
     pub data_store_connection: Arc<DataStoreConnection>,
     started_at:                Instant,
@@ -37,7 +39,11 @@ impl Display for GraphConnection {
 impl Drop for GraphConnection {
     fn drop(&mut self) {
         let duration = self.started_at.elapsed();
-        log::trace!("Dropped {self} after {:?}", duration)
+        tracing::trace!(
+            target: LOG_TARGET_DATABASE,
+            "Dropped {self} after {:?}",
+            duration
+        )
     }
 }
 
@@ -53,7 +59,7 @@ impl GraphConnection {
             graph,
             ontology_graph,
         };
-        log::trace!("Created {result:}");
+        tracing::trace!("Created {result:}");
         Arc::new(result)
     }
 
@@ -101,7 +107,7 @@ impl GraphConnection {
     /// TODO: Implement this with SPARQL COUNT (and compare performance)
     pub fn get_triples_count(
         &self,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         Statement::new(

@@ -9,6 +9,7 @@ extern crate core;
 use core::str::FromStr;
 
 pub use class::Class;
+pub use connectable_data_store::ConnectableDataStore;
 pub use cursor::{Cursor, CursorRow, OpenedCursor};
 pub use data_store::DataStore;
 pub use data_store_connection::DataStoreConnection;
@@ -69,6 +70,7 @@ lazy_static! {
 }
 
 mod class;
+mod connectable_data_store;
 mod cursor;
 mod data_store;
 mod data_store_connection;

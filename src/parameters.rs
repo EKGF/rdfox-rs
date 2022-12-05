@@ -48,6 +48,10 @@ pub struct Parameters {
     pub(crate) inner: *mut CParameters,
 }
 
+unsafe impl Sync for Parameters {}
+
+unsafe impl Send for Parameters {}
+
 impl Display for Parameters {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Parameters[]") // TODO: show keys and values (currently not
@@ -63,7 +67,7 @@ impl Drop for Parameters {
         );
         unsafe {
             CParameters_destroy(self.inner);
-            log::trace!("Destroyed params");
+            tracing::trace!("Destroyed params");
         }
     }
 }

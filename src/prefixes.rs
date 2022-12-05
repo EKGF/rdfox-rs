@@ -59,7 +59,7 @@ impl Prefixes {
     }
 
     pub fn declare_prefix(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
-        log::trace!("Register prefix {prefix}");
+        tracing::trace!("Register prefix {prefix}");
         if let Some(_already_registered) = self.map.insert(prefix.name.clone(), prefix.clone()) {
             return Ok(PrefixDeclareResult::PREFIXES_NO_CHANGE)
         }
@@ -72,7 +72,7 @@ impl Prefixes {
         )?;
         match result {
             PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
-                log::error!(
+                tracing::error!(
                     "Invalid prefix name \"{}\" while registering namespace <{}>",
                     prefix.name.as_str(),
                     prefix.iri.as_str()
@@ -81,11 +81,11 @@ impl Prefixes {
             },
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
-                log::debug!("Registered {prefix} twice");
+                tracing::debug!("Registered {prefix} twice");
                 Ok(result)
             },
             _ => {
-                log::error!("Result of registering prefix {prefix} is {:?}", result);
+                tracing::error!("Result of registering prefix {prefix} is {:?}", result);
                 Ok(result)
             },
         }

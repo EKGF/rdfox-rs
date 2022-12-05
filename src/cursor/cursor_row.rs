@@ -1,17 +1,16 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use {
-    crate::{
-        database_call,
-        root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
-        DataType,
-        Error::{self, Unknown},
-        LexicalValue,
-        OpenedCursor,
-        ResourceValue,
-    },
-    std::ptr,
+use std::ptr;
+
+use crate::{
+    database_call,
+    root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
+    DataType,
+    Error::{self, Unknown},
+    LexicalValue,
+    OpenedCursor,
+    ResourceValue,
 };
 
 pub struct CursorRow<'a> {
@@ -24,7 +23,7 @@ pub struct CursorRow<'a> {
 impl<'a> std::fmt::Debug for CursorRow<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Row(")?;
-        for term_index in 0..self.opened.arity {
+        for term_index in 0 .. self.opened.arity {
             match self.lexical_value(term_index) {
                 Ok(some_value) => {
                     if let Some(value) = some_value {
@@ -55,7 +54,7 @@ impl<'a> CursorRow<'a> {
         let mut namespace_size: usize = 0;
         let mut datatype_id = 0 as CDatatypeID;
         let mut resource_resolved = false;
-        log::trace!("CCursor_getResourceValue({resource_id}):");
+        tracing::trace!("CCursor_getResourceValue({resource_id}):");
         database_call!(
             "getting a resource value",
             CCursor_getResourceValue(
@@ -70,7 +69,7 @@ impl<'a> CursorRow<'a> {
             )
         )?;
         if !resource_resolved {
-            log::error!(
+            tracing::error!(
                 "Call to cursor (row {}) for resource id {resource_id} could not be resolved",
                 self.rowid
             );
@@ -79,14 +78,14 @@ impl<'a> CursorRow<'a> {
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
 
-        log::trace!(
+        tracing::trace!(
             "row={}: CCursor_getResourceValue({resource_id}): data_type={datatype_id} \
              len={data_size} namespace_len={namespace_size}",
             self.rowid
         );
 
         if data_size == 0 {
-            log::error!(
+            tracing::error!(
                 "Call to cursor (row {}) resource id {resource_id} could not be resolved, no data",
                 self.rowid
             );
@@ -106,7 +105,7 @@ impl<'a> CursorRow<'a> {
     /// given term index.
     pub fn resource_value(&self, term_index: u16) -> Result<Option<ResourceValue>, Error> {
         let resource_id = self.resource_id(term_index)?;
-        log::debug!(
+        tracing::debug!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
              resource_id={resource_id:?}:",
             rowid = self.rowid,
@@ -114,10 +113,10 @@ impl<'a> CursorRow<'a> {
         );
         if let Some(resource_id) = resource_id {
             let value = self.resource_value_with_id(resource_id)?;
-            log::debug!("{value:?}");
+            tracing::debug!("{value:?}");
             Ok(Some(value))
         } else {
-            log::debug!("None");
+            tracing::debug!("None");
             Ok(None)
         }
     }
@@ -128,7 +127,7 @@ impl<'a> CursorRow<'a> {
         let mut lexical_form_size = 0 as usize;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
         let mut resource_resolved = false;
-        log::trace!("CCursor_getResourceLexicalForm({resource_id}):");
+        tracing::trace!("CCursor_getResourceLexicalForm({resource_id}):");
         database_call!(
             "getting a resource value in lexical form",
             CCursor_getResourceLexicalForm(
@@ -142,13 +141,13 @@ impl<'a> CursorRow<'a> {
             )
         )?;
         if !resource_resolved {
-            log::error!("Call to cursor for resource id {resource_id} could not be resolved");
+            tracing::error!("Call to cursor for resource id {resource_id} could not be resolved");
             return Err(Unknown) // TODO: Make more specific error
         }
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
 
-        log::trace!(
+        tracing::trace!(
             "CCursor_getResourceLexicalForm({resource_id}): data_type={datatype_id:?} \
              lexical_form_size={lexical_form_size:?}"
         );
@@ -160,7 +159,7 @@ impl<'a> CursorRow<'a> {
     /// current row with the given term index.
     pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, Error> {
         let resource_id = self.resource_id(term_index)?;
-        log::trace!(
+        tracing::trace!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
              resource_id={resource_id:?}:",
             rowid = self.rowid,

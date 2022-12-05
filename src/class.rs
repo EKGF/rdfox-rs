@@ -58,7 +58,7 @@ impl Class {
         TurtleClass(self)
     }
 
-    pub fn number_of_individuals(&self, tx: Arc<Transaction>) -> Result<u64, Error> {
+    pub fn number_of_individuals(&self, tx: &Arc<Transaction>) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"
@@ -75,7 +75,7 @@ impl Class {
             }}
             "##
         };
-        log::debug!(target: "sparql", "\n{sparql}");
+        tracing::debug!(target: "sparql", "\n{sparql}");
         let count_result = Statement::new(prefixes, sparql.into())?
             .cursor(
                 &tx.connection,
@@ -89,7 +89,7 @@ impl Class {
 
     pub fn number_of_individuals_in_graph(
         &self,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         graph_connection: &GraphConnection,
     ) -> Result<u64, Error> {
         let graph = graph_connection.graph.as_display_iri();
@@ -103,7 +103,7 @@ impl Class {
             }}
             "##
         };
-        log::debug!(target: "sparql", "\n{sparql}");
+        tracing::debug!(target: "sparql", "\n{sparql}");
         let count_result = Statement::new(prefixes, sparql.into())?
             .cursor(
                 &graph_connection.data_store_connection,

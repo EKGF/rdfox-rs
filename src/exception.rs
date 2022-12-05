@@ -13,8 +13,7 @@ use std::{
 pub use crate::root::CException;
 use crate::{
     root::{CException_getExceptionName, CException_what},
-    Error,
-    Error::Unknown,
+    Error::{self},
 };
 
 impl CException {
@@ -22,12 +21,14 @@ impl CException {
     where F: FnOnce() -> *const CException + std::panic::UnwindSafe {
         unsafe {
             let result = catch_unwind(|| {
-                let exception = f();
-                if exception.is_null() {
+                let c_exception = f();
+                if c_exception.is_null() {
                     Ok(())
                 } else {
-                    log::error!("While {action}: {:}", *exception);
-                    Err(Unknown) // TODO: Map to proper errors
+                    Err(Error::Exception {
+                        action:  action.to_string(),
+                        message: format!("{:}", *c_exception).replace("RDFoxException: ", ""),
+                    })
                 }
             });
             match result {
@@ -35,7 +36,7 @@ impl CException {
                     match res {
                         Ok(..) => Ok(()),
                         Err(err) => {
-                            panic!("RDFox panicked while {action}: {err:?}")
+                            panic!("{err:}")
                         },
                     }
                 },
@@ -71,8 +72,8 @@ impl Display for CException {
 #[macro_export]
 macro_rules! database_call {
     ($action:expr, $function:expr) => {{
-        // log::trace!("{} at line {}", stringify!($function), line!());
-        log::trace!(target: $crate::LOG_TARGET_DATABASE, "{}", $action);
+        // tracing::trace!("{} at line {}", stringify!($function), line!());
+        tracing::trace!(target: $crate::LOG_TARGET_DATABASE, "{}", $action);
         $crate::exception::CException::handle(
             $action,
             core::panic::AssertUnwindSafe(|| unsafe { $function }),

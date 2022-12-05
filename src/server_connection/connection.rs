@@ -1,6 +1,3 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
-//---------------------------------------------------------------
-
 use std::{
     ffi::{CStr, CString},
     ptr,
@@ -9,7 +6,6 @@ use std::{
 
 use crate::{
     database_call,
-    error::Error,
     root::{
         CServerConnection,
         CServerConnection_createDataStore,
@@ -22,8 +18,10 @@ use crate::{
     },
     DataStore,
     DataStoreConnection,
+    Error,
     RoleCreds,
     Server,
+    LOG_TARGET_DATABASE,
 };
 
 #[derive(Debug)]
@@ -33,6 +31,10 @@ pub struct ServerConnection {
     server:     Arc<Server>,
     inner:      *mut CServerConnection,
 }
+
+unsafe impl Sync for ServerConnection {}
+
+unsafe impl Send for ServerConnection {}
 
 impl Drop for ServerConnection {
     fn drop(&mut self) { self.destroy() }
@@ -85,7 +87,7 @@ impl ServerConnection {
             "Getting the number of threads",
             CServerConnection_getNumberOfThreads(self.inner, &mut number_of_threads)
         )?;
-        log::debug!("Number of threads is {}", number_of_threads);
+        tracing::debug!("Number of threads is {}", number_of_threads);
         Ok(number_of_threads as u32)
     }
 
@@ -109,7 +111,7 @@ impl ServerConnection {
     }
 
     pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
-        log::trace!("Creating {data_store}");
+        tracing::trace!("Creating {data_store}");
         assert!(!self.inner.is_null());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
@@ -120,7 +122,7 @@ impl ServerConnection {
                 data_store.parameters.inner,
             )
         )?;
-        log::debug!("Created {data_store}");
+        tracing::debug!("Created {data_store}");
         Ok(())
     }
 
@@ -128,11 +130,11 @@ impl ServerConnection {
         self: &Arc<Self>,
         data_store: &Arc<DataStore>,
     ) -> Result<Arc<DataStoreConnection>, Error> {
-        log::debug!("Connecting to {}", data_store);
+        tracing::debug!(target: LOG_TARGET_DATABASE, "Connecting to {}", data_store);
         assert!(!self.inner.is_null());
         let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
-        log::error!(
+        tracing::error!(
             target: crate::LOG_TARGET_DATABASE,
             "Creating datastore connection {}",
             ds_connection.number
@@ -145,7 +147,7 @@ impl ServerConnection {
                 &mut ds_connection.inner,
             )
         )?;
-        log::error!(
+        tracing::error!(
             target: crate::LOG_TARGET_DATABASE,
             "Connected to {}",
             data_store
@@ -159,6 +161,6 @@ impl ServerConnection {
             CServerConnection_destroy(self.inner);
         }
         self.inner = ptr::null_mut();
-        log::debug!("Destroyed server connection");
+        tracing::debug!("Destroyed server connection");
     }
 }

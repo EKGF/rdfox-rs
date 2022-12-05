@@ -8,8 +8,7 @@ use std::{
     ops::Deref,
     os::unix::ffi::OsStrExt,
     path::Path,
-    ptr,
-    ptr::null_mut,
+    ptr::{self, null_mut},
     sync::Arc,
     time::Instant,
 };
@@ -21,7 +20,6 @@ use iref::Iri;
 use mime::Mime;
 use regex::Regex;
 
-use crate::error::Error;
 use crate::{
     database_call,
     root::{
@@ -43,14 +41,15 @@ use crate::{
     Parameters,
     Prefix,
     Prefixes,
-    ServerConnection,
     Statement,
     Streamer,
     Transaction,
     DEFAULT_BASE_IRI,
     DEFAULT_GRAPH,
+    LOG_TARGET_DATABASE,
     TEXT_TURTLE,
 };
+use crate::{error::Error, ServerConnection};
 
 #[derive(Debug)]
 pub struct DataStoreConnection {
@@ -61,19 +60,13 @@ pub struct DataStoreConnection {
     pub number:            usize,
 }
 
+unsafe impl Sync for DataStoreConnection {}
+
+unsafe impl Send for DataStoreConnection {}
+
 impl Display for DataStoreConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str("connection").unwrap();
-        // match self.get_id() {
-        //     Ok(id) => write!(f, " id={}", id),
-        //     Err(error) => write!(f, " id=({:?})", error)
-        // }.unwrap();
-        match self.get_unique_id() {
-            Ok(id) => write!(f, " {}", id),
-            Err(_error) => write!(f, " (error could not get unique-id)"),
-        }
-        .unwrap();
-        write!(f, " to {}", self.data_store)
+        write!(f, "connection #{} to {}", self.number, self.data_store)
     }
 }
 
@@ -130,7 +123,7 @@ impl DataStoreConnection {
         assert!(!self.inner.is_null(), "invalid datastore connection");
 
         let rdf_file = file.as_ref().as_os_str().as_bytes();
-        log::trace!(
+        tracing::trace!(
             "Importing file {} into {:} of {:}",
             file.as_ref().display(),
             graph,
@@ -153,7 +146,7 @@ impl DataStoreConnection {
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
         )?;
-        log::debug!("Imported file {} into {:}", file.as_ref().display(), graph);
+        tracing::debug!("Imported file {} into {:}", file.as_ref().display(), graph);
         Ok(())
     }
 
@@ -177,7 +170,7 @@ impl DataStoreConnection {
                 CUpdateType::UPDATE_TYPE_ADDITION,
             )
         )?;
-        log::debug!(
+        tracing::debug!(
             "Imported axioms from {:} into graph {:}",
             source_graph,
             target_graph
@@ -198,11 +191,11 @@ impl DataStoreConnection {
         let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
-        log::debug!(
+        tracing::debug!(
             "Read all RDF files from directory {}",
             format!("{:?}", &root).green()
         );
-        log::debug!("WalkBuilder::new({:?}), searching for {:?}", root, regex);
+        tracing::debug!("WalkBuilder::new({:?}), searching for {:?}", root, regex);
 
         let mut builder = TypesBuilder::new();
         builder.add("rdf", "*.nt").unwrap();
@@ -229,12 +222,12 @@ impl DataStoreConnection {
                         continue
                     }
                     let rdf_file = dir_entry.path();
-                    // log::debug!("entry {:?}", dir_entry);
+                    // tracing::debug!("entry {:?}", dir_entry);
                     self.import_data_from_file(rdf_file, graph)?;
                     count += 1;
                 },
                 Err(error) => {
-                    log::error!("error {:?}", error);
+                    tracing::error!("error {:?}", error);
                     return Err(Error::WalkError(error))
                 },
             }
@@ -270,7 +263,7 @@ impl DataStoreConnection {
                 statement_result.as_mut_ptr(),
             )
         )?;
-        log::error!("evaluated update statement: {:?}", statement_result);
+        tracing::error!("evaluated update statement: {:?}", statement_result);
         Ok(())
     }
 
@@ -301,7 +294,7 @@ impl DataStoreConnection {
 
     pub fn get_triples_count(
         self: &Arc<Self>,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
@@ -328,7 +321,7 @@ impl DataStoreConnection {
 
     pub fn get_subjects_count(
         self: &Arc<Self>,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
@@ -357,7 +350,7 @@ impl DataStoreConnection {
 
     pub fn get_predicates_count(
         self: &Arc<Self>,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
@@ -386,7 +379,7 @@ impl DataStoreConnection {
 
     pub fn get_ontologies_count(
         self: &Arc<Self>,
-        tx: Arc<Transaction>,
+        tx: &Arc<Transaction>,
         fact_domain: FactDomain,
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
@@ -424,6 +417,10 @@ impl DataStoreConnection {
             CDataStoreConnection_destroy(self.inner);
         }
         self.inner = null_mut();
-        log::debug!("Destroyed {self_msg} after {:?}", duration);
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Destroyed {self_msg} after {:?}",
+            duration
+        );
     }
 }
