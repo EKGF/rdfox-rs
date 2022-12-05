@@ -601,7 +601,11 @@ impl LexicalValue {
                     } else if data_type.is_unsigned_integer() {
                         write!(f, "{}", self.0.value.unsigned_integer)?
                     } else if data_type.is_date_time() {
-                        write!(f, "{}", self.0.value.string.as_str())?
+                        write!(
+                            f,
+                            "\"{}\"^^xsd:dateTime",
+                            self.0.value.string.as_str()
+                        )?
                     } else if data_type.is_decimal() {
                         write!(f, "{}", self.0.value.string.as_str())?
                     } else if data_type.is_duration() {
