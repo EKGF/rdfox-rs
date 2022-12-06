@@ -623,6 +623,41 @@ impl LexicalValue {
         }
         TurtleLexVal(self)
     }
+
+    pub fn display_json<'a, 'b>(&'a self) -> impl std::fmt::Display + 'a + 'b
+    where 'a: 'b {
+        struct JsonLexVal<'b>(&'b LexicalValue);
+        impl<'b> std::fmt::Display for JsonLexVal<'b> {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                let data_type = self.0.data_type;
+                unsafe {
+                    if data_type.is_iri() {
+                        write!(f, "\"{}\"", self.0.value.iri.as_str())?
+                    } else if data_type.is_string() {
+                        write!(f, "\"{}\"", self.0.value.string.as_str())?
+                    } else if data_type.is_blank_node() {
+                        write!(f, "\"_:{}\"", self.0.value.blank_node.as_str())?
+                    } else if data_type.is_boolean() {
+                        write!(f, "{}", self.0.value.boolean)?
+                    } else if data_type.is_signed_integer() {
+                        write!(f, "{}", self.0.value.signed_integer)?
+                    } else if data_type.is_unsigned_integer() {
+                        write!(f, "{}", self.0.value.unsigned_integer)?
+                    } else if data_type.is_date_time() {
+                        write!(f, "\"{}\"", self.0.value.string.as_str())?
+                    } else if data_type.is_decimal() {
+                        write!(f, "{}", self.0.value.string.as_str())?
+                    } else if data_type.is_duration() {
+                        write!(f, "\"{}\"", self.0.value.string.as_str())?
+                    } else {
+                        panic!("Cannot format for JSON, unimplemented datatype {data_type:?}")
+                    }
+                }
+                Ok(())
+            }
+        }
+        JsonLexVal(self)
+    }
 }
 
 impl FromStr for LexicalValue {

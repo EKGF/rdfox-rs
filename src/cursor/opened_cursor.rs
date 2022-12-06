@@ -1,24 +1,25 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ptr, sync::Arc};
-
-use crate::{
-    database_call,
-    root::{
-        CArgumentIndex,
-        CCursor,
-        CCursor_advance,
-        CCursor_getArgumentIndexes,
-        CCursor_getArgumentsBuffer,
-        CCursor_getArity,
-        CCursor_open,
-        CResourceID,
+use {
+    crate::{
+        database_call,
+        root::{
+            CArgumentIndex,
+            CCursor,
+            CCursor_advance,
+            CCursor_getAnswerVariableName,
+            CCursor_getArgumentIndexes,
+            CCursor_getArgumentsBuffer,
+            CCursor_getArity,
+            CCursor_open,
+            CResourceID,
+        },
+        Cursor,
+        Error::{self, Unknown},
+        Transaction,
     },
-    Cursor,
-    Error,
-    Error::Unknown,
-    Transaction,
+    std::{ptr, sync::Arc},
 };
 
 #[derive(Debug)]
@@ -66,7 +67,10 @@ impl<'a> OpenedCursor<'a> {
     /// cursor computes.
     fn arity(c_cursor: *mut CCursor) -> Result<u16, Error> {
         let mut arity = 0_usize;
-        database_call!("getting the arity", CCursor_getArity(c_cursor, &mut arity))?;
+        database_call!(
+            "getting the arity",
+            CCursor_getArity(c_cursor, &mut arity)
+        )?;
         // Trimming it down, we don't expect more than 2^16 columns do we?
         Ok(arity as u16)
     }
@@ -102,7 +106,12 @@ impl<'a> OpenedCursor<'a> {
         if indexes.is_null() {
             return Err(Unknown)
         }
-        unsafe { Ok(std::slice::from_raw_parts(indexes, arity as usize)) }
+        unsafe {
+            Ok(std::slice::from_raw_parts(
+                indexes,
+                arity as usize,
+            ))
+        }
     }
 
     /// Get the resource ID from the arguments buffer which dynamically changes
@@ -148,5 +157,27 @@ impl<'a> OpenedCursor<'a> {
     pub fn execute_and_rollback<T, U>(&mut self, f: T) -> Result<U, Error>
     where T: FnOnce(&mut OpenedCursor) -> Result<U, Error> {
         Transaction::begin_read_only(&self.cursor.connection)?.execute_and_rollback(|_tx| f(self))
+    }
+
+    /// Get the variable name used in the executed SPARQL statement representing
+    /// the given column in the output.
+    ///
+    /// ```rust
+    /// extern "C" {
+    ///     pub fn CCursor_getAnswerVariableName(
+    ///         cursor: *mut root::CCursor,
+    ///         variableIndex: usize,
+    ///         answerVariableName: *mut *const ::std::os::raw::c_char,
+    ///     ) -> *const root::CException;
+    /// }
+    /// ```
+    pub fn get_answer_variable_name(&self, index: u16) -> Result<String, Error> {
+        let mut c_buf: *const std::os::raw::c_char = ptr::null();
+        database_call!(
+            "getting a variable name",
+            CCursor_getAnswerVariableName(self.cursor.inner, index as usize, &mut c_buf)
+        )?;
+        let c_name = unsafe { std::ffi::CStr::from_ptr(c_buf) };
+        Ok(c_name.to_str().unwrap().to_owned())
     }
 }
