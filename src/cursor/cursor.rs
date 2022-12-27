@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, ptr, sync::Arc};
+use std::{ffi::CString, fmt::Debug, ptr, sync::Arc};
 
 use iref::Iri;
 
@@ -45,8 +45,6 @@ impl Cursor {
         base_iri: Option<Iri>,
     ) -> Result<Self, Error> {
         assert!(!connection.inner.is_null());
-        assert!(!statement.prefixes.inner.is_null());
-        assert!(!statement.prefixes.inner.is_null());
         let mut c_cursor: *mut CCursor = ptr::null_mut();
         let c_base_iri = if let Some(base_iri) = base_iri {
             CString::new(base_iri.as_str()).unwrap()
@@ -61,7 +59,7 @@ impl Cursor {
             CDataStoreConnection_createCursor(
                 connection.inner,
                 c_base_iri.as_ptr(),
-                statement.prefixes.inner,
+                statement.prefixes.c_mut_ptr(),
                 c_query.as_ptr(),
                 c_query_len,
                 parameters.inner,
@@ -85,7 +83,7 @@ impl Cursor {
     pub fn consume<T, E>(&mut self, tx: &Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
     where
         T: FnMut(CursorRow) -> Result<(), E>,
-        E: From<Error>,
+        E: From<Error> + Debug,
     {
         let sparql_str = self.statement.text.clone();
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, tx.clone())?;
@@ -115,7 +113,10 @@ impl Cursor {
                 count,
                 rowid,
             };
-            f(row)?;
+            if let Err(err) = f(row) {
+                tracing::error!("Error while consuming row: {:?}", err);
+                Err(err)?;
+            }
             multiplicity = opened_cursor.advance()?;
         }
         Ok(count)

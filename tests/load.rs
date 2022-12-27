@@ -1,6 +1,6 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-/// We're using `#[test_tracing::test]` tests in this file which allows
+/// We're using `#[test_log::test]` tests in this file which allows
 /// you to see the log in your test runner if you set the environment
 /// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
 /// at the end of your cargo test command line.
@@ -125,7 +125,7 @@ fn test_cursor_with_lexical_value(
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Prefixes::empty()?;
     let query = Statement::new(
-        prefixes,
+        &prefixes,
         formatdoc!(
             r##"
                 SELECT ?subject ?predicate ?object
@@ -165,7 +165,7 @@ fn test_cursor_with_resource_value(
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Prefixes::empty()?;
     let query = Statement::new(
-        prefixes,
+        &prefixes,
         formatdoc!(
             r##"
                 SELECT ?subject ?predicate ?object
@@ -202,8 +202,7 @@ fn test_run_query_to_nquads_buffer(
     ds_connection: &Arc<DataStoreConnection>,
 ) -> Result<(), Error> {
     tracing::info!("test_run_query_to_nquads_buffer");
-    let prefixes = Prefixes::empty()?;
-    let nquads_query = Statement::nquads_query(prefixes)?;
+    let nquads_query = Statement::nquads_query(&Prefixes::empty()?)?;
     let writer = std::io::stdout();
     ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref(), None)?;
     tracing::info!("test_run_query_to_nquads_buffer passed");

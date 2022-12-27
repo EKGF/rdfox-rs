@@ -67,7 +67,7 @@ impl Drop for Parameters {
         );
         unsafe {
             CParameters_destroy(self.inner);
-            tracing::trace!("Destroyed params");
+            tracing::trace!(target: crate::LOG_TARGET_DATABASE, "Destroyed params");
         }
     }
 }

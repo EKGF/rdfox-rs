@@ -9,6 +9,8 @@ use {
         Term,
     },
     iref::{Iri, IriBuf},
+    iri_string::types::IriReferenceString,
+    serde::{Serialize, Serializer},
     std::{
         fmt::{Debug, Display, Formatter},
         mem::ManuallyDrop,
@@ -209,6 +211,38 @@ impl Clone for LexicalValue {
     }
 }
 
+impl Serialize for LexicalValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where S: Serializer {
+        let data_type = self.data_type;
+        unsafe {
+            if data_type.is_iri() {
+                serializer.serialize_str(self.value.iri.as_str())
+            } else if data_type.is_string() {
+                serializer.serialize_str(self.value.string.as_str())
+            } else if data_type.is_blank_node() {
+                serializer.serialize_str(self.value.blank_node.as_str())
+            } else if data_type.is_boolean() {
+                serializer.serialize_bool(self.value.boolean)
+            } else if data_type.is_signed_integer() {
+                serializer.serialize_i64(self.value.signed_integer)
+            } else if data_type.is_unsigned_integer() {
+                serializer.serialize_u64(self.value.unsigned_integer)
+            } else if data_type.is_decimal() {
+                serializer.serialize_str(self.value.string.as_str())
+            } else if data_type.is_duration() ||
+                data_type.is_date_time() ||
+                data_type.is_date() ||
+                data_type.is_date_time_stamp()
+            {
+                serializer.serialize_str(self.value.string.as_str())
+            } else {
+                panic!("Cannot serialize, unimplemented datatype {data_type:?}")
+            }
+        }
+    }
+}
+
 impl LexicalValue {
     pub fn as_term(&self) -> Term {
         match self.data_type {
@@ -223,6 +257,21 @@ impl LexicalValue {
             Some(unsafe { self.value.iri.as_iri() })
         } else {
             None
+        }
+    }
+
+    /// Provide the IRI as an iri-string IRI
+    pub fn as_iri_string_iri(&self) -> Result<Option<IriReferenceString>, Error> {
+        if let Some(iri) = self.as_iri() {
+            match IriReferenceString::try_from(iri.as_str()) {
+                Ok(iri_string_iri) => Ok(Some(iri_string_iri)),
+                Err(err) => {
+                    tracing::error!("Could not parse IRI: {iri:}");
+                    Err(Error::IriStringParseError(err))
+                },
+            }
+        } else {
+            Ok(None)
         }
     }
 
@@ -634,7 +683,11 @@ impl LexicalValue {
                     if data_type.is_iri() {
                         write!(f, "\"{}\"", self.0.value.iri.as_str())?
                     } else if data_type.is_string() {
-                        write!(f, "\"{}\"", self.0.value.string.as_str())?
+                        write!(
+                            f,
+                            "\"{}\"",
+                            self.0.value.string.replace("\"", "\\\"").as_str()
+                        )?
                     } else if data_type.is_blank_node() {
                         write!(f, "\"_:{}\"", self.0.value.blank_node.as_str())?
                     } else if data_type.is_boolean() {

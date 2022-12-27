@@ -42,7 +42,7 @@ impl Drop for ServerConnection {
 
 impl std::fmt::Display for ServerConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "connection to {:})", self.server)
+        write!(f, "connection to {:}", self.server)
     }
 }
 
@@ -134,7 +134,7 @@ impl ServerConnection {
         assert!(!self.inner.is_null());
         let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
-        tracing::error!(
+        tracing::debug!(
             target: crate::LOG_TARGET_DATABASE,
             "Creating datastore connection {}",
             ds_connection.number
@@ -147,7 +147,7 @@ impl ServerConnection {
                 &mut ds_connection.inner,
             )
         )?;
-        tracing::error!(
+        tracing::info!(
             target: crate::LOG_TARGET_DATABASE,
             "Connected to {}",
             data_store
@@ -161,6 +161,6 @@ impl ServerConnection {
             CServerConnection_destroy(self.inner);
         }
         self.inner = ptr::null_mut();
-        tracing::debug!("Destroyed server connection");
+        tracing::debug!(target: crate::LOG_TARGET_DATABASE, "Destroyed {self:}");
     }
 }

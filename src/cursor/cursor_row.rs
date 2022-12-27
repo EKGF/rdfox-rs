@@ -1,16 +1,18 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::ptr;
-
-use crate::{
-    database_call,
-    root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
-    DataType,
-    Error::{self, Unknown},
-    LexicalValue,
-    OpenedCursor,
-    ResourceValue,
+use {
+    crate::{
+        database_call,
+        root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
+        DataType,
+        Error::{self, Unknown},
+        LexicalValue,
+        OpenedCursor,
+        ResourceValue,
+    },
+    std::ptr,
+    tracing::event_enabled,
 };
 
 pub struct CursorRow<'a> {
@@ -23,7 +25,7 @@ pub struct CursorRow<'a> {
 impl<'a> std::fmt::Debug for CursorRow<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Row(")?;
-        for term_index in 0 .. self.opened.arity {
+        for term_index in 0..self.opened.arity {
             match self.lexical_value(term_index) {
                 Ok(some_value) => {
                     if let Some(value) = some_value {
@@ -147,10 +149,12 @@ impl<'a> CursorRow<'a> {
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
 
-        tracing::trace!(
-            "CCursor_getResourceLexicalForm({resource_id}): data_type={datatype_id:?} \
-             lexical_form_size={lexical_form_size:?}"
-        );
+        if event_enabled!(tracing::Level::TRACE) {
+            tracing::trace!(
+                "CCursor_getResourceLexicalForm({resource_id}): data_type={datatype_id:?} \
+                 lexical_form_size={lexical_form_size:?}"
+            );
+        }
 
         LexicalValue::from_type_and_c_buffer(data_type, &buffer)
     }
@@ -159,12 +163,14 @@ impl<'a> CursorRow<'a> {
     /// current row with the given term index.
     pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, Error> {
         let resource_id = self.resource_id(term_index)?;
-        tracing::trace!(
-            "row={rowid} multiplicity={multiplicity} term_index={term_index} \
-             resource_id={resource_id:?}:",
-            rowid = self.rowid,
-            multiplicity = self.multiplicity
-        );
+        if event_enabled!(tracing::Level::TRACE) {
+            tracing::trace!(
+                "row={rowid} multiplicity={multiplicity} term_index={term_index} \
+                 resource_id={resource_id:?}:",
+                rowid = self.rowid,
+                multiplicity = self.multiplicity
+            );
+        }
         if let Some(resource_id) = resource_id {
             self.lexical_value_with_id(resource_id)
         } else {

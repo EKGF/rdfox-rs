@@ -1,7 +1,13 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{collections::HashMap, ffi::CString, ops::Deref, ptr};
+use std::{
+    collections::HashMap,
+    ffi::CString,
+    ops::Deref,
+    ptr,
+    sync::{Arc, Mutex},
+};
 
 use iref::{Iri, IriBuf};
 
@@ -13,21 +19,36 @@ use crate::{
         CPrefixes,
         CPrefixes_DeclareResult as PrefixDeclareResult,
         CPrefixes_declarePrefix,
+        CPrefixes_destroy,
         CPrefixes_newDefaultPrefixes,
     },
     Class,
     Predicate,
 };
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug)]
 pub struct Prefixes {
-    pub(crate) inner: *mut CPrefixes,
-    pub map:          HashMap<String, Prefix>,
+    inner: *mut CPrefixes,
+    map:   Mutex<HashMap<String, Prefix>>,
+}
+
+impl PartialEq for Prefixes {
+    fn eq(&self, other: &Self) -> bool { self.c_ptr() == other.c_ptr() }
+}
+
+impl Eq for Prefixes {}
+
+unsafe impl Send for Prefixes {}
+
+unsafe impl Sync for Prefixes {}
+
+impl Drop for Prefixes {
+    fn drop(&mut self) { self.destroy() }
 }
 
 impl std::fmt::Display for Prefixes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for _prefix in self.map.values() {
+        for _prefix in self.map.lock().unwrap().values() {
             writeln!(f, "PREFIX {_prefix}")?
         }
         Ok(())
@@ -37,20 +58,20 @@ impl std::fmt::Display for Prefixes {
 impl Prefixes {
     pub fn builder() -> PrefixesBuilder { PrefixesBuilder::default() }
 
-    pub fn empty() -> Result<Self, Error> {
+    pub fn empty() -> Result<Arc<Self>, Error> {
         let mut prefixes = Self {
             inner: ptr::null_mut(),
-            map:   HashMap::new(),
+            map:   Mutex::new(HashMap::new()),
         };
         database_call!(
             "allocating prefixes",
             CPrefixes_newDefaultPrefixes(&mut prefixes.inner)
         )?;
-        Ok(prefixes)
+        Ok(Arc::new(prefixes))
     }
 
     /// Return the RDF and RDFS prefixes
-    pub fn default() -> Result<Self, Error> {
+    pub fn default() -> Result<Arc<Self>, Error> {
         Self::empty()?
             .add_prefix(PREFIX_RDF.deref())?
             .add_prefix(PREFIX_RDFS.deref())?
@@ -58,9 +79,14 @@ impl Prefixes {
             .add_prefix(PREFIX_XSD.deref())
     }
 
-    pub fn declare_prefix(&mut self, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
+    pub fn declare_prefix(self: &Arc<Self>, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
         tracing::trace!("Register prefix {prefix}");
-        if let Some(_already_registered) = self.map.insert(prefix.name.clone(), prefix.clone()) {
+        if let Some(_already_registered) = self
+            .map
+            .lock()
+            .unwrap()
+            .insert(prefix.name.clone(), prefix.clone())
+        {
             return Ok(PrefixDeclareResult::PREFIXES_NO_CHANGE)
         }
         let c_name = CString::new(prefix.name.as_str()).unwrap();
@@ -81,7 +107,7 @@ impl Prefixes {
             },
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
-                tracing::debug!("Registered {prefix} twice");
+                tracing::trace!("Registered {prefix} twice");
                 Ok(result)
             },
             _ => {
@@ -91,23 +117,49 @@ impl Prefixes {
         }
     }
 
+    fn destroy(&mut self) {
+        assert!(!self.inner.is_null());
+        unsafe {
+            CPrefixes_destroy(self.inner);
+        }
+        self.inner = ptr::null_mut();
+        tracing::trace!(target: crate::LOG_TARGET_DATABASE, "Destroyed Prefixes");
+    }
+
     pub fn declare<'a, Base: Into<Iri<'a>>>(
-        &mut self,
+        self: &Arc<Self>,
         name: &str,
         iri: Base,
     ) -> Result<PrefixDeclareResult, Error> {
         self.declare_prefix(&Prefix::declare(name, iri))
     }
 
-    pub fn add_prefix(mut self, prefix: &Prefix) -> Result<Self, Error> {
-        self.declare_prefix(prefix).map(|_result| self)
+    pub fn add_prefix(self: &Arc<Self>, prefix: &Prefix) -> Result<Arc<Self>, Error> {
+        let _ = self.declare_prefix(prefix);
+        Ok(self.clone())
     }
 
-    pub fn add_class(self, clazz: &Class) -> Result<Self, Error> { self.add_prefix(&clazz.prefix) }
+    pub fn add_class(self: &Arc<Self>, clazz: &Class) -> Result<Arc<Self>, Error> {
+        self.add_prefix(&clazz.prefix)
+    }
 
-    pub fn add_predicate(self, predicate: &Predicate) -> Result<Self, Error> {
+    pub fn add_predicate(self: &Arc<Self>, predicate: &Predicate) -> Result<Arc<Self>, Error> {
         self.add_prefix(predicate.namespace)
     }
+
+    pub fn for_each_prefix_do<F: FnMut(&str, &Prefix) -> Result<(), E>, E>(
+        &self,
+        mut f: F,
+    ) -> Result<(), E> {
+        for (key, prefix) in self.map.lock().unwrap().iter() {
+            f(key.as_str(), prefix)?;
+        }
+        Ok(())
+    }
+
+    pub fn c_ptr(&self) -> *const CPrefixes { self.inner }
+
+    pub fn c_mut_ptr(&self) -> *mut CPrefixes { self.inner }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -194,8 +246,8 @@ impl<'a> PrefixesBuilder {
         self
     }
 
-    pub fn build(self) -> Result<Prefixes, Error> {
-        let mut to_build = Prefixes::empty()?;
+    pub fn build(self) -> Result<Arc<Prefixes>, Error> {
+        let to_build = Prefixes::empty()?;
         for prefix in self.prefixes {
             to_build.declare_prefix(&prefix)?;
         }

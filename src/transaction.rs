@@ -1,19 +1,23 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::sync::{atomic::AtomicBool, Arc};
-
-use crate::{
-    database_call,
-    error::Error,
-    root::{
-        CDataStoreConnection_beginTransaction,
-        CDataStoreConnection_commitTransaction,
-        CDataStoreConnection_rollbackTransaction,
-        CTransactionType,
+use {
+    crate::{
+        database_call,
+        error::Error,
+        root::{
+            CDataStoreConnection_beginTransaction,
+            CDataStoreConnection_commitTransaction,
+            CDataStoreConnection_rollbackTransaction,
+            CTransactionType,
+        },
+        DataStoreConnection,
+        LOG_TARGET_DATABASE,
     },
-    DataStoreConnection,
-    LOG_TARGET_DATABASE,
+    std::{
+        fmt::{Display, Formatter},
+        sync::{atomic::AtomicBool, Arc},
+    },
 };
 
 #[derive(Debug)]
@@ -21,7 +25,7 @@ pub struct Transaction {
     pub connection: Arc<DataStoreConnection>,
     committed:      AtomicBool,
     tx_type:        CTransactionType,
-    pub number:     usize,
+    number:         usize,
 }
 
 impl Drop for Transaction {
@@ -29,19 +33,20 @@ impl Drop for Transaction {
         if self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             tracing::debug!(
                 target: LOG_TARGET_DATABASE,
-                "Ended transaction #{} on connection #{}",
-                self.number,
-                self.connection.number
+                txno = self.number,
+                conn = self.connection.number,
+                "Ended {self:}"
             );
         } else {
             if let Err(err) = self._rollback() {
-                panic!(
-                    "Transaction #{} could not be rolled back: {err}",
-                    self.number
-                );
+                panic!("{self:} could not be rolled back: {err}",);
             }
         }
     }
+}
+
+impl Display for Transaction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result { write!(f, "{}", self.get_title()) }
 }
 
 impl Transaction {
@@ -51,19 +56,17 @@ impl Transaction {
     ) -> Result<Arc<Self>, Error> {
         assert!(!connection.inner.is_null());
         let number = Self::get_number();
-        database_call!(
-            format!(
-                "starting transaction #{number} on connection #{}",
-                connection.number
-            )
-            .as_str(),
-            CDataStoreConnection_beginTransaction(connection.inner, tx_type)
-        )?;
-        tracing::debug!(
+        tracing::trace!(
             target: LOG_TARGET_DATABASE,
-            "Started transaction #{number} on connection #{}",
-            connection.number
+            txno = number,
+            conn = connection.number,
+            "Starting {}",
+            Self::get_title_for(tx_type, number, connection.number)
         );
+        database_call!(CDataStoreConnection_beginTransaction(
+            connection.inner,
+            tx_type
+        ))?;
         let tx = Arc::new(Self {
             connection: connection.clone(),
             committed: AtomicBool::new(false),
@@ -72,25 +75,24 @@ impl Transaction {
         });
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
-            "Started {}",
-            tx.get_title().as_str()
+            txno = tx.number,
+            conn = tx.connection.number,
+            "Started {tx:}",
         );
         Ok(tx)
     }
 
     fn get_title(&self) -> String {
-        match self.tx_type {
+        Self::get_title_for(self.tx_type, self.number, self.connection.number)
+    }
+
+    fn get_title_for(tx_type: CTransactionType, number: usize, connection_number: usize) -> String {
+        match tx_type {
             CTransactionType::TRANSACTION_TYPE_READ_ONLY => {
-                format!(
-                    "Read-Only Transaction #{} on connection #{}",
-                    self.number, self.connection.number
-                )
+                format!("R/O Transaction #{number} on connection #{connection_number}",)
             },
             CTransactionType::TRANSACTION_TYPE_READ_WRITE => {
-                format!(
-                    "Read-Write Transaction #{} on connection #{}",
-                    self.number, self.connection.number
-                )
+                format!("R/W Transaction #{number} on connection #{connection_number}",)
             },
         }
     }
@@ -102,11 +104,17 @@ impl Transaction {
     }
 
     pub fn begin_read_only(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
-        Self::begin(&connection, CTransactionType::TRANSACTION_TYPE_READ_ONLY)
+        Self::begin(
+            &connection,
+            CTransactionType::TRANSACTION_TYPE_READ_ONLY,
+        )
     }
 
     pub fn begin_read_write(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
-        Self::begin(connection, CTransactionType::TRANSACTION_TYPE_READ_WRITE)
+        Self::begin(
+            connection,
+            CTransactionType::TRANSACTION_TYPE_READ_WRITE,
+        )
     }
 
     pub fn begin_read_write_do<T, F>(
@@ -126,15 +134,11 @@ impl Transaction {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
-            database_call!(
-                format!("committing {}", self.get_title().as_str()).as_str(),
-                CDataStoreConnection_commitTransaction(self.connection.inner)
-            )?;
-            tracing::debug!(
-                target: LOG_TARGET_DATABASE,
-                "Committed {}",
-                self.get_title().as_str()
-            );
+            tracing::trace!(target: LOG_TARGET_DATABASE, "Committing {self:}");
+            database_call!(CDataStoreConnection_commitTransaction(
+                self.connection.inner
+            ))?;
+            tracing::trace!(target: LOG_TARGET_DATABASE, "Committed {self:}",);
         }
         Ok(())
     }
@@ -144,14 +148,20 @@ impl Transaction {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
-            database_call!(
-                format!("rolling back {}", self.get_title().as_str()).as_str(),
-                CDataStoreConnection_rollbackTransaction(self.connection.inner)
-            )?;
+            tracing::trace!(
+                target: LOG_TARGET_DATABASE,
+                txno = self.number,
+                conn = self.connection.number,
+                "Rolling back {self:}"
+            );
+            database_call!(CDataStoreConnection_rollbackTransaction(
+                self.connection.inner
+            ))?;
             tracing::debug!(
                 target: LOG_TARGET_DATABASE,
-                "Rolled back {}",
-                self.get_title().as_str()
+                txno = self.number,
+                conn = self.connection.number,
+                "Rolled back {self:}",
             );
         }
         Ok(())
@@ -164,14 +174,20 @@ impl Transaction {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
-            database_call!(
-                format!("rolling back {}", self.get_title().as_str()).as_str(),
-                CDataStoreConnection_rollbackTransaction(self.connection.inner)
-            )?;
+            tracing::trace!(
+                target: LOG_TARGET_DATABASE,
+                txno = self.number,
+                conn = self.connection.number,
+                "Rolling back {self:}"
+            );
+            database_call!(CDataStoreConnection_rollbackTransaction(
+                self.connection.inner
+            ))?;
             tracing::debug!(
                 target: LOG_TARGET_DATABASE,
-                "Rolled back {}",
-                self.get_title().as_str()
+                txno = self.number,
+                conn = self.connection.number,
+                "Rolled back {self:}",
             );
         }
         Ok(())
@@ -195,15 +211,17 @@ impl Transaction {
             Err(err) => {
                 tracing::error!(
                     target: LOG_TARGET_DATABASE,
-                    "Error occurred during {}: {err}",
-                    self.get_title().as_str()
+                    txno = self.number,
+                    conn = self.connection.number,
+                    "Error occurred during {self:}: {err}",
                 );
             },
             Ok(..) => {
                 tracing::debug!(
                     target: LOG_TARGET_DATABASE,
-                    "{} was successful (but rolling it back anyway)",
-                    self.get_title().as_str()
+                    txno = self.number,
+                    conn = self.connection.number,
+                    "{self:} was successful (but rolling it back anyway)",
                 );
             },
         }

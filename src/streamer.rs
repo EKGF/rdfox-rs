@@ -207,7 +207,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         result
     }
 
-    fn prefixes_ptr(&self) -> *mut CPrefixes { self.statement.prefixes.inner }
+    fn prefixes_ptr(&self) -> *mut CPrefixes { self.statement.prefixes.c_mut_ptr() }
 
     fn connection_ptr(&self) -> *mut CDataStoreConnection { self.connection.inner }
 }

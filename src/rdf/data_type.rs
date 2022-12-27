@@ -1,9 +1,11 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-use num_enum::TryFromPrimitive;
-use phf::phf_map;
-
-use crate::{Error, Error::UnknownDataType};
+use {
+    crate::{Error, Error::UnknownDataType},
+    num_enum::TryFromPrimitive,
+    phf::phf_map,
+    serde::Serialize,
+};
 
 static XSD_DATA_TYPE_MAP: phf::Map<&'static str, DataType> = phf_map! {
     "http://www.w3.org/2001/XMLSchema#boolean" => DataType::Boolean,
@@ -37,7 +39,7 @@ static XSD_DATA_TYPE_MAP: phf::Map<&'static str, DataType> = phf_map! {
     "http://www.w3.org/2001/XMLSchema#yearMonthDuration" => DataType::YearMonthDuration,
 };
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, TryFromPrimitive)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, TryFromPrimitive, Serialize)]
 #[repr(u8)]
 pub enum DataType {
     UnboundValue       = 0,
@@ -86,20 +88,14 @@ impl Default for DataType {
 
 impl DataType {
     pub fn from_datatype_id(data_type_id: u8) -> Result<DataType, Error> {
-        DataType::try_from(data_type_id).map_err(|_err| {
-            UnknownDataType {
-                data_type_id,
-            }
-        })
+        DataType::try_from(data_type_id).map_err(|_err| UnknownDataType { data_type_id })
     }
 
     pub fn from_xsd_iri(iri: &str) -> Result<Self, Error> {
         if let Some(data_type) = XSD_DATA_TYPE_MAP.get(iri) {
             Ok(data_type.clone())
         } else {
-            Err(Error::UnknownXsdDataType {
-                data_type_iri: iri.to_string(),
-            })
+            Err(Error::UnknownXsdDataType { data_type_iri: iri.to_string() })
         }
     }
 

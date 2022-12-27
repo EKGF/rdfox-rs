@@ -3,9 +3,7 @@
 
 extern crate alloc;
 
-use thiserror::Error;
-
-use crate::DataType;
+use {crate::DataType, thiserror::Error};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -17,10 +15,7 @@ pub enum Error {
     #[error("Unknown data type {data_type_id}")]
     UnknownDataType { data_type_id: u8 },
     #[error("Unknown value [{value}] for data type {data_type:?}")]
-    UnknownValueForDataType {
-        data_type: DataType,
-        value:     String,
-    },
+    UnknownValueForDataType { data_type: DataType, value: String },
     #[error("Unknown XSD data type {data_type_iri}")]
     UnknownXsdDataType { data_type_iri: String },
     #[error("Unknown literal value in N-Triples format: {value}")]
@@ -58,6 +53,9 @@ pub enum Error {
     WalkError(#[from] ignore::Error),
     #[error(transparent)]
     IriParseError(#[from] iref::Error),
+    #[error(transparent)]
+    IriStringParseError(#[from] iri_string::validate::Error),
+
     #[error(transparent)]
     CApiError(#[from] std::ffi::NulError),
 

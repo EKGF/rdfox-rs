@@ -71,6 +71,12 @@ impl Display for CException {
 
 #[macro_export]
 macro_rules! database_call {
+    ($function:expr) => {{
+        $crate::exception::CException::handle(
+            "unknown database action",
+            core::panic::AssertUnwindSafe(|| unsafe { $function }),
+        )
+    }};
     ($action:expr, $function:expr) => {{
         // tracing::trace!("{} at line {}", stringify!($function), line!());
         tracing::trace!(target: $crate::LOG_TARGET_DATABASE, "{}", $action);

@@ -1,26 +1,24 @@
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use {
-    crate::{error::Error, ServerConnection},
-    colored::Colorize,
-    ignore::{types::TypesBuilder, WalkBuilder},
-    indoc::formatdoc,
-    iref::Iri,
-    mime::Mime,
-    regex::Regex,
-    std::{
-        ffi::{CStr, CString},
-        fmt::{Debug, Display, Formatter},
-        io::Write,
-        ops::Deref,
-        os::unix::ffi::OsStrExt,
-        path::Path,
-        ptr::{self, null_mut},
-        sync::Arc,
-        time::Instant,
-    },
+use std::{
+    ffi::{CStr, CString},
+    fmt::{Debug, Display, Formatter},
+    io::Write,
+    ops::Deref,
+    os::unix::ffi::OsStrExt,
+    path::Path,
+    ptr::{self, null_mut},
+    sync::Arc,
+    time::Instant,
 };
+
+use colored::Colorize;
+use ignore::{types::TypesBuilder, WalkBuilder};
+use indoc::formatdoc;
+use iref::Iri;
+use mime::Mime;
+use regex::Regex;
 
 use crate::{
     database_call,
@@ -49,8 +47,10 @@ use crate::{
     DEFAULT_BASE_IRI,
     DEFAULT_GRAPH,
     LOG_TARGET_DATABASE,
+    LOG_TARGET_FILES,
     TEXT_TURTLE,
 };
+use crate::{error::Error, ServerConnection};
 
 #[derive(Debug)]
 pub struct DataStoreConnection {
@@ -67,11 +67,7 @@ unsafe impl Send for DataStoreConnection {}
 
 impl Display for DataStoreConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "connection #{} to {}",
-            self.number, self.data_store
-        )
+        write!(f, "connection #{} to {}", self.number, self.data_store)
     }
 }
 
@@ -103,10 +99,7 @@ impl DataStoreConnection {
     }
 
     pub fn get_id(&self) -> Result<u32, Error> {
-        assert!(
-            !self.inner.is_null(),
-            "invalid datastore connection"
-        );
+        assert!(!self.inner.is_null(), "invalid datastore connection");
         let mut id: u32 = 0;
         database_call!(
             "getting the id of a datastore connection",
@@ -116,10 +109,7 @@ impl DataStoreConnection {
     }
 
     pub fn get_unique_id(&self) -> Result<String, Error> {
-        assert!(
-            !self.inner.is_null(),
-            "invalid datastore connection"
-        );
+        assert!(!self.inner.is_null(), "invalid datastore connection");
         let mut unique_id: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "Getting the unique id of datastore connection",
@@ -131,13 +121,12 @@ impl DataStoreConnection {
 
     pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
     where P: AsRef<Path> {
-        assert!(
-            !self.inner.is_null(),
-            "invalid datastore connection"
-        );
+        assert!(!self.inner.is_null(), "invalid datastore connection");
 
         let rdf_file = file.as_ref().as_os_str().as_bytes();
         tracing::trace!(
+            target: LOG_TARGET_DATABASE,
+            conn = self.number,
             "Importing file {} into {:} of {:}",
             file.as_ref().display(),
             graph,
@@ -155,12 +144,14 @@ impl DataStoreConnection {
                 self.inner,
                 c_graph_name.as_ptr() as *const std::os::raw::c_char,
                 CUpdateType::UPDATE_TYPE_ADDITION,
-                prefixes.inner,
+                prefixes.c_mut_ptr(),
                 file_name.as_ptr() as *const std::os::raw::c_char,
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
         )?;
         tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            conn = self.number,
             "Imported file {} into {:}",
             file.as_ref().display(),
             graph
@@ -173,10 +164,7 @@ impl DataStoreConnection {
         source_graph: &Graph,
         target_graph: &Graph,
     ) -> Result<(), Error> {
-        assert!(
-            !self.inner.is_null(),
-            "invalid datastore connection"
-        );
+        assert!(!self.inner.is_null(), "invalid datastore connection");
 
         let c_source_graph_name = source_graph.as_c_string()?;
         let c_target_graph_name = target_graph.as_c_string()?;
@@ -192,6 +180,8 @@ impl DataStoreConnection {
             )
         )?;
         tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            conn = self.number,
             "Imported axioms from {:} into graph {:}",
             source_graph,
             target_graph
@@ -213,10 +203,12 @@ impl DataStoreConnection {
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
         tracing::debug!(
+            target: LOG_TARGET_FILES,
             "Read all RDF files from directory {}",
             format!("{:?}", &root).green()
         );
         tracing::debug!(
+            target: LOG_TARGET_FILES,
             "WalkBuilder::new({:?}), searching for {:?}",
             root,
             regex
@@ -252,7 +244,7 @@ impl DataStoreConnection {
                     count += 1;
                 },
                 Err(error) => {
-                    tracing::error!("error {:?}", error);
+                    tracing::error!(target: LOG_TARGET_FILES, "error {:?}", error);
                     return Err(Error::WalkError(error))
                 },
             }
@@ -267,10 +259,7 @@ impl DataStoreConnection {
         parameters: &Parameters,
         base_iri: Option<Iri>,
     ) -> Result<(u64, u64), Error> {
-        assert!(
-            !self.inner.is_null(),
-            "invalid datastore connection"
-        );
+        assert!(!self.inner.is_null(), "invalid datastore connection");
         let c_base_iri = if let Some(base_iri) = base_iri {
             CString::new(base_iri.as_str()).unwrap()
         } else {
@@ -284,21 +273,15 @@ impl DataStoreConnection {
             CDataStoreConnection_evaluateUpdate(
                 self.inner,
                 c_base_iri.as_ptr(),
-                statement.prefixes.inner,
+                statement.prefixes.c_mut_ptr(),
                 statement_text.as_ptr(),
                 statement_text_len,
                 parameters.inner,
                 statement_result.as_mut_ptr(),
             )
         )?;
-        tracing::error!(
-            "evaluated update statement: {:?}",
-            statement_result
-        );
-        Ok((
-            statement_result[0] as u64,
-            statement_result[1] as u64,
-        ))
+        tracing::trace!("Evaluated update statement: {:?}", statement_result);
+        Ok((statement_result[0] as u64, statement_result[1] as u64))
     }
 
     pub fn evaluate_to_stream<'a, W>(
@@ -333,7 +316,7 @@ impl DataStoreConnection {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            Prefixes::empty()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?graph ?s ?p ?o
@@ -349,11 +332,7 @@ impl DataStoreConnection {
             )
             .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
-        )?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
@@ -364,7 +343,7 @@ impl DataStoreConnection {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            Prefixes::empty()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?subject
@@ -382,11 +361,7 @@ impl DataStoreConnection {
             )
             .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
-        )?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
@@ -397,7 +372,7 @@ impl DataStoreConnection {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            Prefixes::empty()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?predicate
@@ -415,11 +390,7 @@ impl DataStoreConnection {
             )
             .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
-        )?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
@@ -430,7 +401,7 @@ impl DataStoreConnection {
     ) -> Result<u64, Error> {
         let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
         Statement::new(
-            Prefixes::empty()?,
+            &Prefixes::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?ontology
@@ -448,20 +419,13 @@ impl DataStoreConnection {
             )
             .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
-        )?
+        .cursor(self, &Parameters::empty()?.fact_domain(fact_domain)?, None)?
         .count(tx)
     }
 
     // noinspection RsUnreachableCode
     fn destroy(&mut self) {
-        assert!(
-            !self.inner.is_null(),
-            "invalid datastore connection"
-        );
+        assert!(!self.inner.is_null(), "invalid datastore connection");
 
         let duration = self.started_at.elapsed();
 

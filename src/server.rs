@@ -39,7 +39,7 @@ impl Drop for Server {
 impl std::fmt::Display for Server {
     // noinspection RsUnreachableCode
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "server {self:p})")
+        write!(f, "server {self:p}")
     }
 }
 
@@ -128,6 +128,9 @@ impl Server {
         unsafe {
             CServer_stopLocalServer();
         }
-        tracing::trace!("Stopped local RDFox server");
+        tracing::trace!(
+            target: crate::LOG_TARGET_DATABASE,
+            "Stopped local RDFox server"
+        );
     }
 }
