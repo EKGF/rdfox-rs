@@ -1,30 +1,32 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{
-    collections::HashMap,
-    ffi::CString,
-    ops::Deref,
-    ptr,
-    sync::{Arc, Mutex},
-};
-
-use iref::Iri;
-
-use crate::{
-    database_call,
-    error::Error,
-    namespace::{PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
-    prefix::Prefix,
-    root::{
-        CPrefixes,
-        CPrefixes_DeclareResult as PrefixDeclareResult,
-        CPrefixes_declarePrefix,
-        CPrefixes_destroy,
-        CPrefixes_newDefaultPrefixes,
+use {
+    crate::{
+        database_call,
+        root::{
+            CPrefixes,
+            CPrefixes_DeclareResult as PrefixDeclareResult,
+            CPrefixes_declarePrefix,
+            CPrefixes_destroy,
+            CPrefixes_newDefaultPrefixes,
+        },
+        Class,
+        Predicate,
     },
-    Class,
-    Predicate,
+    iref::Iri,
+    rdf_store_rs::{
+        consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
+        Error,
+        Prefix,
+    },
+    std::{
+        collections::HashMap,
+        ffi::CString,
+        ops::Deref,
+        ptr,
+        sync::{Arc, Mutex},
+    },
 };
 
 #[derive(Debug)]
@@ -95,7 +97,12 @@ impl Prefixes {
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
         database_call!(
             "declaring a prefix",
-            CPrefixes_declarePrefix(self.inner, c_name.as_ptr(), c_iri.as_ptr(), &mut result)
+            CPrefixes_declarePrefix(
+                self.inner,
+                c_name.as_ptr(),
+                c_iri.as_ptr(),
+                &mut result
+            )
         )?;
         match result {
             PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
@@ -112,7 +119,10 @@ impl Prefixes {
                 Ok(result)
             },
             _ => {
-                tracing::error!("Result of registering prefix {prefix} is {:?}", result);
+                tracing::error!(
+                    "Result of registering prefix {prefix} is {:?}",
+                    result
+                );
                 Ok(result)
             },
         }
@@ -124,7 +134,7 @@ impl Prefixes {
             CPrefixes_destroy(self.inner);
         }
         self.inner = ptr::null_mut();
-        tracing::trace!(target: crate::LOG_TARGET_DATABASE, "Destroyed Prefixes");
+        tracing::trace!(target: LOG_TARGET_DATABASE, "Destroyed Prefixes");
     }
 
     pub fn declare<'a, Base: Into<Iri<'a>>>(
@@ -169,11 +179,7 @@ pub struct PrefixesBuilder {
 }
 
 impl<'a> PrefixesBuilder {
-    pub fn default() -> Self {
-        PrefixesBuilder {
-            prefixes: Vec::new(),
-        }
-    }
+    pub fn default() -> Self { PrefixesBuilder { prefixes: Vec::new() } }
 
     pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
         self.prefixes.push(Prefix::declare(name, iri));
@@ -191,21 +197,5 @@ impl<'a> PrefixesBuilder {
             to_build.declare_prefix(&prefix)?;
         }
         Ok(to_build)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use iref::Iri;
-
-    use crate::prefix::Prefix;
-
-    #[test]
-    fn test_a_prefix() -> Result<(), iref::Error> {
-        let prefix = Prefix::declare("test:", Iri::new("http://whatever.kom/test#").unwrap());
-        let x = prefix.with_local_name("abc")?;
-
-        assert_eq!(x.as_str(), "http://whatever.kom/test#abc");
-        Ok(())
     }
 }

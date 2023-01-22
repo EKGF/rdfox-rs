@@ -1,20 +1,11 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ops::Deref, sync::Arc};
-
-use indoc::formatdoc;
-
-use crate::{
-    prefix::Prefix,
-    Error,
-    FactDomain,
-    GraphConnection,
-    Parameters,
-    Prefixes,
-    Statement,
-    Transaction,
-    DEFAULT_GRAPH,
+use {
+    crate::{Error, FactDomain, GraphConnection, Parameters, Prefixes, Statement, Transaction},
+    indoc::formatdoc,
+    rdf_store_rs::{consts::DEFAULT_GRAPH_RDFOX, Prefix},
+    std::{ops::Deref, sync::Arc},
 };
 
 #[derive(Debug, Clone)]
@@ -36,10 +27,7 @@ impl std::fmt::Display for Class {
 
 impl Class {
     pub fn declare(prefix: Prefix, local_name: &str) -> Self {
-        Self {
-            prefix,
-            local_name: local_name.to_string(),
-        }
+        Self { prefix, local_name: local_name.to_string() }
     }
 
     pub fn as_iri(&self) -> Result<iref::IriBuf, Error> {
@@ -59,7 +47,7 @@ impl Class {
     }
 
     pub fn number_of_individuals(&self, tx: &Arc<Transaction>) -> Result<u64, Error> {
-        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
+        let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"
             SELECT DISTINCT ?thing
@@ -120,7 +108,7 @@ impl Class {
 
 #[cfg(test)]
 mod tests {
-    use crate::{class::Class, prefix::Prefix};
+    use {crate::class::Class, rdf_store_rs::Prefix};
 
     #[test]
     fn test_a_class_01() {

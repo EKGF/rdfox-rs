@@ -1,20 +1,22 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{ffi::CString, fmt::Debug, ptr, sync::Arc};
-
-use iref::Iri;
-
-use super::{CursorRow, OpenedCursor};
-use crate::{
-    database_call,
-    error::Error,
-    namespace::DEFAULT_BASE_IRI,
-    root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
-    DataStoreConnection,
-    Parameters,
-    Statement,
-    Transaction,
+use {
+    super::{CursorRow, OpenedCursor},
+    crate::{
+        database_call,
+        root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
+        DataStoreConnection,
+        Parameters,
+        Statement,
+        Transaction,
+    },
+    iref::Iri,
+    rdf_store_rs::{
+        consts::{DEFAULT_BASE_IRI, LOG_TARGET_DATABASE},
+        Error,
+    },
+    std::{ffi::CString, fmt::Debug, ptr, sync::Arc},
 };
 
 #[derive(Debug)]
@@ -71,8 +73,12 @@ impl Cursor {
             connection: connection.clone(),
             statement:  statement.clone(),
         };
-        tracing::debug!("Created cursor for {:}", &cursor.statement);
-        tracing::debug!("Cursor {:?}", cursor);
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Created cursor for {:}",
+            &cursor.statement
+        );
+        tracing::debug!(target: LOG_TARGET_DATABASE, "Cursor {:?}", cursor);
         Ok(cursor)
     }
 
@@ -107,12 +113,7 @@ impl Cursor {
                 .into())
             }
             count += multiplicity;
-            let row = CursorRow {
-                opened: &opened_cursor,
-                multiplicity,
-                count,
-                rowid,
-            };
+            let row = CursorRow { opened: &opened_cursor, multiplicity, count, rowid };
             if let Err(err) = f(row) {
                 tracing::error!("Error while consuming row: {:?}", err);
                 Err(err)?;

@@ -1,10 +1,8 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-
 use {
     crate::{
         database_call,
-        error::Error,
         root::{
             CDataStoreConnection_beginTransaction,
             CDataStoreConnection_commitTransaction,
@@ -12,8 +10,8 @@ use {
             CTransactionType,
         },
         DataStoreConnection,
-        LOG_TARGET_DATABASE,
     },
+    rdf_store_rs::Error,
     std::{
         fmt::{Display, Formatter},
         sync::{atomic::AtomicBool, Arc},
@@ -32,7 +30,7 @@ impl Drop for Transaction {
     fn drop(&mut self) {
         if self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             tracing::debug!(
-                target: LOG_TARGET_DATABASE,
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Ended {self:}"
@@ -57,7 +55,7 @@ impl Transaction {
         assert!(!connection.inner.is_null());
         let number = Self::get_number();
         tracing::trace!(
-            target: LOG_TARGET_DATABASE,
+            target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
             txno = number,
             conn = connection.number,
             "Starting {}",
@@ -74,7 +72,7 @@ impl Transaction {
             tx_type,
         });
         tracing::debug!(
-            target: LOG_TARGET_DATABASE,
+            target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
             txno = tx.number,
             conn = tx.connection.number,
             "Started {tx:}",
@@ -134,11 +132,17 @@ impl Transaction {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
-            tracing::trace!(target: LOG_TARGET_DATABASE, "Committing {self:}");
+            tracing::trace!(
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                "Committing {self:}"
+            );
             database_call!(CDataStoreConnection_commitTransaction(
                 self.connection.inner
             ))?;
-            tracing::trace!(target: LOG_TARGET_DATABASE, "Committed {self:}",);
+            tracing::trace!(
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                "Committed {self:}",
+            );
         }
         Ok(())
     }
@@ -149,7 +153,7 @@ impl Transaction {
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
             tracing::trace!(
-                target: LOG_TARGET_DATABASE,
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolling back {self:}"
@@ -158,7 +162,7 @@ impl Transaction {
                 self.connection.inner
             ))?;
             tracing::debug!(
-                target: LOG_TARGET_DATABASE,
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolled back {self:}",
@@ -175,7 +179,7 @@ impl Transaction {
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
             tracing::trace!(
-                target: LOG_TARGET_DATABASE,
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolling back {self:}"
@@ -184,7 +188,7 @@ impl Transaction {
                 self.connection.inner
             ))?;
             tracing::debug!(
-                target: LOG_TARGET_DATABASE,
+                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolled back {self:}",
@@ -210,7 +214,7 @@ impl Transaction {
         match &result {
             Err(err) => {
                 tracing::error!(
-                    target: LOG_TARGET_DATABASE,
+                    target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                     txno = self.number,
                     conn = self.connection.number,
                     "Error occurred during {self:}: {err}",
@@ -218,7 +222,7 @@ impl Transaction {
             },
             Ok(..) => {
                 tracing::debug!(
-                    target: LOG_TARGET_DATABASE,
+                    target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
                     txno = self.number,
                     conn = self.connection.number,
                     "{self:} was successful (but rolling it back anyway)",

@@ -1,13 +1,16 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-
-use core::fmt::{Display, Formatter};
-use std::{borrow::Cow, ffi::CString, ops::Deref, sync::Arc};
-
-use indoc::formatdoc;
-use iref::Iri;
-
-use crate::{error::Error, Cursor, DataStoreConnection, Parameters, Prefixes, DEFAULT_GRAPH};
+use {
+    crate::{Cursor, DataStoreConnection, Parameters, Prefixes},
+    core::fmt::{Display, Formatter},
+    indoc::formatdoc,
+    iref::Iri,
+    rdf_store_rs::{
+        consts::{DEFAULT_GRAPH_RDFOX, LOG_TARGET_SPARQL},
+        Error,
+    },
+    std::{borrow::Cow, ffi::CString, ops::Deref, sync::Arc},
+};
 
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -32,7 +35,7 @@ impl Statement {
             prefixes: prefixes.clone(),
             text:     format!("{}\n{}", &prefixes.to_string(), statement.trim()),
         };
-        tracing::trace!(target: crate::LOG_TARGET_SPARQL, "{:}", s);
+        tracing::trace!(target: LOG_TARGET_SPARQL, "{:}", s);
         Ok(s)
     }
 
@@ -56,7 +59,7 @@ impl Statement {
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
     pub fn nquads_query(prefixes: &Arc<Prefixes>) -> Result<Statement, Error> {
-        let default_graph = DEFAULT_GRAPH.deref().as_display_iri();
+        let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let statement = Statement::new(
             prefixes,
             formatdoc!(
@@ -87,7 +90,10 @@ pub fn no_comments(string: &str) -> String {
         let caps = re.captures(line);
         if let Ok(Some(caps)) = caps {
             let mat = caps.get(1).unwrap();
-            (true, line[mat.start() .. mat.end()].trim_end().to_string())
+            (
+                true,
+                line[mat.start()..mat.end()].trim_end().to_string(),
+            )
         } else {
             (false, line.trim_end().to_string())
         }
@@ -113,9 +119,7 @@ pub fn no_comments(string: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use indoc::formatdoc;
-
-    use crate::statement::no_comments;
+    use {crate::statement::no_comments, indoc::formatdoc};
 
     #[test_log::test]
     fn test_no_comments() {

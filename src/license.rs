@@ -1,7 +1,10 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::path::{Path, PathBuf};
+use {
+    rdf_store_rs::consts::LOG_TARGET_DATABASE,
+    std::path::{Path, PathBuf},
+};
 
 pub static RDFOX_HOME: &str = concat!(env!("HOME"), "/.RDFox");
 pub const RDFOX_DEFAULT_LICENSE_FILE_NAME: &str = "RDFox.lic";
@@ -10,7 +13,7 @@ pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
     if dir.exists() {
         let license = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
         tracing::debug!(
-            target: crate::LOG_TARGET_DATABASE,
+            target: LOG_TARGET_DATABASE,
             "Checking license file {license:?}"
         );
         if license.exists() {
@@ -23,7 +26,7 @@ pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
         "{RDFOX_HOME}/{RDFOX_DEFAULT_LICENSE_FILE_NAME}"
     ));
     tracing::debug!(
-        target: crate::LOG_TARGET_DATABASE,
+        target: LOG_TARGET_DATABASE,
         "Checking license file {license:?}"
     );
     if license.exists() {

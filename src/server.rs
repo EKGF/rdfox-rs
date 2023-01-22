@@ -1,29 +1,33 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{
-    ffi::CString,
-    ptr,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
+use {
+    crate::{
+        database_call,
+        root::{
+            CServerConnection,
+            CServerConnection_newServerConnection,
+            CServer_createFirstLocalServerRole,
+            CServer_getNumberOfLocalServerRoles,
+            CServer_startLocalServer,
+            CServer_stopLocalServer,
+        },
+        server_connection::ServerConnection,
+        Parameters,
+        RoleCreds,
     },
-};
-
-use crate::{
-    database_call,
-    error::{Error, Error::CouldNotConnectToServer},
-    root::{
-        CServerConnection,
-        CServerConnection_newServerConnection,
-        CServer_createFirstLocalServerRole,
-        CServer_getNumberOfLocalServerRoles,
-        CServer_startLocalServer,
-        CServer_stopLocalServer,
+    rdf_store_rs::{
+        consts::LOG_TARGET_DATABASE,
+        Error::{self, CouldNotConnectToServer},
     },
-    server_connection::ServerConnection,
-    Parameters,
-    RoleCreds,
+    std::{
+        ffi::CString,
+        ptr,
+        sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc,
+        },
+    },
 };
 
 #[derive(Debug)]
@@ -74,7 +78,10 @@ impl Server {
     pub fn create_role(&self, role_creds: &RoleCreds) -> Result<(), Error> {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
-        let msg = format!("Creating server role named [{}]", role_creds.role_name);
+        let msg = format!(
+            "Creating server role named [{}]",
+            role_creds.role_name
+        );
         database_call!(
             msg.as_str(),
             CServer_createFirstLocalServerRole(c_role_name.as_ptr(), c_password.as_ptr())
@@ -129,7 +136,7 @@ impl Server {
             CServer_stopLocalServer();
         }
         tracing::trace!(
-            target: crate::LOG_TARGET_DATABASE,
+            target: LOG_TARGET_DATABASE,
             "Stopped local RDFox server"
         );
     }

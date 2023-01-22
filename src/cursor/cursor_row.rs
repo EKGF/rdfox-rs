@@ -11,6 +11,7 @@ use {
         OpenedCursor,
         ResourceValue,
     },
+    rdf_store_rs::consts::LOG_TARGET_DATABASE,
     std::ptr,
     tracing::event_enabled,
 };
@@ -72,6 +73,7 @@ impl<'a> CursorRow<'a> {
         )?;
         if !resource_resolved {
             tracing::error!(
+                target: LOG_TARGET_DATABASE,
                 "Call to cursor (row {}) for resource id {resource_id} could not be resolved",
                 self.rowid
             );
@@ -88,6 +90,7 @@ impl<'a> CursorRow<'a> {
 
         if data_size == 0 {
             tracing::error!(
+                target: LOG_TARGET_DATABASE,
                 "Call to cursor (row {}) resource id {resource_id} could not be resolved, no data",
                 self.rowid
             );

@@ -3,21 +3,22 @@
 
 extern crate alloc;
 
-use alloc::ffi::CString;
-use std::{
-    fmt::{Display, Formatter},
-    path::Path,
-    ptr,
-};
-
-use crate::{
-    database_call,
-    error::Error,
-    root::{
-        CParameters,
-        CParameters_destroy,
-        CParameters_newEmptyParameters,
-        CParameters_setString,
+use {
+    crate::{
+        database_call,
+        root::{
+            CParameters,
+            CParameters_destroy,
+            CParameters_newEmptyParameters,
+            CParameters_setString,
+        },
+    },
+    alloc::ffi::CString,
+    rdf_store_rs::{consts::LOG_TARGET_DATABASE, Error},
+    std::{
+        fmt::{Display, Formatter},
+        path::Path,
+        ptr,
     },
 };
 
@@ -55,7 +56,7 @@ unsafe impl Send for Parameters {}
 impl Display for Parameters {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Parameters[]") // TODO: show keys and values (currently not
-                                  // possible)
+        // possible)
     }
 }
 
@@ -67,7 +68,7 @@ impl Drop for Parameters {
         );
         unsafe {
             CParameters_destroy(self.inner);
-            tracing::trace!(target: crate::LOG_TARGET_DATABASE, "Destroyed params");
+            tracing::trace!(target: LOG_TARGET_DATABASE, "Destroyed params");
         }
     }
 }
@@ -79,9 +80,7 @@ impl Parameters {
             "Allocating parameters",
             CParameters_newEmptyParameters(&mut parameters)
         )?;
-        Ok(Parameters {
-            inner: parameters
-        })
+        Ok(Parameters { inner: parameters })
     }
 
     pub fn set_string(&self, key: &str, value: &str) -> Result<(), Error> {

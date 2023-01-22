@@ -163,11 +163,12 @@ impl<'a> OpenedCursor<'a> {
     /// the given column in the output.
     ///
     /// ```rust
+    /// use rdfox::root;
     /// extern "C" {
     ///     pub fn CCursor_getAnswerVariableName(
     ///         cursor: *mut root::CCursor,
-    ///         variableIndex: usize,
-    ///         answerVariableName: *mut *const ::std::os::raw::c_char,
+    ///         variable_index: usize,
+    ///         answer_variable_name: *mut *const std::os::raw::c_char,
     ///     ) -> *const root::CException;
     /// }
     /// ```

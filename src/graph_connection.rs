@@ -1,25 +1,16 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::{
-    fmt::{Display, Formatter},
-    path::Path,
-    sync::Arc,
-    time::Instant,
-};
-
-use indoc::formatdoc;
-
-use crate::{
-    error::Error,
-    DataStoreConnection,
-    FactDomain,
-    Graph,
-    Parameters,
-    Prefixes,
-    Statement,
-    Transaction,
-    LOG_TARGET_DATABASE,
+use {
+    crate::{DataStoreConnection, FactDomain, Parameters, Prefixes, Statement, Transaction},
+    indoc::formatdoc,
+    rdf_store_rs::{consts::LOG_TARGET_DATABASE, Error, Graph},
+    std::{
+        fmt::{Display, Formatter},
+        path::Path,
+        sync::Arc,
+        time::Instant,
+    },
 };
 
 #[derive(Debug)]
@@ -83,7 +74,10 @@ impl GraphConnection {
     }
 
     pub fn import_axioms(&self) -> Result<(), Error> {
-        assert!(self.ontology_graph.is_some(), "no ontology graph specified");
+        assert!(
+            self.ontology_graph.is_some(),
+            "no ontology graph specified"
+        );
         self.data_store_connection
             .import_axioms_from_triples(self.ontology_graph.as_ref().unwrap(), &self.graph)
     }

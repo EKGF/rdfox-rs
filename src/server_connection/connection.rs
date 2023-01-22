@@ -1,27 +1,28 @@
-use std::{
-    ffi::{CStr, CString},
-    ptr,
-    sync::Arc,
-};
-
-use crate::{
-    database_call,
-    root::{
-        CServerConnection,
-        CServerConnection_createDataStore,
-        CServerConnection_deleteDataStore,
-        CServerConnection_destroy,
-        CServerConnection_getNumberOfThreads,
-        CServerConnection_getVersion,
-        CServerConnection_newDataStoreConnection,
-        CServerConnection_setNumberOfThreads,
+use {
+    crate::{
+        database_call,
+        root::{
+            CServerConnection,
+            CServerConnection_createDataStore,
+            CServerConnection_deleteDataStore,
+            CServerConnection_destroy,
+            CServerConnection_getNumberOfThreads,
+            CServerConnection_getVersion,
+            CServerConnection_newDataStoreConnection,
+            CServerConnection_setNumberOfThreads,
+        },
+        DataStore,
+        DataStoreConnection,
+        Error,
+        RoleCreds,
+        Server,
     },
-    DataStore,
-    DataStoreConnection,
-    Error,
-    RoleCreds,
-    Server,
-    LOG_TARGET_DATABASE,
+    rdf_store_rs::consts::LOG_TARGET_DATABASE,
+    std::{
+        ffi::{CStr, CString},
+        ptr,
+        sync::Arc,
+    },
 };
 
 #[derive(Debug)]
@@ -57,11 +58,7 @@ impl ServerConnection {
             server.is_running(),
             "cannot connect to an RDFox server that is not running"
         );
-        Self {
-            role_creds,
-            server,
-            inner: server_connection_ptr,
-        }
+        Self { role_creds, server, inner: server_connection_ptr }
     }
 
     /// Return the version number of the underlying database engine
@@ -93,7 +90,10 @@ impl ServerConnection {
 
     pub fn set_number_of_threads(&self, number_of_threads: u32) -> Result<(), Error> {
         assert!(!self.inner.is_null());
-        let msg = format!("Setting the number of threads to {}", number_of_threads);
+        let msg = format!(
+            "Setting the number of threads to {}",
+            number_of_threads
+        );
         database_call!(
             msg.as_str(),
             CServerConnection_setNumberOfThreads(self.inner, number_of_threads as usize)
@@ -130,12 +130,16 @@ impl ServerConnection {
         self: &Arc<Self>,
         data_store: &Arc<DataStore>,
     ) -> Result<Arc<DataStoreConnection>, Error> {
-        tracing::debug!(target: LOG_TARGET_DATABASE, "Connecting to {}", data_store);
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Connecting to {}",
+            data_store
+        );
         assert!(!self.inner.is_null());
         let mut ds_connection = DataStoreConnection::new(self, data_store, ptr::null_mut());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         tracing::debug!(
-            target: crate::LOG_TARGET_DATABASE,
+            target: LOG_TARGET_DATABASE,
             "Creating datastore connection {}",
             ds_connection.number
         );
@@ -148,7 +152,7 @@ impl ServerConnection {
             )
         )?;
         tracing::info!(
-            target: crate::LOG_TARGET_DATABASE,
+            target: LOG_TARGET_DATABASE,
             "Connected to {}",
             data_store
         );
@@ -161,6 +165,6 @@ impl ServerConnection {
             CServerConnection_destroy(self.inner);
         }
         self.inner = ptr::null_mut();
-        tracing::debug!(target: crate::LOG_TARGET_DATABASE, "Destroyed {self:}");
+        tracing::debug!(target: LOG_TARGET_DATABASE, "Destroyed {self:}");
     }
 }

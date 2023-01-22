@@ -1,15 +1,15 @@
-use std::{
-    fmt::{Display, Formatter},
-    sync::Arc,
-};
-
-use r2d2::Pool;
-
-use crate::{
-    connectable_data_store::ConnectableDataStore,
-    error::Error,
-    server_connection::ServerConnection,
-    Parameters,
+use {
+    crate::{
+        connectable_data_store::ConnectableDataStore,
+        server_connection::ServerConnection,
+        Parameters,
+    },
+    r2d2::Pool,
+    rdf_store_rs::Error,
+    std::{
+        fmt::{Display, Formatter},
+        sync::Arc,
+    },
 };
 
 #[derive(Debug, Eq, PartialEq, Clone)]

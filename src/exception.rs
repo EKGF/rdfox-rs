@@ -82,7 +82,11 @@ macro_rules! database_call {
     }};
     ($action:expr, $function:expr) => {{
         // tracing::trace!("{} at line {}", stringify!($function), line!());
-        tracing::trace!(target: $crate::LOG_TARGET_DATABASE, "{}", $action);
+        tracing::trace!(
+            target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+            "{}",
+            $action
+        );
         $crate::exception::CException::handle(
             $action,
             core::panic::AssertUnwindSafe(|| unsafe { $function }),

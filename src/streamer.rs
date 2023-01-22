@@ -1,27 +1,25 @@
-use std::{
-    ffi::{c_void, CString},
-    fmt::Debug,
-    io::Write,
-    ptr,
-    sync::Arc,
-};
-
-use mime::Mime;
-
-use crate::{
-    cursor::ptr_to_cstr,
-    database_call,
-    prefix::Prefix,
-    root::{
-        CDataStoreConnection,
-        CDataStoreConnection_evaluateStatement,
-        COutputStream,
-        CPrefixes,
+use {
+    crate::{
+        database_call,
+        root::{
+            CDataStoreConnection,
+            CDataStoreConnection_evaluateStatement,
+            COutputStream,
+            CPrefixes,
+        },
+        DataStoreConnection,
+        Parameters,
+        Statement,
     },
-    DataStoreConnection,
-    Error,
-    Parameters,
-    Statement,
+    mime::Mime,
+    rdf_store_rs::{ptr_to_cstr, Error, Prefix},
+    std::{
+        ffi::{c_void, CString},
+        fmt::Debug,
+        io::Write,
+        ptr,
+        sync::Arc,
+    },
 };
 
 #[derive(PartialEq, Debug)]
@@ -31,7 +29,10 @@ struct RefToSelf<'a, W: 'a + Write> {
 
 impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
     fn drop(&mut self) {
-        tracing::trace!("{:p}: Dropping RefToSelf ({self:p})", self.streamer);
+        tracing::trace!(
+            "{:p}: Dropping RefToSelf ({self:p})",
+            self.streamer
+        );
     }
 }
 
@@ -93,9 +94,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
         tracing::debug!("{self_p}: evaluate statement with mime={query_answer_format_name:?}");
 
-        let ref_to_self = Box::new(RefToSelf {
-            streamer: &mut self as *mut Self,
-        });
+        let ref_to_self = Box::new(RefToSelf { streamer: &mut self as *mut Self });
         let ref_to_self_raw_ptr = Box::into_raw(ref_to_self);
 
         let stream = Box::new(COutputStream {
@@ -154,7 +153,10 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
         tracing::trace!("{streamer:p}: write_function");
 
-        let result = match ptr_to_cstr(data as *const u8, number_of_bytes_to_write as usize) {
+        let result = match ptr_to_cstr(
+            data as *const u8,
+            number_of_bytes_to_write as usize,
+        ) {
             Ok(data_c_str) => {
                 tracing::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
                 let data = if streamer.remaining_buffer.borrow().is_some() {
@@ -176,13 +178,16 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 let data_len = data.len();
                 match streamer.writer.write(&data) {
                     Ok(len) => {
-                        tracing::trace!("{streamer:p}: wrote {len} bytes out of {}", data_len);
+                        tracing::trace!(
+                            "{streamer:p}: wrote {len} bytes out of {}",
+                            data_len
+                        );
                         if len < data_len {
                             // When we didn't process the last part of the buffer (probably because
                             // the last N-Triple line was not complete), then save the remainder
                             // in `remaining_buffer` for the next call to `write_function`
                             streamer.remaining_buffer.replace(Some(unsafe {
-                                String::from_utf8_unchecked(data[len ..].to_vec())
+                                String::from_utf8_unchecked(data[len..].to_vec())
                             }));
                             tracing::trace!(
                                 "{streamer:p}: remaining buffer: {}",

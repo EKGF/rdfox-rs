@@ -7,25 +7,26 @@
 /// See https://crates.io/crates/test-log.
 ///
 /// TODO: Add test for "import axioms" (add test ontology)
-use std::{ops::Deref, path::Path};
-use std::{sync::Arc, thread::sleep, time::Duration};
+use std::path::Path;
 
-use indoc::formatdoc;
-use iref::Iri;
-use rdfox::{
-    DataStore,
-    DataStoreConnection,
-    Error,
-    FactDomain,
-    GraphConnection,
-    Parameters,
-    Prefixes,
-    RoleCreds,
-    Server,
-    ServerConnection,
-    Statement,
-    Transaction,
-    APPLICATION_N_QUADS,
+use {
+    indoc::formatdoc,
+    iref::Iri,
+    rdf_store_rs::{Error, Graph, Prefix, APPLICATION_N_QUADS},
+    rdfox::{
+        DataStore,
+        DataStoreConnection,
+        FactDomain,
+        GraphConnection,
+        Parameters,
+        Prefixes,
+        RoleCreds,
+        Server,
+        ServerConnection,
+        Statement,
+        Transaction,
+    },
+    std::{ops::Deref, sync::Arc, thread::sleep, time::Duration},
 };
 
 fn test_define_data_store() -> Result<Arc<DataStore>, Error> {
@@ -73,9 +74,11 @@ fn test_create_graph(
     ds_connection: &Arc<DataStoreConnection>,
 ) -> Result<Arc<GraphConnection>, Error> {
     tracing::info!("test_create_graph");
-    let graph_base_iri =
-        rdfox::Prefix::declare("graph:", Iri::new("http://whatever.kom/graph/").unwrap());
-    let test_graph = rdfox::Graph::declare(graph_base_iri, "test");
+    let graph_base_iri = Prefix::declare(
+        "graph:",
+        Iri::new("http://whatever.kom/graph/").unwrap(),
+    );
+    let test_graph = Graph::declare(graph_base_iri, "test");
 
     assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
     assert_eq!(
@@ -146,7 +149,7 @@ fn test_cursor_with_lexical_value(
 
     let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
-        for term_index in 0 .. row.opened.arity {
+        for term_index in 0..row.opened.arity {
             let value = row.lexical_value(term_index)?;
             tracing::info!("{value:?}");
         }
@@ -186,7 +189,7 @@ fn test_cursor_with_resource_value(
 
     let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
-        for term_index in 0 .. row.opened.arity {
+        for term_index in 0..row.opened.arity {
             let value = row.resource_value(term_index)?;
             tracing::info!("{value:?}");
         }
@@ -204,7 +207,12 @@ fn test_run_query_to_nquads_buffer(
     tracing::info!("test_run_query_to_nquads_buffer");
     let nquads_query = Statement::nquads_query(&Prefixes::empty()?)?;
     let writer = std::io::stdout();
-    ds_connection.evaluate_to_stream(writer, &nquads_query, APPLICATION_N_QUADS.deref(), None)?;
+    ds_connection.evaluate_to_stream(
+        writer,
+        &nquads_query,
+        APPLICATION_N_QUADS.deref(),
+        None,
+    )?;
     tracing::info!("test_run_query_to_nquads_buffer passed");
     Ok(())
 }
@@ -214,7 +222,10 @@ fn load_rdfox() -> Result<(), Error> {
     let server = test_create_server()?;
     let server_connection = test_create_server_connection(server)?;
 
-    tracing::info!("Server version is {}", server_connection.get_version()?);
+    tracing::info!(
+        "Server version is {}",
+        server_connection.get_version()?
+    );
 
     let data_store = test_define_data_store()?;
 
