@@ -12,7 +12,7 @@ use std::path::Path;
 use {
     indoc::formatdoc,
     iref::Iri,
-    rdf_store_rs::{Graph, Prefix, RDFStoreError, APPLICATION_N_QUADS},
+    rdf_store_rs::{consts::APPLICATION_N_QUADS, Graph, Prefix, RDFStoreError},
     rdfox::{
         DataStore,
         DataStoreConnection,

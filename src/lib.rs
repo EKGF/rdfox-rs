@@ -7,7 +7,7 @@
 extern crate core;
 
 pub use {
-    class::Class,
+    class_report::ClassReport,
     connectable_data_store::ConnectableDataStore,
     cursor::{Cursor, CursorRow, OpenedCursor},
     data_store::DataStore,
@@ -27,7 +27,7 @@ pub use {
     transaction::Transaction,
 };
 
-mod class;
+mod class_report;
 mod connectable_data_store;
 mod cursor;
 mod data_store;

@@ -11,12 +11,12 @@ use {
             CPrefixes_destroy,
             CPrefixes_newDefaultPrefixes,
         },
-        Class,
         Predicate,
     },
     iref::Iri,
     rdf_store_rs::{
         consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
+        Class,
         Prefix,
         RDFStoreError,
     },
