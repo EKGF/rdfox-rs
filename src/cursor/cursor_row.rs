@@ -6,9 +6,9 @@ use {
         database_call,
         root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
         DataType,
-        Error::{self, Unknown},
         LexicalValue,
         OpenedCursor,
+        RDFStoreError::{self, Unknown},
         ResourceValue,
     },
     rdf_store_rs::consts::LOG_TARGET_DATABASE,
@@ -45,12 +45,12 @@ impl<'a> std::fmt::Debug for CursorRow<'a> {
 impl<'a> CursorRow<'a> {
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
-    fn resource_id(&self, term_index: u16) -> Result<Option<u64>, Error> {
+    fn resource_id(&self, term_index: u16) -> Result<Option<u64>, RDFStoreError> {
         self.opened.resource_id(term_index)
     }
 
     /// Returns the resource bound to the given index in the current answer row.
-    fn resource_value_with_id(&self, resource_id: u64) -> Result<ResourceValue, Error> {
+    fn resource_value_with_id(&self, resource_id: u64) -> Result<ResourceValue, RDFStoreError> {
         let mut data: *const u8 = ptr::null_mut();
         let mut data_size: usize = 0;
         let mut namespace: *const u8 = ptr::null_mut();
@@ -108,7 +108,7 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value of a term in the current solution / current row with the
     /// given term index.
-    pub fn resource_value(&self, term_index: u16) -> Result<Option<ResourceValue>, Error> {
+    pub fn resource_value(&self, term_index: u16) -> Result<Option<ResourceValue>, RDFStoreError> {
         let resource_id = self.resource_id(term_index)?;
         tracing::debug!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
@@ -127,7 +127,10 @@ impl<'a> CursorRow<'a> {
     }
 
     /// Returns the resource bound to the given index in the current answer row.
-    fn lexical_value_with_id(&self, resource_id: u64) -> Result<Option<LexicalValue>, Error> {
+    fn lexical_value_with_id(
+        &self,
+        resource_id: u64,
+    ) -> Result<Option<LexicalValue>, RDFStoreError> {
         let mut buffer = [0u8; 102400]; // TODO: Make this dependent on returned info about buffer size too small
         let mut lexical_form_size = 0 as usize;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
@@ -164,7 +167,7 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value in lexical form of a term in the current solution /
     /// current row with the given term index.
-    pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, Error> {
+    pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, RDFStoreError> {
         let resource_id = self.resource_id(term_index)?;
         if event_enabled!(tracing::Level::TRACE) {
             tracing::trace!(

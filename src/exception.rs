@@ -6,7 +6,7 @@
 use {
     crate::{
         root::{CException_getExceptionName, CException_what},
-        Error::{self},
+        RDFStoreError::{self},
     },
     std::{
         ffi::CStr,
@@ -19,7 +19,7 @@ use {
 pub use crate::root::CException;
 
 impl CException {
-    pub fn handle<F>(action: &str, f: F) -> Result<(), Error>
+    pub fn handle<F>(action: &str, f: F) -> Result<(), RDFStoreError>
     where F: FnOnce() -> *const CException + std::panic::UnwindSafe {
         unsafe {
             let result = catch_unwind(|| {
@@ -27,7 +27,7 @@ impl CException {
                 if c_exception.is_null() {
                     Ok(())
                 } else {
-                    Err(Error::Exception {
+                    Err(RDFStoreError::Exception {
                         action:  action.to_string(),
                         message: format!("{:}", *c_exception).replace("RDFoxException: ", ""),
                     })

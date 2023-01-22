@@ -17,8 +17,8 @@ use {
     iref::Iri,
     rdf_store_rs::{
         consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
-        Error,
         Prefix,
+        RDFStoreError,
     },
     std::{
         collections::HashMap,
@@ -61,7 +61,7 @@ impl std::fmt::Display for Prefixes {
 impl Prefixes {
     pub fn builder() -> PrefixesBuilder { PrefixesBuilder::default() }
 
-    pub fn empty() -> Result<Arc<Self>, Error> {
+    pub fn empty() -> Result<Arc<Self>, RDFStoreError> {
         let mut prefixes = Self {
             inner: ptr::null_mut(),
             map:   Mutex::new(HashMap::new()),
@@ -74,7 +74,7 @@ impl Prefixes {
     }
 
     /// Return the RDF and RDFS prefixes
-    pub fn default() -> Result<Arc<Self>, Error> {
+    pub fn default() -> Result<Arc<Self>, RDFStoreError> {
         Self::empty()?
             .add_prefix(PREFIX_RDF.deref())?
             .add_prefix(PREFIX_RDFS.deref())?
@@ -82,7 +82,10 @@ impl Prefixes {
             .add_prefix(PREFIX_XSD.deref())
     }
 
-    pub fn declare_prefix(self: &Arc<Self>, prefix: &Prefix) -> Result<PrefixDeclareResult, Error> {
+    pub fn declare_prefix(
+        self: &Arc<Self>,
+        prefix: &Prefix,
+    ) -> Result<PrefixDeclareResult, RDFStoreError> {
         tracing::trace!("Register prefix {prefix}");
         if let Some(_already_registered) = self
             .map
@@ -111,7 +114,7 @@ impl Prefixes {
                     prefix.name.as_str(),
                     prefix.iri.as_str()
                 );
-                Err(Error::InvalidPrefixName)
+                Err(RDFStoreError::InvalidPrefixName)
             },
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
@@ -141,20 +144,23 @@ impl Prefixes {
         self: &Arc<Self>,
         name: &str,
         iri: Base,
-    ) -> Result<PrefixDeclareResult, Error> {
+    ) -> Result<PrefixDeclareResult, RDFStoreError> {
         self.declare_prefix(&Prefix::declare(name, iri))
     }
 
-    pub fn add_prefix(self: &Arc<Self>, prefix: &Prefix) -> Result<Arc<Self>, Error> {
+    pub fn add_prefix(self: &Arc<Self>, prefix: &Prefix) -> Result<Arc<Self>, RDFStoreError> {
         let _ = self.declare_prefix(prefix);
         Ok(self.clone())
     }
 
-    pub fn add_class(self: &Arc<Self>, clazz: &Class) -> Result<Arc<Self>, Error> {
+    pub fn add_class(self: &Arc<Self>, clazz: &Class) -> Result<Arc<Self>, RDFStoreError> {
         self.add_prefix(&clazz.prefix)
     }
 
-    pub fn add_predicate(self: &Arc<Self>, predicate: &Predicate) -> Result<Arc<Self>, Error> {
+    pub fn add_predicate(
+        self: &Arc<Self>,
+        predicate: &Predicate,
+    ) -> Result<Arc<Self>, RDFStoreError> {
         self.add_prefix(predicate.namespace)
     }
 
@@ -191,7 +197,7 @@ impl<'a> PrefixesBuilder {
         self
     }
 
-    pub fn build(self) -> Result<Arc<Prefixes>, Error> {
+    pub fn build(self) -> Result<Arc<Prefixes>, RDFStoreError> {
         let to_build = Prefixes::empty()?;
         for prefix in self.prefixes {
             to_build.declare_prefix(&prefix)?;

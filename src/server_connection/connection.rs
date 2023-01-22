@@ -13,7 +13,7 @@ use {
         },
         DataStore,
         DataStoreConnection,
-        Error,
+        RDFStoreError,
         RoleCreds,
         Server,
     },
@@ -68,7 +68,7 @@ impl ServerConnection {
     ///     CServerConnection* serverConnection,
     ///     const char** version
     /// );
-    pub fn get_version(&self) -> Result<String, Error> {
+    pub fn get_version(&self) -> Result<String, RDFStoreError> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "Getting the version",
@@ -78,7 +78,7 @@ impl ServerConnection {
         Ok(c_version.to_str().unwrap().to_owned())
     }
 
-    pub fn get_number_of_threads(&self) -> Result<u32, Error> {
+    pub fn get_number_of_threads(&self) -> Result<u32, RDFStoreError> {
         let mut number_of_threads = 0_usize;
         database_call!(
             "Getting the number of threads",
@@ -88,7 +88,7 @@ impl ServerConnection {
         Ok(number_of_threads as u32)
     }
 
-    pub fn set_number_of_threads(&self, number_of_threads: u32) -> Result<(), Error> {
+    pub fn set_number_of_threads(&self, number_of_threads: u32) -> Result<(), RDFStoreError> {
         assert!(!self.inner.is_null());
         let msg = format!(
             "Setting the number of threads to {}",
@@ -100,7 +100,7 @@ impl ServerConnection {
         )
     }
 
-    pub fn delete_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
+    pub fn delete_data_store(&self, data_store: &DataStore) -> Result<(), RDFStoreError> {
         assert!(!self.inner.is_null());
         let msg = format!("Deleting {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
@@ -110,7 +110,7 @@ impl ServerConnection {
         )
     }
 
-    pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), Error> {
+    pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), RDFStoreError> {
         tracing::trace!("Creating {data_store}");
         assert!(!self.inner.is_null());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
@@ -129,7 +129,7 @@ impl ServerConnection {
     pub fn connect_to_data_store(
         self: &Arc<Self>,
         data_store: &Arc<DataStore>,
-    ) -> Result<Arc<DataStoreConnection>, Error> {
+    ) -> Result<Arc<DataStoreConnection>, RDFStoreError> {
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
             "Connecting to {}",

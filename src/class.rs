@@ -2,7 +2,15 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{Error, FactDomain, GraphConnection, Parameters, Prefixes, Statement, Transaction},
+    crate::{
+        FactDomain,
+        GraphConnection,
+        Parameters,
+        Prefixes,
+        RDFStoreError,
+        Statement,
+        Transaction,
+    },
     indoc::formatdoc,
     rdf_store_rs::{consts::DEFAULT_GRAPH_RDFOX, Prefix},
     std::{ops::Deref, sync::Arc},
@@ -30,7 +38,7 @@ impl Class {
         Self { prefix, local_name: local_name.to_string() }
     }
 
-    pub fn as_iri(&self) -> Result<iref::IriBuf, Error> {
+    pub fn as_iri(&self) -> Result<iref::IriBuf, RDFStoreError> {
         let iri = iref::IriBuf::new(format!("{}{}", self.prefix.iri, self.local_name).as_str())?;
         Ok(iri)
     }
@@ -46,7 +54,7 @@ impl Class {
         TurtleClass(self)
     }
 
-    pub fn number_of_individuals(&self, tx: &Arc<Transaction>) -> Result<u64, Error> {
+    pub fn number_of_individuals(&self, tx: &Arc<Transaction>) -> Result<u64, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"
@@ -79,7 +87,7 @@ impl Class {
         &self,
         tx: &Arc<Transaction>,
         graph_connection: &GraphConnection,
-    ) -> Result<u64, Error> {
+    ) -> Result<u64, RDFStoreError> {
         let graph = graph_connection.graph.as_display_iri();
         let prefixes = Prefixes::builder().declare(self.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"

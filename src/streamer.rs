@@ -12,7 +12,7 @@ use {
         Statement,
     },
     mime::Mime,
-    rdf_store_rs::{ptr_to_cstr, Error, Prefix},
+    rdf_store_rs::{ptr_to_cstr, Prefix, RDFStoreError},
     std::{
         ffi::{c_void, CString},
         fmt::Debug,
@@ -63,7 +63,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Prefix,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, RDFStoreError> {
         let streamer = Self {
             connection: connection.clone(),
             writer,
@@ -79,7 +79,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
     /// Evaluate/execute the statement and stream all content to the given
     /// writer, then return the streamer (i.e. self).
-    fn evaluate(mut self) -> Result<Self, Error> {
+    fn evaluate(mut self) -> Result<Self, RDFStoreError> {
         let statement_text = self.statement.as_c_string()?;
         let statement_text_len = statement_text.as_bytes().len();
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;

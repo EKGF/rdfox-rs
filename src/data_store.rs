@@ -5,7 +5,7 @@ use {
         Parameters,
     },
     r2d2::Pool,
-    rdf_store_rs::Error,
+    rdf_store_rs::RDFStoreError,
     std::{
         fmt::{Display, Formatter},
         sync::Arc,
@@ -25,14 +25,17 @@ impl Display for DataStore {
 }
 
 impl DataStore {
-    pub fn declare_with_parameters(name: &str, parameters: Parameters) -> Result<Arc<Self>, Error> {
+    pub fn declare_with_parameters(
+        name: &str,
+        parameters: Parameters,
+    ) -> Result<Arc<Self>, RDFStoreError> {
         Ok(Arc::new(Self {
             name: name.to_string(),
             parameters,
         }))
     }
 
-    pub fn create(self, server_connection: &Arc<ServerConnection>) -> Result<(), Error> {
+    pub fn create(self, server_connection: &Arc<ServerConnection>) -> Result<(), RDFStoreError> {
         server_connection.create_data_store(&self).map(|_| ())
     }
 
@@ -41,7 +44,7 @@ impl DataStore {
         server_connection: &Arc<ServerConnection>,
         create: bool,
         release_on_return_to_pool: bool,
-    ) -> Result<Pool<ConnectableDataStore>, Error> {
+    ) -> Result<Pool<ConnectableDataStore>, RDFStoreError> {
         if create {
             server_connection.create_data_store(self)?;
         }

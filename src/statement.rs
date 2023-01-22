@@ -7,7 +7,7 @@ use {
     iref::Iri,
     rdf_store_rs::{
         consts::{DEFAULT_GRAPH_RDFOX, LOG_TARGET_SPARQL},
-        Error,
+        RDFStoreError,
     },
     std::{borrow::Cow, ffi::CString, ops::Deref, sync::Arc},
 };
@@ -30,7 +30,7 @@ impl Display for Statement {
 }
 
 impl Statement {
-    pub fn new(prefixes: &Arc<Prefixes>, statement: Cow<str>) -> Result<Self, Error> {
+    pub fn new(prefixes: &Arc<Prefixes>, statement: Cow<str>) -> Result<Self, RDFStoreError> {
         let s = Self {
             prefixes: prefixes.clone(),
             text:     format!("{}\n{}", &prefixes.to_string(), statement.trim()),
@@ -44,11 +44,11 @@ impl Statement {
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
         base_iri: Option<Iri>,
-    ) -> Result<Cursor, Error> {
+    ) -> Result<Cursor, RDFStoreError> {
         Cursor::create(connection, parameters, self, base_iri)
     }
 
-    pub(crate) fn as_c_string(&self) -> Result<CString, Error> {
+    pub(crate) fn as_c_string(&self) -> Result<CString, RDFStoreError> {
         Ok(CString::new(self.text.as_str())?)
     }
 
@@ -58,7 +58,7 @@ impl Statement {
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
-    pub fn nquads_query(prefixes: &Arc<Prefixes>) -> Result<Statement, Error> {
+    pub fn nquads_query(prefixes: &Arc<Prefixes>) -> Result<Statement, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let statement = Statement::new(
             prefixes,

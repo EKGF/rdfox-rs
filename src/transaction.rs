@@ -11,7 +11,7 @@ use {
         },
         DataStoreConnection,
     },
-    rdf_store_rs::Error,
+    rdf_store_rs::RDFStoreError,
     std::{
         fmt::{Display, Formatter},
         sync::{atomic::AtomicBool, Arc},
@@ -51,7 +51,7 @@ impl Transaction {
     fn begin(
         connection: &Arc<DataStoreConnection>,
         tx_type: CTransactionType,
-    ) -> Result<Arc<Self>, Error> {
+    ) -> Result<Arc<Self>, RDFStoreError> {
         assert!(!connection.inner.is_null());
         let number = Self::get_number();
         tracing::trace!(
@@ -101,14 +101,18 @@ impl Transaction {
         COUNTER.fetch_add(1, Ordering::Relaxed)
     }
 
-    pub fn begin_read_only(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
+    pub fn begin_read_only(
+        connection: &Arc<DataStoreConnection>,
+    ) -> Result<Arc<Self>, RDFStoreError> {
         Self::begin(
             &connection,
             CTransactionType::TRANSACTION_TYPE_READ_ONLY,
         )
     }
 
-    pub fn begin_read_write(connection: &Arc<DataStoreConnection>) -> Result<Arc<Self>, Error> {
+    pub fn begin_read_write(
+        connection: &Arc<DataStoreConnection>,
+    ) -> Result<Arc<Self>, RDFStoreError> {
         Self::begin(
             connection,
             CTransactionType::TRANSACTION_TYPE_READ_WRITE,
@@ -118,9 +122,9 @@ impl Transaction {
     pub fn begin_read_write_do<T, F>(
         connection: &Arc<DataStoreConnection>,
         f: F,
-    ) -> Result<T, Error>
+    ) -> Result<T, RDFStoreError>
     where
-        F: FnOnce(Arc<Transaction>) -> Result<T, Error>,
+        F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError>,
     {
         let tx = Self::begin_read_write(connection)?;
         let result = f(tx.clone());
@@ -128,7 +132,7 @@ impl Transaction {
         result
     }
 
-    pub fn commit(self: &Arc<Self>) -> Result<(), Error> {
+    pub fn commit(self: &Arc<Self>) -> Result<(), RDFStoreError> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
@@ -147,7 +151,7 @@ impl Transaction {
         Ok(())
     }
 
-    pub fn rollback(self: &Arc<Self>) -> Result<(), Error> {
+    pub fn rollback(self: &Arc<Self>) -> Result<(), RDFStoreError> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
@@ -173,7 +177,7 @@ impl Transaction {
 
     /// A duplicate of `rollback()` that takes a `&mut Transaction` rather than
     /// an `Arc<Transaction>`, only to be used by `drop()`
-    fn _rollback(&mut self) -> Result<(), Error> {
+    fn _rollback(&mut self) -> Result<(), RDFStoreError> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
@@ -197,7 +201,7 @@ impl Transaction {
         Ok(())
     }
 
-    pub fn update_and_commit<T, E: From<Error>, F>(self: &Arc<Self>, f: F) -> Result<T, E>
+    pub fn update_and_commit<T, E: From<RDFStoreError>, F>(self: &Arc<Self>, f: F) -> Result<T, E>
     where F: FnOnce(Arc<Transaction>) -> Result<T, E> {
         let result = f(self.clone());
         if result.is_ok() {
@@ -208,8 +212,8 @@ impl Transaction {
         result
     }
 
-    pub fn execute_and_rollback<T, F>(self: &Arc<Self>, f: F) -> Result<T, Error>
-    where F: FnOnce(Arc<Transaction>) -> Result<T, Error> {
+    pub fn execute_and_rollback<T, F>(self: &Arc<Self>, f: F) -> Result<T, RDFStoreError>
+    where F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError> {
         let result = f(self.clone());
         match &result {
             Err(err) => {

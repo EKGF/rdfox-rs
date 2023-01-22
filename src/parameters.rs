@@ -14,7 +14,7 @@ use {
         },
     },
     alloc::ffi::CString,
-    rdf_store_rs::{consts::LOG_TARGET_DATABASE, Error},
+    rdf_store_rs::{consts::LOG_TARGET_DATABASE, RDFStoreError},
     std::{
         fmt::{Display, Formatter},
         path::Path,
@@ -74,7 +74,7 @@ impl Drop for Parameters {
 }
 
 impl Parameters {
-    pub fn empty() -> Result<Self, Error> {
+    pub fn empty() -> Result<Self, RDFStoreError> {
         let mut parameters: *mut CParameters = ptr::null_mut();
         database_call!(
             "Allocating parameters",
@@ -83,7 +83,7 @@ impl Parameters {
         Ok(Parameters { inner: parameters })
     }
 
-    pub fn set_string(&self, key: &str, value: &str) -> Result<(), Error> {
+    pub fn set_string(&self, key: &str, value: &str) -> Result<(), RDFStoreError> {
         let c_key = CString::new(key).unwrap();
         let c_value = CString::new(value).unwrap();
         let msg = format!("Setting parameter {c_key:?}={c_value:?}");
@@ -93,7 +93,7 @@ impl Parameters {
         )
     }
 
-    pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, Error> {
+    pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, RDFStoreError> {
         match fact_domain {
             FactDomain::ASSERTED => self.set_string("fact-domain", "explicit")?,
             FactDomain::INFERRED => self.set_string("fact-domain", "derived")?,
@@ -102,22 +102,22 @@ impl Parameters {
         Ok(self)
     }
 
-    pub fn switch_off_file_access_sandboxing(self) -> Result<Self, Error> {
+    pub fn switch_off_file_access_sandboxing(self) -> Result<Self, RDFStoreError> {
         self.set_string("sandbox-directory", "")?;
         Ok(self)
     }
 
-    pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, Error> {
+    pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
         self.set_string("persist-ds", &mode.to_string())?;
         Ok(self)
     }
 
-    pub fn persist_roles(self, mode: PersistenceMode) -> Result<Self, Error> {
+    pub fn persist_roles(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
         self.set_string("persist-roles", &mode.to_string())?;
         Ok(self)
     }
 
-    pub fn server_directory(self, dir: &Path) -> Result<Self, Error> {
+    pub fn server_directory(self, dir: &Path) -> Result<Self, RDFStoreError> {
         if dir.is_dir() {
             self.set_string("server-directory", dir.to_str().unwrap())?;
             Ok(self)
@@ -126,7 +126,7 @@ impl Parameters {
         }
     }
 
-    pub fn license_file(self, file: &Path) -> Result<Self, Error> {
+    pub fn license_file(self, file: &Path) -> Result<Self, RDFStoreError> {
         if file.is_file() {
             self.set_string("license-file", file.to_str().unwrap())?;
             Ok(self)
@@ -135,7 +135,7 @@ impl Parameters {
         }
     }
 
-    pub fn import_rename_user_blank_nodes(self, setting: bool) -> Result<Self, Error> {
+    pub fn import_rename_user_blank_nodes(self, setting: bool) -> Result<Self, RDFStoreError> {
         self.set_string(
             "import.rename-user-blank-nodes",
             format!("{setting:?}").as_str(),
@@ -146,7 +146,7 @@ impl Parameters {
     /// If true, all API calls are recorded in a script that
     /// the shell can replay later. later.
     /// The default value is false.
-    pub fn api_log(self, on: bool) -> Result<Self, Error> {
+    pub fn api_log(self, on: bool) -> Result<Self, RDFStoreError> {
         if on {
             self.set_string("api-log", "on")?;
         } else {
@@ -157,7 +157,7 @@ impl Parameters {
 
     /// Specifies the directory into which API logs will be written.
     /// Default is directory api-log within the configured server directory.
-    pub fn api_log_directory(self, dir: &Path) -> Result<Self, Error> {
+    pub fn api_log_directory(self, dir: &Path) -> Result<Self, RDFStoreError> {
         self.set_string("api-log.directory", dir.to_str().unwrap())?;
         Ok(self)
     }

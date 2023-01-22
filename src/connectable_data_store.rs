@@ -1,14 +1,14 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
-use std::sync::{
-    atomic::{AtomicBool, Ordering},
-    Arc,
+use {
+    crate::{DataStore, DataStoreConnection, RDFStoreError, ServerConnection},
+    ::r2d2::{ManageConnection, Pool},
+    std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
 };
-
-use ::r2d2::{ManageConnection, Pool};
-
-use crate::{DataStore, DataStoreConnection, Error, ServerConnection};
 
 pub struct ConnectableDataStore {
     data_store:                Arc<DataStore>,
@@ -34,7 +34,7 @@ impl ConnectableDataStore {
     }
 
     /// Build an `r2d2::Pool` for the given `DataStore` and `ServerConnection`
-    pub fn build_pool(self) -> Result<Pool<ConnectableDataStore>, Error> {
+    pub fn build_pool(self) -> Result<Pool<ConnectableDataStore>, RDFStoreError> {
         let cds = Pool::builder()
             .max_size(self.server_connection.get_number_of_threads()?)
             .build(self)?;
@@ -44,7 +44,7 @@ impl ConnectableDataStore {
 
 impl ManageConnection for ConnectableDataStore {
     type Connection = Arc<DataStoreConnection>;
-    type Error = Error;
+    type Error = RDFStoreError;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         self.server_connection

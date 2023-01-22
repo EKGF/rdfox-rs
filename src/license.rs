@@ -9,7 +9,7 @@ use {
 pub static RDFOX_HOME: &str = concat!(env!("HOME"), "/.RDFox");
 pub const RDFOX_DEFAULT_LICENSE_FILE_NAME: &str = "RDFox.lic";
 
-pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
+pub fn find_license(dir: &Path) -> Result<PathBuf, crate::RDFStoreError> {
     if dir.exists() {
         let license = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
         tracing::debug!(
@@ -33,5 +33,5 @@ pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
         return Ok(license)
     }
 
-    Err(crate::Error::RDFoxLicenseFileNotFound)
+    Err(crate::RDFStoreError::RDFoxLicenseFileNotFound)
 }

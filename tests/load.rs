@@ -12,7 +12,7 @@ use std::path::Path;
 use {
     indoc::formatdoc,
     iref::Iri,
-    rdf_store_rs::{Error, Graph, Prefix, APPLICATION_N_QUADS},
+    rdf_store_rs::{Graph, Prefix, RDFStoreError, APPLICATION_N_QUADS},
     rdfox::{
         DataStore,
         DataStoreConnection,
@@ -29,13 +29,13 @@ use {
     std::{ops::Deref, sync::Arc, thread::sleep, time::Duration},
 };
 
-fn test_define_data_store() -> Result<Arc<DataStore>, Error> {
+fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
     tracing::info!("test_define_data_store");
     let data_store_params = Parameters::empty()?;
     DataStore::declare_with_parameters("example", data_store_params)
 }
 
-fn test_create_server() -> Result<Arc<Server>, Error> {
+fn test_create_server() -> Result<Arc<Server>, RDFStoreError> {
     tracing::info!("test_create_server");
     let server_params = &Parameters::empty()?
         .api_log(true)?
@@ -43,7 +43,9 @@ fn test_create_server() -> Result<Arc<Server>, Error> {
     Server::start_with_parameters(RoleCreds::default(), server_params)
 }
 
-fn test_create_server_connection(server: Arc<Server>) -> Result<Arc<ServerConnection>, Error> {
+fn test_create_server_connection(
+    server: Arc<Server>,
+) -> Result<Arc<ServerConnection>, RDFStoreError> {
     tracing::info!("test_create_server_connection");
 
     let server_connection = server.connection_with_default_role()?;
@@ -63,7 +65,7 @@ fn test_create_server_connection(server: Arc<Server>) -> Result<Arc<ServerConnec
 fn test_create_data_store_connection(
     server_connection: &Arc<ServerConnection>,
     data_store: &Arc<DataStore>,
-) -> Result<Arc<DataStoreConnection>, Error> {
+) -> Result<Arc<DataStoreConnection>, RDFStoreError> {
     tracing::info!("test_create_data_store");
 
     server_connection.create_data_store(data_store)?;
@@ -72,7 +74,7 @@ fn test_create_data_store_connection(
 
 fn test_create_graph(
     ds_connection: &Arc<DataStoreConnection>,
-) -> Result<Arc<GraphConnection>, Error> {
+) -> Result<Arc<GraphConnection>, RDFStoreError> {
     tracing::info!("test_create_graph");
     let graph_base_iri = Prefix::declare(
         "graph:",
@@ -97,7 +99,7 @@ fn test_create_graph(
 fn test_count_some_stuff_in_the_store(
     tx: &Arc<Transaction>,
     ds_connection: &Arc<DataStoreConnection>,
-) -> Result<(), Error> {
+) -> Result<(), RDFStoreError> {
     tracing::info!("test_count_some_stuff_in_the_store");
     let count = ds_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
@@ -110,7 +112,7 @@ fn test_count_some_stuff_in_the_store(
 fn test_count_some_stuff_in_the_graph(
     tx: &Arc<Transaction>,
     graph_connection: &GraphConnection,
-) -> Result<(), Error> {
+) -> Result<(), RDFStoreError> {
     tracing::info!("test_count_some_stuff_in_the_graph");
     let count = graph_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
@@ -123,7 +125,7 @@ fn test_count_some_stuff_in_the_graph(
 fn test_cursor_with_lexical_value(
     tx: &Arc<Transaction>,
     graph_connection: &Arc<GraphConnection>,
-) -> Result<(), Error> {
+) -> Result<(), RDFStoreError> {
     tracing::info!("test_cursor_with_lexical_value");
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Prefixes::empty()?;
@@ -153,7 +155,7 @@ fn test_cursor_with_lexical_value(
             let value = row.lexical_value(term_index)?;
             tracing::info!("{value:?}");
         }
-        Result::<(), Error>::Ok(())
+        Result::<(), RDFStoreError>::Ok(())
     })?;
     tracing::info!("Number of rows processed: {count}");
     Ok(())
@@ -163,7 +165,7 @@ fn test_cursor_with_lexical_value(
 fn test_cursor_with_resource_value(
     tx: &Arc<Transaction>,
     graph_connection: &Arc<GraphConnection>,
-) -> Result<(), Error> {
+) -> Result<(), RDFStoreError> {
     tracing::info!("test_cursor_with_resource_value");
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Prefixes::empty()?;
@@ -193,7 +195,7 @@ fn test_cursor_with_resource_value(
             let value = row.resource_value(term_index)?;
             tracing::info!("{value:?}");
         }
-        Result::<(), Error>::Ok(())
+        Result::<(), RDFStoreError>::Ok(())
     })?;
     tracing::info!("Number of rows processed: {count}");
     Ok(())
@@ -203,7 +205,7 @@ fn test_cursor_with_resource_value(
 fn test_run_query_to_nquads_buffer(
     _tx: &Arc<Transaction>, // TODO: consider passing tx to evaluate_to_stream()
     ds_connection: &Arc<DataStoreConnection>,
-) -> Result<(), Error> {
+) -> Result<(), RDFStoreError> {
     tracing::info!("test_run_query_to_nquads_buffer");
     let nquads_query = Statement::nquads_query(&Prefixes::empty()?)?;
     let writer = std::io::stdout();
@@ -218,7 +220,7 @@ fn test_run_query_to_nquads_buffer(
 }
 
 #[test_log::test]
-fn load_rdfox() -> Result<(), Error> {
+fn load_rdfox() -> Result<(), RDFStoreError> {
     let server = test_create_server()?;
     let server_connection = test_create_server_connection(server)?;
 
@@ -264,7 +266,7 @@ fn load_rdfox() -> Result<(), Error> {
 }
 
 #[test_log::test]
-fn create_sandbox_database() -> Result<(), Error> {
+fn create_sandbox_database() -> Result<(), RDFStoreError> {
     let server_params = Parameters::empty()?.switch_off_file_access_sandboxing()?;
     let role_creds = RoleCreds::default();
     let server = Server::start_with_parameters(role_creds, &server_params)?;

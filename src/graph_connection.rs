@@ -4,7 +4,7 @@
 use {
     crate::{DataStoreConnection, FactDomain, Parameters, Prefixes, Statement, Transaction},
     indoc::formatdoc,
-    rdf_store_rs::{consts::LOG_TARGET_DATABASE, Error, Graph},
+    rdf_store_rs::{consts::LOG_TARGET_DATABASE, Graph, RDFStoreError},
     std::{
         fmt::{Display, Formatter},
         path::Path,
@@ -67,13 +67,13 @@ impl GraphConnection {
         })
     }
 
-    pub fn import_data_from_file<P>(&self, file: P) -> Result<(), Error>
+    pub fn import_data_from_file<P>(&self, file: P) -> Result<(), RDFStoreError>
     where P: AsRef<Path> {
         self.data_store_connection
             .import_data_from_file(file, &self.graph)
     }
 
-    pub fn import_axioms(&self) -> Result<(), Error> {
+    pub fn import_axioms(&self) -> Result<(), RDFStoreError> {
         assert!(
             self.ontology_graph.is_some(),
             "no ontology graph specified"
@@ -91,7 +91,7 @@ impl GraphConnection {
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that
     /// RDFox uses
-    pub fn import_rdf_from_directory(&self, root: &Path) -> Result<u16, Error> {
+    pub fn import_rdf_from_directory(&self, root: &Path) -> Result<u16, RDFStoreError> {
         self.data_store_connection
             .import_rdf_from_directory(root, &self.graph)
     }
@@ -103,7 +103,7 @@ impl GraphConnection {
         &self,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    ) -> Result<u64, RDFStoreError> {
         Statement::new(
             &Prefixes::empty()?,
             formatdoc!(
@@ -127,7 +127,7 @@ impl GraphConnection {
     }
 
     // pub fn get_subjects_count(&self, fact_domain: FactDomain) ->
-    // Result<std::os::raw::c_ulong, Error> {     Statement::query(
+    // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
     //         &Prefixes::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?subject
@@ -148,7 +148,7 @@ impl GraphConnection {
     // }
     //
     // pub fn get_predicates_count(&self, fact_domain: FactDomain) ->
-    // Result<std::os::raw::c_ulong, Error> {     Statement::query(
+    // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
     //         &Prefixes::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?predicate
@@ -169,7 +169,7 @@ impl GraphConnection {
     // }
     //
     // pub fn get_ontologies_count(&self, fact_domain: FactDomain) ->
-    // Result<std::os::raw::c_ulong, Error> {     Statement::query(
+    // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
     //         &Prefixes::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?ontology

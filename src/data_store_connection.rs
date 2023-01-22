@@ -17,9 +17,9 @@ use {
             LOG_TARGET_FILES,
             TEXT_TURTLE,
         },
-        Error,
         Graph,
         Prefix,
+        RDFStoreError,
     },
     std::{
         ffi::{CStr, CString},
@@ -108,7 +108,7 @@ impl DataStoreConnection {
         COUNTER.fetch_add(1, Ordering::Relaxed)
     }
 
-    pub fn get_id(&self) -> Result<u32, Error> {
+    pub fn get_id(&self) -> Result<u32, RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -121,7 +121,7 @@ impl DataStoreConnection {
         Ok(id)
     }
 
-    pub fn get_unique_id(&self) -> Result<String, Error> {
+    pub fn get_unique_id(&self) -> Result<String, RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -135,7 +135,7 @@ impl DataStoreConnection {
         Ok(c_str.to_str().unwrap().into())
     }
 
-    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), Error>
+    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), RDFStoreError>
     where P: AsRef<Path> {
         assert!(
             !self.inner.is_null(),
@@ -182,7 +182,7 @@ impl DataStoreConnection {
         &self,
         source_graph: &Graph,
         target_graph: &Graph,
-    ) -> Result<(), Error> {
+    ) -> Result<(), RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -220,7 +220,11 @@ impl DataStoreConnection {
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that
     /// RDFox uses
-    pub fn import_rdf_from_directory(&self, root: &Path, graph: &Graph) -> Result<u16, Error> {
+    pub fn import_rdf_from_directory(
+        &self,
+        root: &Path,
+        graph: &Graph,
+    ) -> Result<u16, RDFStoreError> {
         let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
@@ -267,7 +271,7 @@ impl DataStoreConnection {
                 },
                 Err(error) => {
                     tracing::error!(target: LOG_TARGET_FILES, "error {:?}", error);
-                    return Err(Error::WalkError(error))
+                    return Err(RDFStoreError::WalkError(error))
                 },
             }
         }
@@ -280,7 +284,7 @@ impl DataStoreConnection {
         statement: &'b Statement,
         parameters: &Parameters,
         base_iri: Option<Iri>,
-    ) -> Result<(u64, u64), Error> {
+    ) -> Result<(u64, u64), RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -321,7 +325,7 @@ impl DataStoreConnection {
         statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Option<Iri>,
-    ) -> Result<Streamer<'a, W>, Error>
+    ) -> Result<Streamer<'a, W>, RDFStoreError>
     where
         W: 'a + Write,
     {
@@ -344,7 +348,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    ) -> Result<u64, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,
@@ -375,7 +379,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    ) -> Result<u64, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,
@@ -408,7 +412,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    ) -> Result<u64, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,
@@ -441,7 +445,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, Error> {
+    ) -> Result<u64, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,

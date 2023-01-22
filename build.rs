@@ -6,16 +6,17 @@
 
 extern crate core;
 
-use std::{
-    env,
-    fs::File,
-    io::{BufReader, Write},
-    option_env,
-    path::{Path, PathBuf},
-    process::Command,
+use {
+    lazy_static::lazy_static,
+    std::{
+        env,
+        fs::File,
+        io::{BufReader, Write},
+        option_env,
+        path::{Path, PathBuf},
+        process::Command,
+    },
 };
-
-use lazy_static::lazy_static;
 
 #[cfg(target_os = "macos")]
 const RDFOX_OS_NAME: &str = "macOS";
@@ -209,7 +210,10 @@ fn add_llvm_path() {
     };
 
     let llvm_config_path = Command::new("llvm-config")
-        .env("PATH", format!("{}:{}/bin", path, llvm_path.display()))
+        .env(
+            "PATH",
+            format!("{}:{}/bin", path, llvm_path.display()),
+        )
         .args(["--prefix"])
         .output()
         .expect("`llvm-config` must be in PATH")
@@ -220,7 +224,10 @@ fn add_llvm_path() {
         "LLVM_CONFIG_PATH",
         format!("{}/bin/llvm-config", llvm_config_path.trim()),
     );
-    println!("cargo:rustc-env=LLVM_CONFIG_PATH={}", llvm_config_path);
+    println!(
+        "cargo:rustc-env=LLVM_CONFIG_PATH={}",
+        llvm_config_path
+    );
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
