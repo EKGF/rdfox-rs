@@ -1,10 +1,10 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 use iref::Iri;
 use lazy_static::lazy_static;
 
-use crate::Prefix;
+use crate::prefix::Prefix;
 
 type PrefixName<'a> = &'a str;
 

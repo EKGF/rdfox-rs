@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 #![feature(rustc_private)]
 #![feature(cstr_from_bytes_until_nul)]
@@ -23,7 +23,8 @@ pub use mime::Mime;
 pub use namespace::*;
 pub use parameters::{FactDomain, Parameters, PersistenceMode};
 pub use predicate::Predicate;
-pub use prefixes::{Prefix, Prefixes, PrefixesBuilder};
+pub use prefix::Prefix;
+pub use prefixes::{Prefixes, PrefixesBuilder};
 pub use rdf::{DataType, LexicalValue, ResourceValue, Term};
 pub use role_creds::RoleCreds;
 pub use server::Server;
@@ -82,6 +83,7 @@ mod license;
 mod namespace;
 mod parameters;
 mod predicate;
+mod prefix;
 mod prefixes;
 mod rdf;
 mod role_creds;

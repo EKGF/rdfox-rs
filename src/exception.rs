@@ -1,20 +1,22 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 // extern crate libc;
 
-use std::{
-    ffi::CStr,
-    fmt::{Display, Formatter},
-    panic::catch_unwind,
-    str::Utf8Error,
+use {
+    crate::{
+        root::{CException_getExceptionName, CException_what},
+        Error::{self},
+    },
+    std::{
+        ffi::CStr,
+        fmt::{Display, Formatter},
+        panic::catch_unwind,
+        str::Utf8Error,
+    },
 };
 
 pub use crate::root::CException;
-use crate::{
-    root::{CException_getExceptionName, CException_what},
-    Error::{self},
-};
 
 impl CException {
     pub fn handle<F>(action: &str, f: F) -> Result<(), Error>
@@ -36,7 +38,8 @@ impl CException {
                     match res {
                         Ok(..) => Ok(()),
                         Err(err) => {
-                            panic!("{err:}")
+                            // panic!("{err:}")
+                            Err(err)
                         },
                     }
                 },

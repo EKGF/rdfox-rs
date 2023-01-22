@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 use std::{ops::Deref, sync::Arc};
@@ -6,11 +6,11 @@ use std::{ops::Deref, sync::Arc};
 use indoc::formatdoc;
 
 use crate::{
+    prefix::Prefix,
     Error,
     FactDomain,
     GraphConnection,
     Parameters,
-    Prefix,
     Prefixes,
     Statement,
     Transaction,
@@ -120,7 +120,7 @@ impl Class {
 
 #[cfg(test)]
 mod tests {
-    use crate::{class::Class, Prefix};
+    use crate::{class::Class, prefix::Prefix};
 
     #[test]
     fn test_a_class_01() {

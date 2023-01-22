@@ -11,6 +11,7 @@ use mime::Mime;
 use crate::{
     cursor::ptr_to_cstr,
     database_call,
+    prefix::Prefix,
     root::{
         CDataStoreConnection,
         CDataStoreConnection_evaluateStatement,
@@ -20,7 +21,6 @@ use crate::{
     DataStoreConnection,
     Error,
     Parameters,
-    Prefix,
     Statement,
 };
 

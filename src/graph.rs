@@ -1,11 +1,11 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 use std::ffi::CString;
 
 use lazy_static::lazy_static;
 
-use crate::{LexicalValue, Prefix};
+use crate::{prefix::Prefix, LexicalValue};
 
 lazy_static! {
     pub static ref NS_RDFOX: Prefix =

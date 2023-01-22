@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 use core::fmt::{Display, Formatter};
@@ -81,18 +81,31 @@ impl Statement {
 pub fn no_comments(string: &str) -> String {
     use std::fmt::Write;
 
-    use regex::Regex;
-    let re = Regex::new(r"(.*)#.*$").unwrap();
+    let re = fancy_regex::Regex::new(r"(.*)(?!#>)#.*$").unwrap();
+
+    let do_line = |line: &str| -> (bool, String) {
+        let caps = re.captures(line);
+        if let Ok(Some(caps)) = caps {
+            let mat = caps.get(1).unwrap();
+            (true, line[mat.start() .. mat.end()].trim_end().to_string())
+        } else {
+            (false, line.trim_end().to_string())
+        }
+    };
+
     let mut output = String::new();
     for line in string.lines() {
-        let caps = re.captures(line);
-        if let Some(caps) = caps {
-            let mat = caps.get(1).unwrap();
-            let line = line[mat.start() .. mat.end()].trim_end();
-            write!(&mut output, "{line}\n").unwrap();
-        } else {
-            let line = line.trim_end();
-            write!(&mut output, "{line}\n").unwrap();
+        let mut line = line.to_string();
+        loop {
+            let (again, result) = do_line(line.as_str());
+            if again {
+                // Repeat the call to do_line again to make sure that all #-comments are removed
+                // (there could be multiple on one line)
+                line = result;
+            } else {
+                write!(&mut output, "{result}\n").unwrap();
+                break
+            }
         }
     }
     output
@@ -107,10 +120,12 @@ mod tests {
     #[test_log::test]
     fn test_no_comments() {
         let sparql = formatdoc! {r##"
+            PREFIX abc: <https://whatever.org#> # focus on this and the next line
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
             SELECT DISTINCT ?thing
             WHERE {{
                 {{ # some comment
-                    GRAPH ?graph {{ # more
+                    GRAPH ?graph {{ # more # and more
                         ?thing a Whatever#
                     }}
                 }} UNION {{
@@ -122,6 +137,8 @@ mod tests {
             "##
         };
         let expected = formatdoc! {r##"
+            PREFIX abc: <https://whatever.org#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
             SELECT DISTINCT ?thing
             WHERE {{
                 {{
@@ -136,7 +153,7 @@ mod tests {
             }}
             "##
         };
-        let result = no_comments(sparql.as_str());
-        assert_eq!(result.as_str(), expected.as_str());
+        let actual = no_comments(sparql.as_str());
+        assert_eq!(actual.as_str(), expected.as_str());
     }
 }

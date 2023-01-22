@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 use std::path::{Path, PathBuf};
@@ -9,15 +9,23 @@ pub const RDFOX_DEFAULT_LICENSE_FILE_NAME: &str = "RDFox.lic";
 pub fn find_license(dir: &Path) -> Result<PathBuf, crate::Error> {
     if dir.exists() {
         let license = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
-        tracing::debug!("Checking license file {license:?}");
+        tracing::debug!(
+            target: crate::LOG_TARGET_DATABASE,
+            "Checking license file {license:?}"
+        );
         if license.exists() {
             return Ok(license)
         }
     }
     // Now check home directory ~/.RDFox/RDFox.lic
     //
-    let license = PathBuf::from(format!("{RDFOX_HOME}/{RDFOX_DEFAULT_LICENSE_FILE_NAME}"));
-    tracing::debug!("Checking license file {license:?}");
+    let license = PathBuf::from(format!(
+        "{RDFOX_HOME}/{RDFOX_DEFAULT_LICENSE_FILE_NAME}"
+    ));
+    tracing::debug!(
+        target: crate::LOG_TARGET_DATABASE,
+        "Checking license file {license:?}"
+    );
     if license.exists() {
         return Ok(license)
     }

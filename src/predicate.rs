@@ -1,4 +1,4 @@
-use crate::Prefix;
+use crate::prefix::Prefix;
 
 pub struct Predicate<'a> {
     pub namespace:  &'a Prefix,
@@ -54,7 +54,7 @@ impl<'a> Predicate<'a> {
 mod tests {
     use iref::Iri;
 
-    use crate::{predicate::Predicate, Prefix};
+    use crate::{predicate::Predicate, prefix::Prefix};
 
     #[test]
     fn test_predicate() {

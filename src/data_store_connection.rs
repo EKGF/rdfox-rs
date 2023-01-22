@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 
 use std::{
@@ -14,11 +14,11 @@ use std::{
 };
 
 use colored::Colorize;
+use fancy_regex::Regex;
 use ignore::{types::TypesBuilder, WalkBuilder};
 use indoc::formatdoc;
 use iref::Iri;
 use mime::Mime;
-use regex::Regex;
 
 use crate::{
     database_call,
@@ -39,7 +39,6 @@ use crate::{
     FactDomain,
     Graph,
     Parameters,
-    Prefix,
     Prefixes,
     Statement,
     Streamer,
@@ -50,7 +49,7 @@ use crate::{
     LOG_TARGET_FILES,
     TEXT_TURTLE,
 };
-use crate::{error::Error, ServerConnection};
+use crate::{error::Error, prefix::Prefix, ServerConnection};
 
 #[derive(Debug)]
 pub struct DataStoreConnection {
