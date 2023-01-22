@@ -5,13 +5,13 @@ version = "5.7.0"
 edition = "2021"
 links = "RDFox"
 authors = [
-    "Jacobus Geluk <jacobus.geluk@ekgf.org>",
-    "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
+  "Jacobus Geluk <jacobus.geluk@ekgf.org>",
+  "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
 ]
 publish = false
 repository = "https://github.com/EKGF/rdfox-rs"
-keywords = [ "rdf", "sparql", "database", "graph-database", "datalog"]
-categories = [ "database", "api-bindings"
+keywords = ["rdf", "sparql", "database", "graph-database", "datalog"]
+categories = ["database", "api-bindings"
 ]
 license-file = "LICENSE"
 rust-version = "1.64"
@@ -32,11 +32,11 @@ ignore = "0.4.18"
 iref = "2.1.3"
 indoc = "1.0.6"
 num_enum = "0.5.7"
-nom = { version="7.1.1", optional=true}
+nom = { version = "7.1.1", optional = true }
 phf = { version = "0.11", features = ["macros"] }
 r2d2 = "0.8.1"
-iri-string = { version = "0.7.0", features = [ "serde", "alloc" ] }
-serde = { version = "1", features = ["derive"]}
+iri-string = { version = "0.7.0", features = ["serde", "alloc"] }
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
 #rdf-store-rs = { version = "0.0.1", git = "https://github.com/EKGF/rdf-store-rs" }
@@ -63,5 +63,5 @@ rustc-args = ["--cfg", "docsrs"]
 
 [features]
 default = ["nom"]
-rdftk_support = ["rdftk_iri/uuid_iri"]
-nom_support = ["nom"]
+rdftk-support = ["rdftk_iri/uuid_iri"]
+nom-support = ["nom"]
