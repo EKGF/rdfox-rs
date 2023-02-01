@@ -45,7 +45,7 @@ impl<'a> std::fmt::Debug for CursorRow<'a> {
 impl<'a> CursorRow<'a> {
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
-    fn resource_id(&self, term_index: u16) -> Result<Option<u64>, RDFStoreError> {
+    fn resource_id(&self, term_index: usize) -> Result<Option<u64>, RDFStoreError> {
         self.opened.resource_id(term_index)
     }
 
@@ -108,7 +108,7 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value of a term in the current solution / current row with the
     /// given term index.
-    pub fn resource_value(&self, term_index: u16) -> Result<Option<ResourceValue>, RDFStoreError> {
+    pub fn resource_value(&self, term_index: usize) -> Result<Option<ResourceValue>, RDFStoreError> {
         let resource_id = self.resource_id(term_index)?;
         tracing::debug!(
             "row={rowid} multiplicity={multiplicity} term_index={term_index} \
@@ -167,7 +167,7 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value in lexical form of a term in the current solution /
     /// current row with the given term index.
-    pub fn lexical_value(&self, term_index: u16) -> Result<Option<Literal>, RDFStoreError> {
+    pub fn lexical_value(&self, term_index: usize) -> Result<Option<Literal>, RDFStoreError> {
         let resource_id = self.resource_id(term_index)?;
         if event_enabled!(tracing::Level::TRACE) {
             tracing::trace!(

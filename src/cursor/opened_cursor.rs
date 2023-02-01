@@ -3,7 +3,9 @@
 
 use {
     crate::{
+        Cursor,
         database_call,
+        RDFStoreError::{self, Unknown},
         root::{
             CArgumentIndex,
             CCursor,
@@ -15,8 +17,6 @@ use {
             CCursor_open,
             CResourceID,
         },
-        Cursor,
-        RDFStoreError::{self, Unknown},
         Transaction,
     },
     rdf_store_rs::RDFStoreError::CannotGetAnyArgumentIndexes,
@@ -25,11 +25,11 @@ use {
 
 #[derive(Debug)]
 pub struct OpenedCursor<'a> {
-    pub tx:               Arc<Transaction>,
-    pub cursor:           &'a Cursor,
+    pub tx: Arc<Transaction>,
+    pub cursor: &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity:            u16,
+    pub arity: usize,
     pub arguments_buffer: &'a [u64],
     pub argument_indexes: &'a [u32],
 }
@@ -69,14 +69,13 @@ impl<'a> OpenedCursor<'a> {
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    fn arity(c_cursor: *mut CCursor) -> Result<u16, RDFStoreError> {
+    fn arity(c_cursor: *mut CCursor) -> Result<usize, RDFStoreError> {
         let mut arity = 0_usize;
         database_call!(
             "getting the arity",
             CCursor_getArity(c_cursor, &mut arity)
         )?;
-        // Trimming it down, we don't expect more than 2^16 columns do we?
-        Ok(arity as u16)
+        Ok(arity)
     }
 
     pub fn arguments_buffer(c_cursor: *mut CCursor) -> Result<&'a [u64], RDFStoreError> {
@@ -92,7 +91,7 @@ impl<'a> OpenedCursor<'a> {
                 count += 1;
                 let resource_id: CResourceID = *p as CResourceID;
                 if resource_id == 0 {
-                    break
+                    break;
                 }
                 tracing::trace!("{count} resource_id={:?}", resource_id);
                 p = p.offset(1);
@@ -104,7 +103,7 @@ impl<'a> OpenedCursor<'a> {
     fn argument_indexes(
         cursor: &Cursor,
         c_cursor: *mut CCursor,
-        arity: u16,
+        arity: usize,
     ) -> Result<&'a [u32], RDFStoreError> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
         database_call!(
@@ -112,7 +111,7 @@ impl<'a> OpenedCursor<'a> {
             CCursor_getArgumentIndexes(c_cursor, &mut indexes)
         )?;
         if indexes.is_null() {
-            return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() })
+            return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() });
         }
         unsafe {
             Ok(std::slice::from_raw_parts(
@@ -124,15 +123,15 @@ impl<'a> OpenedCursor<'a> {
 
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
-    pub(crate) fn resource_id(&self, term_index: u16) -> Result<Option<u64>, RDFStoreError> {
+    pub(crate) fn resource_id(&self, term_index: usize) -> Result<Option<u64>, RDFStoreError> {
         if let Some(argument_index) = self.argument_indexes.get(term_index as usize) {
             if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
                 Ok(Some(*resource_id))
             } else {
-                // tracing::error!(
-                //     "Could not get the resource ID from the arguments buffer with argument
-                // index \      {argument_index} and term index {term_index}"
-                // );
+                tracing::error!(
+                    "Could not get the resource ID from the arguments buffer with argument \
+                    index {argument_index} and term index {term_index}"
+                );
                 // Err(Unknown)
                 Ok(None)
             }
@@ -158,12 +157,12 @@ impl<'a> OpenedCursor<'a> {
     }
 
     pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>
-    where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
+        where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
         Transaction::begin_read_write(&self.cursor.connection)?.update_and_commit(|_tx| f(self))
     }
 
     pub fn execute_and_rollback<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>
-    where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
+        where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
         Transaction::begin_read_only(&self.cursor.connection)?.execute_and_rollback(|_tx| f(self))
     }
 
@@ -180,7 +179,7 @@ impl<'a> OpenedCursor<'a> {
     ///     ) -> *const root::CException;
     /// }
     /// ```
-    pub fn get_answer_variable_name(&self, index: u16) -> Result<String, RDFStoreError> {
+    pub fn get_answer_variable_name(&self, index: usize) -> Result<String, RDFStoreError> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "getting a variable name",

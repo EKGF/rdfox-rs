@@ -2,12 +2,11 @@
 //---------------------------------------------------------------
 
 use {
-    super::{CursorRow, OpenedCursor},
     crate::{
         database_call,
-        root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
         DataStoreConnection,
         Parameters,
+        root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
         Statement,
         Transaction,
     },
@@ -17,13 +16,14 @@ use {
         RDFStoreError,
     },
     std::{ffi::CString, fmt::Debug, ptr, sync::Arc},
+    super::{CursorRow, OpenedCursor},
 };
 
 #[derive(Debug)]
 pub struct Cursor {
-    pub inner:             *mut CCursor,
+    pub inner: *mut CCursor,
     pub(crate) connection: Arc<DataStoreConnection>,
-    statement:             Statement,
+    statement: Statement,
 }
 
 impl Drop for Cursor {
@@ -69,9 +69,9 @@ impl Cursor {
             )
         )?;
         let cursor = Cursor {
-            inner:      c_cursor,
+            inner: c_cursor,
             connection: connection.clone(),
-            statement:  statement.clone(),
+            statement: statement.clone(),
         };
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
@@ -89,9 +89,9 @@ impl Cursor {
     }
 
     pub fn consume<T, E>(&mut self, tx: &Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
-    where
-        T: FnMut(CursorRow) -> Result<(), E>,
-        E: From<RDFStoreError> + Debug,
+        where
+            T: FnMut(&CursorRow) -> Result<(), E>,
+            E: From<RDFStoreError> + Debug,
     {
         let sparql_str = self.statement.text.clone();
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, tx.clone())?;
@@ -105,20 +105,20 @@ impl Cursor {
                         multiplicity,
                         query: sparql_str,
                     }
-                    .into(),
-                )
+                        .into(),
+                );
             }
             rowid += 1;
             if rowid >= max_row {
                 return Err(RDFStoreError::ExceededMaximumNumberOfRows {
                     maxrow: max_row,
-                    query:  sparql_str,
+                    query: sparql_str,
                 }
-                .into())
+                    .into());
             }
             count += multiplicity;
             let row = CursorRow { opened: &opened_cursor, multiplicity, count, rowid };
-            if let Err(err) = f(row) {
+            if let Err(err) = f(&row) {
                 tracing::error!("Error while consuming row: {:?}", err);
                 Err(err)?;
             }
@@ -128,13 +128,13 @@ impl Cursor {
     }
 
     pub fn update_and_commit<T, U>(&mut self, maxrow: u64, f: T) -> Result<u64, RDFStoreError>
-    where T: FnMut(CursorRow) -> Result<(), RDFStoreError> {
+        where T: FnMut(&CursorRow) -> Result<(), RDFStoreError> {
         let tx = Transaction::begin_read_write(&self.connection)?;
         self.update_and_commit_in_transaction(tx, maxrow, f)
     }
 
     pub fn execute_and_rollback<T>(&mut self, maxrow: u64, f: T) -> Result<u64, RDFStoreError>
-    where T: FnMut(CursorRow) -> Result<(), RDFStoreError> {
+        where T: FnMut(&CursorRow) -> Result<(), RDFStoreError> {
         let tx = Transaction::begin_read_only(&self.connection)?;
         self.execute_and_rollback_in_transaction(&tx, maxrow, f)
     }
@@ -145,8 +145,8 @@ impl Cursor {
         maxrow: u64,
         f: T,
     ) -> Result<u64, RDFStoreError>
-    where
-        T: FnMut(CursorRow) -> Result<(), RDFStoreError>,
+        where
+            T: FnMut(&CursorRow) -> Result<(), RDFStoreError>,
     {
         tx.execute_and_rollback(|ref tx| self.consume(tx, maxrow, f))
     }
@@ -157,8 +157,8 @@ impl Cursor {
         maxrow: u64,
         f: T,
     ) -> Result<u64, RDFStoreError>
-    where
-        T: FnMut(CursorRow) -> Result<(), RDFStoreError>,
+        where
+            T: FnMut(&CursorRow) -> Result<(), RDFStoreError>,
     {
         tx.update_and_commit(|ref tx| self.consume(tx, maxrow, f))
     }
