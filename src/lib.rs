@@ -18,7 +18,7 @@ pub use {
     mime::Mime,
     parameters::{FactDomain, Parameters, PersistenceMode},
     prefixes::{Prefixes, PrefixesBuilder},
-    rdf_store_rs::{DataType, LexicalValue, Predicate, Prefix, RDFStoreError, ResourceValue, Term},
+    rdf_store_rs::{DataType, Literal, LiteralValue, Predicate, Prefix, RDFStoreError, ResourceValue, Term},
     role_creds::RoleCreds,
     server::Server,
     server_connection::ServerConnection,

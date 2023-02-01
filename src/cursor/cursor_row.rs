@@ -4,12 +4,12 @@
 use {
     crate::{
         database_call,
-        root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
         DataType,
-        LexicalValue,
+        Literal,
         OpenedCursor,
         RDFStoreError::{self, Unknown},
         ResourceValue,
+        root::{CCursor_getResourceLexicalForm, CCursor_getResourceValue, CDatatypeID},
     },
     rdf_store_rs::consts::LOG_TARGET_DATABASE,
     std::ptr,
@@ -17,10 +17,10 @@ use {
 };
 
 pub struct CursorRow<'a> {
-    pub opened:       &'a OpenedCursor<'a>,
+    pub opened: &'a OpenedCursor<'a>,
     pub multiplicity: u64,
-    pub count:        u64,
-    pub rowid:        u64,
+    pub count: u64,
+    pub rowid: u64,
 }
 
 impl<'a> std::fmt::Debug for CursorRow<'a> {
@@ -34,7 +34,7 @@ impl<'a> std::fmt::Debug for CursorRow<'a> {
                     } else {
                         write!(f, "{term_index}=UNDEF,")?
                     }
-                },
+                }
                 Err(err) => write!(f, "{term_index}=ERROR: {err:?},")?,
             }
         }
@@ -77,7 +77,7 @@ impl<'a> CursorRow<'a> {
                 "Call to cursor (row {}) for resource id {resource_id} could not be resolved",
                 self.rowid
             );
-            return Err(Unknown) // TODO: Make more specific error
+            return Err(Unknown); // TODO: Make more specific error
         }
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
@@ -94,7 +94,7 @@ impl<'a> CursorRow<'a> {
                 "Call to cursor (row {}) resource id {resource_id} could not be resolved, no data",
                 self.rowid
             );
-            return Err(Unknown) // TODO: Make more specific error
+            return Err(Unknown); // TODO: Make more specific error
         }
 
         ResourceValue::from(
@@ -130,7 +130,7 @@ impl<'a> CursorRow<'a> {
     fn lexical_value_with_id(
         &self,
         resource_id: u64,
-    ) -> Result<Option<LexicalValue>, RDFStoreError> {
+    ) -> Result<Option<Literal>, RDFStoreError> {
         let mut buffer = [0u8; 102400]; // TODO: Make this dependent on returned info about buffer size too small
         let mut lexical_form_size = 0 as usize;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
@@ -150,7 +150,7 @@ impl<'a> CursorRow<'a> {
         )?;
         if !resource_resolved {
             tracing::error!("Call to cursor for resource id {resource_id} could not be resolved");
-            return Err(Unknown) // TODO: Make more specific error
+            return Err(Unknown); // TODO: Make more specific error
         }
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
@@ -162,12 +162,12 @@ impl<'a> CursorRow<'a> {
             );
         }
 
-        LexicalValue::from_type_and_c_buffer(data_type, &buffer)
+        Literal::from_type_and_c_buffer(data_type, &buffer)
     }
 
     /// Get the value in lexical form of a term in the current solution /
     /// current row with the given term index.
-    pub fn lexical_value(&self, term_index: u16) -> Result<Option<LexicalValue>, RDFStoreError> {
+    pub fn lexical_value(&self, term_index: u16) -> Result<Option<Literal>, RDFStoreError> {
         let resource_id = self.resource_id(term_index)?;
         if event_enabled!(tracing::Level::TRACE) {
             tracing::trace!(

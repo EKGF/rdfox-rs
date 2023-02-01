@@ -19,6 +19,7 @@ use {
         RDFStoreError::{self, Unknown},
         Transaction,
     },
+    rdf_store_rs::RDFStoreError::CannotGetAnyArgumentIndexes,
     std::{ptr, sync::Arc},
 };
 
@@ -45,7 +46,7 @@ impl<'a> OpenedCursor<'a> {
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
         let arguments_buffer = Self::arguments_buffer(c_cursor)?;
-        let argument_indexes = Self::argument_indexes(c_cursor, arity)?;
+        let argument_indexes = Self::argument_indexes(cursor, c_cursor, arity)?;
         let opened_cursor = OpenedCursor {
             tx,
             cursor,
@@ -100,14 +101,18 @@ impl<'a> OpenedCursor<'a> {
         unsafe { Ok(std::slice::from_raw_parts(buffer, count - 1)) }
     }
 
-    fn argument_indexes(c_cursor: *mut CCursor, arity: u16) -> Result<&'a [u32], RDFStoreError> {
+    fn argument_indexes(
+        cursor: &Cursor,
+        c_cursor: *mut CCursor,
+        arity: u16,
+    ) -> Result<&'a [u32], RDFStoreError> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
         database_call!(
             "getting the argument-indexes",
             CCursor_getArgumentIndexes(c_cursor, &mut indexes)
         )?;
         if indexes.is_null() {
-            return Err(Unknown)
+            return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() })
         }
         unsafe {
             Ok(std::slice::from_raw_parts(

@@ -17,13 +17,14 @@ use {
 };
 
 #[derive(Debug, Clone)]
-pub struct ClassReport(Class);
+pub struct ClassReport<'a>(pub &'a Class);
 
-impl std::fmt::Display for ClassReport {
+impl<'a> std::fmt::Display for ClassReport<'a> {
+    /// TODO: Generate a decent looking set of class metrics
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { self.0.fmt(f) }
 }
 
-impl ClassReport {
+impl<'a> ClassReport<'a> {
     pub fn number_of_individuals(&self, tx: &Arc<Transaction>) -> Result<u64, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.0.prefix.clone()).build()?;

@@ -82,6 +82,8 @@ impl Cursor {
         Ok(cursor)
     }
 
+    pub fn sparql_string(&self) -> &str { self.statement.text.as_str() }
+
     pub fn count(&mut self, tx: &Arc<Transaction>) -> Result<u64, RDFStoreError> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
