@@ -43,7 +43,7 @@ impl Drop for Server {
 impl std::fmt::Display for Server {
     // noinspection RsUnreachableCode
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "server {self:p}")
+        write!(f, "server {self:p}",)
     }
 }
 
@@ -59,7 +59,7 @@ impl Server {
         params: &Parameters,
     ) -> Result<Arc<Self>, RDFStoreError> {
         database_call!(
-            "starting a local RDFFox server",
+            "Starting a local RDFFox server",
             CServer_startLocalServer(params.inner)
         )?;
         let server = Server {
@@ -71,7 +71,10 @@ impl Server {
             server.create_role(&server.default_role_creds)?;
         }
 
-        tracing::debug!("Local RDFox server has been started");
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Local RDFox server has been started"
+        );
         Ok(Arc::new(server))
     }
 
@@ -120,10 +123,16 @@ impl Server {
             )
         )?;
         if server_connection_ptr.is_null() {
-            tracing::error!("Could not establish connection to server");
+            tracing::error!(
+                target: LOG_TARGET_DATABASE,
+                "Could not establish connection to {self}"
+            );
             Err(CouldNotConnectToServer)
         } else {
-            tracing::debug!("Established connection to server");
+            tracing::debug!(
+                target: LOG_TARGET_DATABASE,
+                "Established connection to {self}"
+            );
             Ok(Arc::new(ServerConnection::new(
                 role_creds,
                 self.clone(),
@@ -134,11 +143,17 @@ impl Server {
 
     pub fn stop(&mut self) {
         *self.running.get_mut() = false;
+        tracing::trace!(
+            target: LOG_TARGET_DATABASE,
+            server = format!("{self:p}"),
+            "Stopping local RDFox server"
+        );
         unsafe {
             CServer_stopLocalServer();
         }
         tracing::trace!(
             target: LOG_TARGET_DATABASE,
+            server = format!("{self:p}"),
             "Stopped local RDFox server"
         );
     }

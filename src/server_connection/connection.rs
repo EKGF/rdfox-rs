@@ -111,7 +111,10 @@ impl ServerConnection {
     }
 
     pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), RDFStoreError> {
-        tracing::trace!("Creating {data_store}");
+        tracing::trace!(
+            target: LOG_TARGET_DATABASE,
+            "Creating {data_store:}"
+        );
         assert!(!self.inner.is_null());
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         database_call!(
@@ -122,7 +125,10 @@ impl ServerConnection {
                 data_store.parameters.inner,
             )
         )?;
-        tracing::debug!("Created {data_store}");
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Created {data_store:}"
+        );
         Ok(())
     }
 

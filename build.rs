@@ -1,8 +1,7 @@
-#![feature(absolute_path)]
 // Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-
-// build.rs
+//! build.rs
+#![feature(absolute_path)]
 
 extern crate core;
 
@@ -34,12 +33,13 @@ const BLOCKLIST_ITEMS: &[&str] = &[
     "^std::value$",
     "^_Tp$",
 ];
+const RUSTFMT_CONFIG: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.rustfmt.toml");
 
 lazy_static! {
     static ref RDFOX_DOWNLOAD_HOST: &'static str = option_env!("RDFOX_DOWNLOAD_HOST")
         .unwrap_or("https://rdfox-distribution.s3.eu-west-2.amazonaws.com/release");
     static ref RDFOX_VERSION_EXPECTED: &'static str =
-        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("5.7");
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.0");
 }
 
 fn rdfox_download_url() -> String {
@@ -64,7 +64,7 @@ fn rdfox_download_file() -> PathBuf {
         .join(format!("{}.zip", rdfox_archive_name()))
 }
 
-fn rdfox_dylib_dir() -> PathBuf {
+fn rdfox_lib_dir() -> PathBuf {
     format!(
         "{}/{}/lib",
         env::var("OUT_DIR").unwrap(),
@@ -171,25 +171,19 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     unpacked_dir
 }
 
-fn set_llvm_path<P>(llvm_config_path: P) -> PathBuf
+fn set_llvm_config_path<P>(llvm_config_path: P) -> PathBuf
 where P: AsRef<Path> {
-    // let path = llvm_config_path.as_ref();
-    // println!("cargo:warning={}", path.display());
+    let path = llvm_config_path.as_ref();
     assert!(llvm_config_path.as_ref().exists());
-    env::set_var(
-        "LLVM_CONFIG_PATH",
-        format!("{:}", llvm_config_path.as_ref().display()),
+    let path = std::fs::canonicalize(path).unwrap();
+    println!(
+        "cargo:warning=llvm config path is {}",
+        path.display()
     );
     println!(
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
-        llvm_config_path.as_ref().display()
+        path.display()
     );
-    // if let Some(path) = option_env!("PATH") {
-    //     env::set_var(
-    //         "PATH",
-    //         format!("{}a:{}/bin", path, llvm_config_path.display()),
-    //     );
-    // }
     llvm_config_path.as_ref().into()
 }
 
@@ -198,13 +192,13 @@ fn add_llvm_path() {
     let opt_llvm_dir = PathBuf::from("/usr/local/opt/llvm");
 
     let llvm_path = if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
-        set_llvm_path(PathBuf::from(llvm_config_path.trim()).as_path())
+        set_llvm_config_path(PathBuf::from(llvm_config_path.trim()).as_path())
     } else if let Some(llvm_path) = option_env!("LLVM_PATH") {
-        set_llvm_path(PathBuf::from(llvm_path).as_path())
+        set_llvm_config_path(PathBuf::from(llvm_path).as_path())
     } else if opt_llvm_dir.exists() {
-        set_llvm_path(opt_llvm_dir.as_path())
+        set_llvm_config_path(opt_llvm_dir.as_path())
     } else if let Some(brew_llvm_dir) = check_llvm_via_brew() {
-        set_llvm_path(brew_llvm_dir)
+        set_llvm_config_path(brew_llvm_dir)
     } else {
         panic!("Could not find the LLVM path")
     };
@@ -220,14 +214,9 @@ fn add_llvm_path() {
         .stdout;
     let llvm_config_path =
         String::from_utf8(llvm_config_path).expect("`llvm-config --prefix` output must be UTF-8");
-    env::set_var(
-        "LLVM_CONFIG_PATH",
-        format!("{}/bin/llvm-config", llvm_config_path.trim()),
-    );
-    println!(
-        "cargo:rustc-env=LLVM_CONFIG_PATH={}",
-        llvm_config_path
-    );
+    let llvm_config_path = llvm_config_path.trim();
+    println!("cargo:rustc-env=LLVM_CONFIG_PATH={llvm_config_path}");
+    println!("cargo:rustc-link-search={llvm_config_path}/lib/c++");
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
@@ -272,14 +261,10 @@ fn check_llvm_via_brew() -> Option<PathBuf> { None }
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    // let workaround_h = PathBuf::from(format!("{}/workaround.h",
-    // out_path.display()));
-
-    // write_workaround_header(&workaround_h).expect("cargo:warning=Could not
-    // generate workaround.h");
-
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/lib.rs");
+
+    add_llvm_path();
 
     let file_name = download_rdfox().expect("cargo:warning=Could not download RDFox");
     unzip_rdfox(file_name, rdfox_archive_name());
@@ -287,37 +272,39 @@ fn main() {
     // Tell cargo to look for shared libraries in the specified directory
     println!(
         "cargo:rustc-link-search={}",
-        rdfox_dylib_dir().to_str().unwrap()
+        rdfox_lib_dir().to_str().unwrap()
     );
 
     // Tell cargo to tell rustc to link the libRDFox.dylib shared library.
+    #[cfg(feature = "rdfox-dylib")]
     println!("cargo:rustc-link-lib=dylib=RDFox");
 
-    // Tell cargo to invalidate the built crate whenever the wrapper changes
-    // println!("cargo:rerun-if-changed=wrapper.h");
-
-    add_llvm_path();
-
-    // "-x" and "c++" must be separate due to a bug
-    let clang_args: Vec<&str> = vec!["-x", "c++", "-std=c++17"];
+    // Tell cargo to tell rustc to link the libRDFox.a static library.
+    #[cfg(not(feature = "rdfox-dylib"))]
+    println!("cargo:rustc-link-lib=static=RDFox-static");
+    #[cfg(not(feature = "rdfox-dylib"))]
+    println!("cargo:rustc-link-lib=static=c++");
+    #[cfg(not(feature = "rdfox-dylib"))]
+    println!("cargo:rustc-link-lib=static=c++abi");
 
     let mut builder = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        // .header(workaround_h.to_str().unwrap())
         .header(format!(
             "{}/{}/include/CRDFox/CRDFox.h",
             out_path.display(),
             rdfox_archive_name()
         ))
+        .generate_comments(true)
         .opaque_type("void")
-        .clang_args(clang_args)
-        .clang_arg(format!("-I/{}", rdfox_header_dir().to_str().unwrap()))
+        .clang_arg(r"-xc++")
+        .clang_arg(r"-std=c++17")
+        .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         // .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .rustfmt_bindings(true)
+        .rustfmt_configuration_file(Some(PathBuf::from(RUSTFMT_CONFIG)))
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: true,
         })

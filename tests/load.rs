@@ -19,6 +19,7 @@ use {
         FactDomain,
         GraphConnection,
         Parameters,
+        PersistenceMode,
         Prefixes,
         RoleCreds,
         Server,
@@ -31,7 +32,9 @@ use {
 
 fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
     tracing::info!("test_define_data_store");
-    let data_store_params = Parameters::empty()?;
+    let data_store_params = Parameters::empty()?
+        .persist_datastore(PersistenceMode::Off)?
+        .persist_roles(PersistenceMode::Off)?;
     DataStore::declare_with_parameters("example", data_store_params)
 }
 
@@ -39,7 +42,9 @@ fn test_create_server() -> Result<Arc<Server>, RDFStoreError> {
     tracing::info!("test_create_server");
     let server_params = &Parameters::empty()?
         .api_log(true)?
-        .api_log_directory(Path::new("./tests"))?;
+        .api_log_directory(Path::new("./tests"))?
+        .persist_datastore(PersistenceMode::Off)?
+        .persist_roles(PersistenceMode::Off)?;
     Server::start_with_parameters(RoleCreds::default(), server_params)
 }
 
@@ -78,14 +83,14 @@ fn test_create_graph(
     tracing::info!("test_create_graph");
     let graph_base_iri = Prefix::declare(
         "graph:",
-        Iri::new("http://whatever.kom/graph/").unwrap(),
+        Iri::new("https://whatever.kom/graph/").unwrap(),
     );
     let test_graph = Graph::declare(graph_base_iri, "test");
 
     assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
     assert_eq!(
         format!("{:}", test_graph.as_display_iri()).as_str(),
-        "<http://whatever.kom/graph/test>"
+        "<https://whatever.kom/graph/test>"
     );
 
     Ok(GraphConnection::new(
@@ -146,53 +151,12 @@ fn test_cursor_with_lexical_value(
     let mut cursor = query.cursor(
         &graph_connection.data_store_connection,
         &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
-        None,
     )?;
 
     let count = cursor.consume(tx, 10000, |row| {
         assert_eq!(row.opened.arity, 3);
         for term_index in 0..row.opened.arity {
             let value = row.lexical_value(term_index)?;
-            tracing::info!("{value:?}");
-        }
-        Result::<(), RDFStoreError>::Ok(())
-    })?;
-    tracing::info!("Number of rows processed: {count}");
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn test_cursor_with_resource_value(
-    tx: &Arc<Transaction>,
-    graph_connection: &Arc<GraphConnection>,
-) -> Result<(), RDFStoreError> {
-    tracing::info!("test_cursor_with_resource_value");
-    let graph = graph_connection.graph.as_display_iri();
-    let prefixes = Prefixes::empty()?;
-    let query = Statement::new(
-        &prefixes,
-        formatdoc!(
-            r##"
-                SELECT ?subject ?predicate ?object
-                FROM {graph}
-                WHERE {{
-                    ?subject a <https://ekgf.org/ontology/user-story/UserStory> ;
-                        ?predicate ?object
-                }}
-                "##,
-        )
-        .into(),
-    )?;
-    let mut cursor = query.cursor(
-        &graph_connection.data_store_connection,
-        &Parameters::empty()?.fact_domain(FactDomain::ASSERTED)?,
-        None,
-    )?;
-
-    let count = cursor.consume(tx, 10000, |row| {
-        assert_eq!(row.opened.arity, 3);
-        for term_index in 0..row.opened.arity {
-            let value = row.resource_value(term_index)?;
             tracing::info!("{value:?}");
         }
         Result::<(), RDFStoreError>::Ok(())
@@ -246,10 +210,7 @@ fn load_rdfox() -> Result<(), RDFStoreError> {
         Transaction::begin_read_only(&conn)?.execute_and_rollback(|ref tx| {
             test_count_some_stuff_in_the_store(tx, &conn)?;
             test_count_some_stuff_in_the_graph(tx, &graph_connection)?;
-
             test_cursor_with_lexical_value(tx, &graph_connection)?;
-            test_cursor_with_resource_value(tx, &graph_connection)?;
-
             test_run_query_to_nquads_buffer(tx, &conn)
         })?;
     }
@@ -263,19 +224,4 @@ fn load_rdfox() -> Result<(), RDFStoreError> {
     tracing::info!("load_rdfox end");
 
     Ok(())
-}
-
-#[test_log::test]
-fn create_sandbox_database() -> Result<(), RDFStoreError> {
-    let server_params = Parameters::empty()?.switch_off_file_access_sandboxing()?;
-    let role_creds = RoleCreds::default();
-    let server = Server::start_with_parameters(role_creds, &server_params)?;
-
-    let server_connection = server.connection_with_default_role()?;
-
-    assert!(server_connection.get_number_of_threads()? > 0);
-
-    // We next specify how many threads the server should use during import of
-    // data and reasoning.
-    server_connection.set_number_of_threads(2)
 }

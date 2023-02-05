@@ -3,9 +3,7 @@
 
 use {
     crate::{
-        Cursor,
         database_call,
-        RDFStoreError::{self, Unknown},
         root::{
             CArgumentIndex,
             CCursor,
@@ -17,6 +15,8 @@ use {
             CCursor_open,
             CResourceID,
         },
+        Cursor,
+        RDFStoreError::{self, Unknown},
         Transaction,
     },
     rdf_store_rs::RDFStoreError::CannotGetAnyArgumentIndexes,
@@ -25,13 +25,13 @@ use {
 
 #[derive(Debug)]
 pub struct OpenedCursor<'a> {
-    pub tx: Arc<Transaction>,
-    pub cursor: &'a Cursor,
+    pub tx:           Arc<Transaction>,
+    pub cursor:       &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity: usize,
-    pub arguments_buffer: &'a [u64],
-    pub argument_indexes: &'a [u32],
+    pub arity:        usize,
+    arguments_buffer: &'a [u64],
+    argument_indexes: &'a [u32],
 }
 
 impl<'a> OpenedCursor<'a> {
@@ -58,10 +58,16 @@ impl<'a> OpenedCursor<'a> {
     }
 
     fn open(c_cursor: *mut CCursor) -> Result<u64, RDFStoreError> {
+        let skip_to_offset = 0_usize;
         let mut multiplicity = 0 as usize;
+        // pub fn CCursor_open(
+        //     cursor: *mut root::CCursor,
+        //     skipToOffset: usize,
+        //     multiplicity: *mut usize,
+        // ) -> *const root::CException;
         database_call!(
             "opening a cursor",
-            CCursor_open(c_cursor, &mut multiplicity)
+            CCursor_open(c_cursor, skip_to_offset, &mut multiplicity)
         )?;
         tracing::debug!("CCursor_open ok multiplicity={multiplicity}");
         Ok(multiplicity as u64)
@@ -78,26 +84,27 @@ impl<'a> OpenedCursor<'a> {
         Ok(arity)
     }
 
-    pub fn arguments_buffer(c_cursor: *mut CCursor) -> Result<&'a [u64], RDFStoreError> {
+    fn arguments_buffer(c_cursor: *mut CCursor) -> Result<&'a [u64], RDFStoreError> {
         let mut buffer: *const CResourceID = ptr::null_mut();
         database_call!(
             "getting the arguments buffer",
             CCursor_getArgumentsBuffer(c_cursor, &mut buffer)
         )?;
-        let mut count = 0_usize;
+        let mut index = 0_usize;
         unsafe {
             let mut p = buffer;
             while !p.is_null() {
-                count += 1;
                 let resource_id: CResourceID = *p as CResourceID;
                 if resource_id == 0 {
-                    break;
+                    break
                 }
-                tracing::trace!("{count} resource_id={:?}", resource_id);
+                tracing::error!("{index} resource_id={:?}", resource_id);
+                index += 1;
                 p = p.offset(1);
             }
         }
-        unsafe { Ok(std::slice::from_raw_parts(buffer, count - 1)) }
+        tracing::error!("#{index} resource ids");
+        unsafe { Ok(std::slice::from_raw_parts(buffer, index + 1)) }
     }
 
     fn argument_indexes(
@@ -106,12 +113,30 @@ impl<'a> OpenedCursor<'a> {
         arity: usize,
     ) -> Result<&'a [u32], RDFStoreError> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
+        // pub fn CCursor_getArgumentIndexes(
+        //     cursor: *mut root::CCursor,
+        //     argumentIndexes: *mut *const root::CArgumentIndex,
+        // ) -> *const root::CException;
         database_call!(
             "getting the argument-indexes",
             CCursor_getArgumentIndexes(c_cursor, &mut indexes)
         )?;
         if indexes.is_null() {
-            return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() });
+            return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() })
+        }
+        tracing::error!("MMMMM2: getting {arity} indexes");
+        let mut index = 0_usize;
+        unsafe {
+            let mut p = indexes;
+            while !p.is_null() {
+                let argument_index = *p as CArgumentIndex;
+                if argument_index == 0 {
+                    break
+                }
+                tracing::error!("{index} argument_index={:?}", argument_index);
+                index += 1;
+                p = p.offset(1);
+            }
         }
         unsafe {
             Ok(std::slice::from_raw_parts(
@@ -124,13 +149,16 @@ impl<'a> OpenedCursor<'a> {
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
     pub(crate) fn resource_id(&self, term_index: usize) -> Result<Option<u64>, RDFStoreError> {
-        if let Some(argument_index) = self.argument_indexes.get(term_index as usize) {
+        if let Some(argument_index) = self.argument_indexes.get(term_index) {
             if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
                 Ok(Some(*resource_id))
             } else {
                 tracing::error!(
-                    "Could not get the resource ID from the arguments buffer with argument \
-                    index {argument_index} and term index {term_index}"
+                    "Could not get the resource ID from the arguments buffer with argument index \
+                     {argument_index} and term index \
+                     {term_index}:\nargument_indexes={:?},\narguments_buffer={:?}",
+                    self.argument_indexes,
+                    self.arguments_buffer
                 );
                 // Err(Unknown)
                 Ok(None)
@@ -157,12 +185,12 @@ impl<'a> OpenedCursor<'a> {
     }
 
     pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>
-        where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
+    where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
         Transaction::begin_read_write(&self.cursor.connection)?.update_and_commit(|_tx| f(self))
     }
 
     pub fn execute_and_rollback<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>
-        where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
+    where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
         Transaction::begin_read_only(&self.cursor.connection)?.execute_and_rollback(|_tx| f(self))
     }
 

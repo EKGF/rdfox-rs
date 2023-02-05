@@ -4,6 +4,7 @@ use {
         server_connection::ServerConnection,
         Parameters,
     },
+    owo_colors::OwoColorize,
     r2d2::Pool,
     rdf_store_rs::RDFStoreError,
     std::{
@@ -20,7 +21,7 @@ pub struct DataStore {
 
 impl Display for DataStore {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "data store [{}]", self.name)
+        write!(f, "data store [{}]", self.name.green())
     }
 }
 

@@ -1,12 +1,10 @@
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
+//---------------------------------------------------------------
+
 use {
     crate::{
         database_call,
-        root::{
-            CDataStoreConnection,
-            CDataStoreConnection_evaluateStatement,
-            COutputStream,
-            CPrefixes,
-        },
+        root::{CDataStoreConnection, CDataStoreConnection_evaluateStatement, COutputStream},
         DataStoreConnection,
         Parameters,
         Statement,
@@ -85,9 +83,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
         let query_answer_format_name = CString::new(self.mime_type.as_ref())?;
         let mut number_of_solutions = 0_usize;
-        let prefixes_ptr = self.prefixes_ptr();
         let connection_ptr = self.connection_ptr();
-        let c_base_iri = CString::new(self.base_iri.iri.as_str()).unwrap();
 
         let self_p = format!("{:p}", &self);
         self.self_p = self_p.clone();
@@ -104,12 +100,19 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         });
         let stream_raw_ptr = Box::into_raw(stream);
 
+        // pub fn CDataStoreConnection_evaluateStatement(
+        //     dataStoreConnection: *mut root::CDataStoreConnection,
+        //     statementText: *const ::std::os::raw::c_char,
+        //     statementTextLength: usize,
+        //     compilationParameters: *const root::CParameters,
+        //     outputStream: *const root::COutputStream,
+        //     queryAnswerFormatName: *const ::std::os::raw::c_char,
+        //     statementResult: *mut usize,
+        // ) -> *const root::CException;
         let result = database_call! {
             "evaluating a statement",
             CDataStoreConnection_evaluateStatement(
                 connection_ptr,
-                c_base_iri.as_ptr(),
-                prefixes_ptr,
                 statement_text.as_ptr(),
                 statement_text_len,
                 parameters.inner,
@@ -211,8 +214,6 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         tracing::trace!("{streamer:p}: write_function result={result}");
         result
     }
-
-    fn prefixes_ptr(&self) -> *mut CPrefixes { self.statement.prefixes.c_mut_ptr() }
 
     fn connection_ptr(&self) -> *mut CDataStoreConnection { self.connection.inner }
 }

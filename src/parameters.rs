@@ -86,7 +86,11 @@ impl Parameters {
     pub fn set_string(&self, key: &str, value: &str) -> Result<(), RDFStoreError> {
         let c_key = CString::new(key).unwrap();
         let c_value = CString::new(value).unwrap();
-        let msg = format!("Setting parameter {c_key:?}={c_value:?}");
+        let msg = format!(
+            "Setting parameter {}={}",
+            c_key.to_str().unwrap(),
+            c_value.to_str().unwrap()
+        );
         database_call!(
             msg.as_str(),
             CParameters_setString(self.inner, c_key.as_ptr(), c_value.as_ptr())

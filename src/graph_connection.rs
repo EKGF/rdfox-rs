@@ -121,7 +121,6 @@ impl GraphConnection {
         .cursor(
             &self.data_store_connection,
             &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
         )?
         .count(tx)
     }

@@ -14,7 +14,7 @@ pub struct ConnectableDataStore {
     data_store:                Arc<DataStore>,
     server_connection:         Arc<ServerConnection>,
     /// Indicates that we want to release all connections on return to the pool
-    /// (used for gracefull shutdown)
+    /// (used to shutdown gracefully)
     release_on_return_to_pool: AtomicBool,
 }
 

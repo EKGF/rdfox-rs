@@ -2,7 +2,28 @@
 //---------------------------------------------------------------
 
 use {
-    crate::ServerConnection,
+    crate::{
+        database_call,
+        root::{
+            CDataStoreConnection,
+            CDataStoreConnection_destroy,
+            CDataStoreConnection_evaluateUpdate,
+            CDataStoreConnection_getName,
+            CDataStoreConnection_getUniqueID,
+            CDataStoreConnection_importAxiomsFromTriples,
+            CDataStoreConnection_importDataFromFile,
+            CStatementResult,
+            CUpdateType,
+        },
+        DataStore,
+        FactDomain,
+        Parameters,
+        Prefixes,
+        ServerConnection,
+        Statement,
+        Streamer,
+        Transaction,
+    },
     colored::Colorize,
     fancy_regex::Regex,
     ignore::{types::TypesBuilder, WalkBuilder},
@@ -32,30 +53,6 @@ use {
         sync::Arc,
         time::Instant,
     },
-};
-
-use crate::{
-    database_call,
-    root::{
-        CDataStoreConnection,
-        CDataStoreConnection_destroy,
-        CDataStoreConnection_evaluateUpdate,
-        // CDataStoreConnection_evaluateStatementToBuffer,
-        CDataStoreConnection_getID,
-        CDataStoreConnection_getUniqueID,
-        CDataStoreConnection_importAxiomsFromTriples,
-        CDataStoreConnection_importDataFromFile,
-        CStatementResult,
-        // COutputStream
-        CUpdateType,
-    },
-    DataStore,
-    FactDomain,
-    Parameters,
-    Prefixes,
-    Statement,
-    Streamer,
-    Transaction,
 };
 
 #[derive(Debug)]
@@ -108,17 +105,18 @@ impl DataStoreConnection {
         COUNTER.fetch_add(1, Ordering::Relaxed)
     }
 
-    pub fn get_id(&self) -> Result<u32, RDFStoreError> {
+    pub fn get_id(&self) -> Result<String, RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
         );
-        let mut id: u32 = 0;
+        let mut name: *const std::os::raw::c_char = ptr::null();
         database_call!(
-            "getting the id of a datastore connection",
-            CDataStoreConnection_getID(self.inner, &mut id)
+            "getting the name of a datastore connection",
+            CDataStoreConnection_getName(self.inner, &mut name)
         )?;
-        Ok(id)
+        let c_str = unsafe { CStr::from_ptr(name) };
+        Ok(c_str.to_str().unwrap().into())
     }
 
     pub fn get_unique_id(&self) -> Result<String, RDFStoreError> {
@@ -153,17 +151,22 @@ impl DataStoreConnection {
         );
 
         let c_graph_name = graph.as_c_string()?;
-        let prefixes = Prefixes::empty()?;
         let file_name = CString::new(rdf_file).unwrap();
         let format_name = CString::new(TEXT_TURTLE.as_ref()).unwrap();
 
+        // pub fn CDataStoreConnection_importDataFromFile(
+        //     dataStoreConnection: *mut root::CDataStoreConnection,
+        //     defaultGraphName: *const ::std::os::raw::c_char,
+        //     updateType: root::CUpdateType,
+        //     filePath: *const ::std::os::raw::c_char,
+        //     formatName: *const ::std::os::raw::c_char,
+        // ) -> *const root::CException;
         database_call!(
-            "importing data from a file",
+            format!("Importing data from {file_name:?} (format={format_name:?})").as_str(),
             CDataStoreConnection_importDataFromFile(
                 self.inner,
                 c_graph_name.as_ptr() as *const std::os::raw::c_char,
                 CUpdateType::UPDATE_TYPE_ADDITION,
-                prefixes.c_mut_ptr(),
                 file_name.as_ptr() as *const std::os::raw::c_char,
                 format_name.as_ptr() as *const std::os::raw::c_char,
             )
@@ -283,26 +286,30 @@ impl DataStoreConnection {
         &self,
         statement: &'b Statement,
         parameters: &Parameters,
-        base_iri: Option<Iri>,
     ) -> Result<(u64, u64), RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
         );
-        let c_base_iri = if let Some(base_iri) = base_iri {
-            CString::new(base_iri.as_str()).unwrap()
-        } else {
-            CString::new(DEFAULT_BASE_IRI).unwrap()
-        };
+        // let c_base_iri = if let Some(base_iri) = base_iri {
+        //     CString::new(base_iri.as_str()).unwrap()
+        // } else {
+        //     CString::new(DEFAULT_BASE_IRI).unwrap()
+        // };
         let statement_text = statement.as_c_string()?;
         let statement_text_len = statement_text.as_bytes().len();
         let mut statement_result: CStatementResult = Default::default();
+        // pub fn CDataStoreConnection_evaluateUpdate(
+        //     dataStoreConnection: *mut root::CDataStoreConnection,
+        //     updateText: *const ::std::os::raw::c_char,
+        //     updateTextLength: usize,
+        //     compilationParameters: *const root::CParameters,
+        //     statementResult: *mut usize,
+        // ) -> *const root::CException;
         database_call!(
             "evaluating an update statement",
             CDataStoreConnection_evaluateUpdate(
                 self.inner,
-                c_base_iri.as_ptr(),
-                statement.prefixes.c_mut_ptr(),
                 statement_text.as_ptr(),
                 statement_text_len,
                 parameters.inner,
@@ -370,7 +377,6 @@ impl DataStoreConnection {
         .cursor(
             self,
             &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
         )?
         .count(tx)
     }
@@ -403,7 +409,6 @@ impl DataStoreConnection {
         .cursor(
             self,
             &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
         )?
         .count(tx)
     }
@@ -436,7 +441,6 @@ impl DataStoreConnection {
         .cursor(
             self,
             &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
         )?
         .count(tx)
     }
@@ -469,7 +473,6 @@ impl DataStoreConnection {
         .cursor(
             self,
             &Parameters::empty()?.fact_domain(fact_domain)?,
-            None,
         )?
         .count(tx)
     }

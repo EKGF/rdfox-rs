@@ -1,10 +1,10 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
+
 use {
     crate::{Cursor, DataStoreConnection, Parameters, Prefixes},
     core::fmt::{Display, Formatter},
     indoc::formatdoc,
-    iref::Iri,
     rdf_store_rs::{
         consts::{DEFAULT_GRAPH_RDFOX, LOG_TARGET_SPARQL},
         RDFStoreError,
@@ -43,9 +43,8 @@ impl Statement {
         &self,
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
-        base_iri: Option<Iri>,
     ) -> Result<Cursor, RDFStoreError> {
-        Cursor::create(connection, parameters, self, base_iri)
+        Cursor::create(connection, parameters, self)
     }
 
     pub(crate) fn as_c_string(&self) -> Result<CString, RDFStoreError> {
