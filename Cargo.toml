@@ -63,7 +63,7 @@ bindgen = "0.63.0"
 rustc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["nom", "rdfox-dylib"]
+default = ["nom"]
 rdftk-support = ["rdftk_iri/uuid_iri"]
 nom-support = ["nom"]
 #

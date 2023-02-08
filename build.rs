@@ -281,6 +281,8 @@ fn main() {
 
     // Tell cargo to tell rustc to link the libRDFox.a static library.
     #[cfg(not(feature = "rdfox-dylib"))]
+    // println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
+    // println!("cargo:rustc-link-lib=static:+whole-archive=RDFox-static");
     println!("cargo:rustc-link-lib=static=RDFox-static");
     #[cfg(not(feature = "rdfox-dylib"))]
     println!("cargo:rustc-link-lib=static=c++");
@@ -297,10 +299,12 @@ fn main() {
         ))
         .generate_comments(true)
         .opaque_type("void")
+        .translate_enum_integer_types(true)
         .clang_arg(r"-xc++")
-        .clang_arg(r"-std=c++17")
+        .clang_arg(r"-std=c++11")
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
+        .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         // .parse_callbacks(Box::new(bindgen::CargoCallbacks))

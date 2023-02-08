@@ -81,10 +81,18 @@ impl ServerConnection {
     pub fn get_number_of_threads(&self) -> Result<u32, RDFStoreError> {
         let mut number_of_threads = 0_usize;
         database_call!(
-            "Getting the number of threads",
+            format!(
+                "Getting the number of server-threads via {}",
+                self
+            )
+            .as_str(),
             CServerConnection_getNumberOfThreads(self.inner, &mut number_of_threads)
         )?;
-        tracing::debug!("Number of threads is {}", number_of_threads);
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Number of threads is {}",
+            number_of_threads
+        );
         Ok(number_of_threads as u32)
     }
 

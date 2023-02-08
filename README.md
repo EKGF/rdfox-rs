@@ -6,8 +6,12 @@ Embedded [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/pr
 - Generates bindings from `CRDFox.h` using bindgen (which requires llvm to be installed)
 - Links to dynamic link library `libRDFox.dylib`
 - Requires an RDFox license (see https://www.oxfordsemantic.tech/product)
-   - Copy license to `~/.RDFox/RDFox.lic`
+  - Copy license to `~/.RDFox/RDFox.lic`
 - Provides a higher level rust-friendly interface over the C-API
+
+## Status
+
+- Works with the dynamic link library of RDFox, does not work yet with the static library
 
 ## Plans
 
@@ -21,6 +25,18 @@ needs to be downloaded and used.
 
 ## How to run the tests
 
-```
+```shell
 RUST_LOG=info cargo test 
+```
+
+Or, if you want to see all output:
+
+```shell
+RUST_LOG=trace cargo test load_rdfox  -- --nocapture
+```
+
+If you want to run the tests with the dynamic link library of RDFox, then run this:
+
+```shell
+RUST_LOG=trace cargo test --features rdfox-dylib load_rdfox  -- --nocapture
 ```
