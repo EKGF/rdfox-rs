@@ -6,6 +6,7 @@ use {
             CServerConnection_createDataStore,
             CServerConnection_deleteDataStore,
             CServerConnection_destroy,
+            CServerConnection_getMemoryUse,
             CServerConnection_getNumberOfThreads,
             CServerConnection_getVersion,
             CServerConnection_newDataStoreConnection,
@@ -58,7 +59,12 @@ impl ServerConnection {
             server.is_running(),
             "cannot connect to an RDFox server that is not running"
         );
-        Self { role_creds, server, inner: server_connection_ptr }
+        let connection = Self { role_creds, server, inner: server_connection_ptr };
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Established {connection:}"
+        );
+        connection
     }
 
     /// Return the version number of the underlying database engine
@@ -79,7 +85,8 @@ impl ServerConnection {
     }
 
     pub fn get_number_of_threads(&self) -> Result<u32, RDFStoreError> {
-        let mut number_of_threads = 0_usize;
+        tracing::trace!("get_number_of_threads");
+        let mut number_of_threads = 0_u64;
         database_call!(
             format!(
                 "Getting the number of server-threads via {}",
@@ -96,7 +103,7 @@ impl ServerConnection {
         Ok(number_of_threads as u32)
     }
 
-    pub fn set_number_of_threads(&self, number_of_threads: u32) -> Result<(), RDFStoreError> {
+    pub fn set_number_of_threads(&self, number_of_threads: u64) -> Result<(), RDFStoreError> {
         assert!(!self.inner.is_null());
         let msg = format!(
             "Setting the number of threads to {}",
@@ -104,8 +111,20 @@ impl ServerConnection {
         );
         database_call!(
             msg.as_str(),
-            CServerConnection_setNumberOfThreads(self.inner, number_of_threads as usize)
+            CServerConnection_setNumberOfThreads(self.inner, number_of_threads)
         )
+    }
+
+    pub fn get_memory_use(&self) -> Result<(u64, u64), RDFStoreError> {
+        tracing::trace!("get_memory_use");
+        let mut max_used_bytes = 0_u64;
+        let mut available_bytes = 0_u64;
+        database_call!(CServerConnection_getMemoryUse(
+            self.inner,
+            &mut max_used_bytes,
+            &mut available_bytes
+        ))?;
+        Ok((max_used_bytes, available_bytes))
     }
 
     pub fn delete_data_store(&self, data_store: &DataStore) -> Result<(), RDFStoreError> {

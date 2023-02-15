@@ -55,6 +55,14 @@ fn test_create_server_connection(
 
     let server_connection = server.connection_with_default_role()?;
 
+    let number_of_threads = server_connection.get_number_of_threads()?;
+    tracing::info!("Using {number_of_threads} threads");
+
+    let (max_used_bytes, available_bytes) = server_connection.get_memory_use()?;
+    tracing::info!(
+        "Memory use: max_used_bytes={max_used_bytes}, available_bytes={available_bytes}"
+    );
+
     assert!(server_connection.get_number_of_threads()? > 0);
 
     // We next specify how many threads the server should use during import of

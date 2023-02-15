@@ -4,7 +4,12 @@
 use {
     crate::{
         database_call,
-        root::{CDataStoreConnection, CDataStoreConnection_evaluateStatement, COutputStream},
+        root::{
+            CDataStoreConnection,
+            CDataStoreConnection_evaluateStatement,
+            COutputStream,
+            CStatementResult,
+        },
         DataStoreConnection,
         Parameters,
         Statement,
@@ -79,10 +84,10 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     /// writer, then return the streamer (i.e. self).
     fn evaluate(mut self) -> Result<Self, RDFStoreError> {
         let statement_text = self.statement.as_c_string()?;
-        let statement_text_len = statement_text.as_bytes().len();
+        let statement_text_len = statement_text.as_bytes().len() as u64;
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
         let query_answer_format_name = CString::new(self.mime_type.as_ref())?;
-        let mut number_of_solutions = 0_usize;
+        let mut number_of_solutions: CStatementResult = [0, 0];
         let connection_ptr = self.connection_ptr();
 
         let self_p = format!("{:p}", &self);
@@ -100,15 +105,6 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         });
         let stream_raw_ptr = Box::into_raw(stream);
 
-        // pub fn CDataStoreConnection_evaluateStatement(
-        //     dataStoreConnection: *mut root::CDataStoreConnection,
-        //     statementText: *const ::std::os::raw::c_char,
-        //     statementTextLength: usize,
-        //     compilationParameters: *const root::CParameters,
-        //     outputStream: *const root::COutputStream,
-        //     queryAnswerFormatName: *const ::std::os::raw::c_char,
-        //     statementResult: *mut usize,
-        // ) -> *const root::CException;
         let result = database_call! {
             "evaluating a statement",
             CDataStoreConnection_evaluateStatement(
@@ -130,7 +126,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
         result?; // we're doing this after the drop_in_place calls to avoid memory leak
 
-        tracing::debug!("{self_p}: number_of_solutions={number_of_solutions}");
+        tracing::debug!("{self_p}: number_of_solutions={number_of_solutions:?}");
         Ok(self)
     }
 
@@ -149,7 +145,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     extern "C" fn write_function(
         context: *mut c_void,
         data: *const c_void,
-        number_of_bytes_to_write: usize,
+        number_of_bytes_to_write: u64,
     ) -> bool {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };

@@ -49,7 +49,7 @@ impl Cursor {
         //     CString::new(DEFAULT_BASE_IRI).unwrap()
         // };
         let c_query = CString::new(statement.text.as_str()).unwrap();
-        let c_query_len = c_query.as_bytes().len();
+        let c_query_len = c_query.as_bytes().len() as u64;
         tracing::trace!("Starting cursor for {:?}", c_query);
         // pub fn CDataStoreConnection_createCursor(
         //     dataStoreConnection: *mut root::CDataStoreConnection,

@@ -92,7 +92,7 @@ impl Server {
     }
 
     pub fn get_number_of_local_server_roles(&self) -> Result<u16, RDFStoreError> {
-        let mut number_of_roles = 0_usize;
+        let mut number_of_roles = 0_u64;
         database_call!(
             "Getting the number of local server roles",
             CServer_getNumberOfLocalServerRoles(&mut number_of_roles)
@@ -127,18 +127,13 @@ impl Server {
                 target: LOG_TARGET_DATABASE,
                 "Could not establish connection to {self}"
             );
-            Err(CouldNotConnectToServer)
-        } else {
-            tracing::debug!(
-                target: LOG_TARGET_DATABASE,
-                "Established connection to {self}"
-            );
-            Ok(Arc::new(ServerConnection::new(
-                role_creds,
-                self.clone(),
-                server_connection_ptr,
-            )))
+            return Err(CouldNotConnectToServer)
         }
+        Ok(Arc::new(ServerConnection::new(
+            role_creds,
+            self.clone(),
+            server_connection_ptr,
+        )))
     }
 
     pub fn stop(&mut self) {

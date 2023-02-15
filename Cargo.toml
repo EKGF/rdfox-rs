@@ -3,7 +3,7 @@ name = "rdfox"
 description = "RDFox for Rust, a high-performance in-memory semantic graph database"
 version = "6.0.0"
 edition = "2021"
-#links = "RDFox-static"
+links = "RDFox-static"
 authors = [
   "Jacobus Geluk <jacobus.geluk@ekgf.org>",
   "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
@@ -17,6 +17,10 @@ license-file = "LICENSE"
 rust-version = "1.67"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["rlib"]
+bench = false
 
 [dependencies]
 tracing = "0.1.37"
@@ -57,7 +61,7 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter", "fmt", "ans
 curl = "0.4.43"
 lazy_static = "1.4.0"
 zip = "0.6.2"
-bindgen = "0.63.0"
+bindgen = "0.64.0"
 
 [package.metadata.docs.rs]
 rustc-args = ["--cfg", "docsrs"]

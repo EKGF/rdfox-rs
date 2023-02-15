@@ -29,7 +29,7 @@ pub struct OpenedCursor<'a> {
     pub cursor:       &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity:        usize,
+    pub arity:        u64,
     arguments_buffer: &'a [u64],
     argument_indexes: &'a [u32],
 }
@@ -58,8 +58,8 @@ impl<'a> OpenedCursor<'a> {
     }
 
     fn open(c_cursor: *mut CCursor) -> Result<u64, RDFStoreError> {
-        let skip_to_offset = 0_usize;
-        let mut multiplicity = 0 as usize;
+        let skip_to_offset = 0_u64;
+        let mut multiplicity = 0_u64;
         // pub fn CCursor_open(
         //     cursor: *mut root::CCursor,
         //     skipToOffset: usize,
@@ -75,8 +75,8 @@ impl<'a> OpenedCursor<'a> {
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    fn arity(c_cursor: *mut CCursor) -> Result<usize, RDFStoreError> {
-        let mut arity = 0_usize;
+    fn arity(c_cursor: *mut CCursor) -> Result<u64, RDFStoreError> {
+        let mut arity = 0_u64;
         database_call!(
             "getting the arity",
             CCursor_getArity(c_cursor, &mut arity)
@@ -110,7 +110,7 @@ impl<'a> OpenedCursor<'a> {
     fn argument_indexes(
         cursor: &Cursor,
         c_cursor: *mut CCursor,
-        arity: usize,
+        arity: u64,
     ) -> Result<&'a [u32], RDFStoreError> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
         // pub fn CCursor_getArgumentIndexes(
@@ -148,8 +148,8 @@ impl<'a> OpenedCursor<'a> {
 
     /// Get the resource ID from the arguments buffer which dynamically changes
     /// after each cursor advance.
-    pub(crate) fn resource_id(&self, term_index: usize) -> Result<Option<u64>, RDFStoreError> {
-        if let Some(argument_index) = self.argument_indexes.get(term_index) {
+    pub(crate) fn resource_id(&self, term_index: u64) -> Result<Option<u64>, RDFStoreError> {
+        if let Some(argument_index) = self.argument_indexes.get(term_index as usize) {
             if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
                 Ok(Some(*resource_id))
             } else {
@@ -172,7 +172,7 @@ impl<'a> OpenedCursor<'a> {
     /// TODO: Check why this panics when called after previous call returned
     /// zero
     pub fn advance(&mut self) -> Result<u64, RDFStoreError> {
-        let mut multiplicity = 0_usize;
+        let mut multiplicity = 0_u64;
         database_call!(
             "advancing the cursor",
             CCursor_advance(self.cursor.inner, &mut multiplicity)
@@ -207,11 +207,11 @@ impl<'a> OpenedCursor<'a> {
     ///     ) -> *const root::CException;
     /// }
     /// ```
-    pub fn get_answer_variable_name(&self, index: usize) -> Result<String, RDFStoreError> {
+    pub fn get_answer_variable_name(&self, index: u64) -> Result<String, RDFStoreError> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "getting a variable name",
-            CCursor_getAnswerVariableName(self.cursor.inner, index as usize, &mut c_buf)
+            CCursor_getAnswerVariableName(self.cursor.inner, index, &mut c_buf)
         )?;
         let c_name = unsafe { std::ffi::CStr::from_ptr(c_buf) };
         Ok(c_name.to_str().unwrap().to_owned())

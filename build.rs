@@ -6,6 +6,7 @@
 extern crate core;
 
 use {
+    bindgen::RustTarget,
     lazy_static::lazy_static,
     std::{
         env,
@@ -281,9 +282,7 @@ fn main() {
 
     // Tell cargo to tell rustc to link the libRDFox.a static library.
     #[cfg(not(feature = "rdfox-dylib"))]
-    // println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
-    // println!("cargo:rustc-link-lib=static:+whole-archive=RDFox-static");
-    println!("cargo:rustc-link-lib=static=RDFox-static");
+    println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
     #[cfg(not(feature = "rdfox-dylib"))]
     println!("cargo:rustc-link-lib=static=c++");
     #[cfg(not(feature = "rdfox-dylib"))]
@@ -297,25 +296,37 @@ fn main() {
             out_path.display(),
             rdfox_archive_name()
         ))
+        .rust_target(RustTarget::Nightly)
         .generate_comments(true)
         .opaque_type("void")
+        .default_enum_style(bindgen::EnumVariation::Rust {
+            non_exhaustive: true,
+        })
         .translate_enum_integer_types(true)
         .clang_arg(r"-xc++")
         .clang_arg(r"-std=c++11")
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
-        .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
+        // .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
+        .emit_builtins()
+        .layout_tests(true)
+        .enable_function_attribute_detection()
+        .no_copy(".*CServerConnection.*")
+        .no_copy(".*CDataStoreConnection.*")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         // .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .rustfmt_configuration_file(Some(PathBuf::from(RUSTFMT_CONFIG)))
-        .default_enum_style(bindgen::EnumVariation::Rust {
-            non_exhaustive: true,
-        })
         .enable_cxx_namespaces()
-        .size_t_is_usize(true)
+        .merge_extern_blocks(true)
+        .wrap_unsafe_ops(true)
+        .array_pointers_in_arguments(true)
+        .dynamic_link_require_all(true)
+        .size_t_is_usize(false)
+        .explicit_padding(true)
+        .sort_semantically(true)
         .respect_cxx_access_specs(true)
-        .vtable_generation(true)
+        .vtable_generation(false)
         .enable_function_attribute_detection()
         .generate_inline_functions(true);
 
@@ -324,6 +335,11 @@ fn main() {
         builder = builder.blocklist_item(item);
         builder = builder.blocklist_function(item);
     }
+
+    // let command_line_flags = builder.command_line_flags();
+    // for flag in &command_line_flags {
+    //     println!("cargo:warning={flag}");
+    // }
 
     // Finish the builder and generate the bindings.
     let bindings = builder

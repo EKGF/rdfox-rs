@@ -1,7 +1,6 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 #![feature(rustc_private)]
-#![feature(cstr_from_bytes_until_nul)]
 #![feature(ptr_metadata)]
 
 extern crate core;

@@ -297,15 +297,8 @@ impl DataStoreConnection {
         //     CString::new(DEFAULT_BASE_IRI).unwrap()
         // };
         let statement_text = statement.as_c_string()?;
-        let statement_text_len = statement_text.as_bytes().len();
-        let mut statement_result: CStatementResult = Default::default();
-        // pub fn CDataStoreConnection_evaluateUpdate(
-        //     dataStoreConnection: *mut root::CDataStoreConnection,
-        //     updateText: *const ::std::os::raw::c_char,
-        //     updateTextLength: usize,
-        //     compilationParameters: *const root::CParameters,
-        //     statementResult: *mut usize,
-        // ) -> *const root::CException;
+        let statement_text_len = statement_text.as_bytes().len() as u64;
+        let mut statement_result: CStatementResult = [0, 0];
         database_call!(
             "evaluating an update statement",
             CDataStoreConnection_evaluateUpdate(
@@ -313,17 +306,11 @@ impl DataStoreConnection {
                 statement_text.as_ptr(),
                 statement_text_len,
                 parameters.inner,
-                statement_result.as_mut_ptr(),
+                &mut statement_result,
             )
         )?;
-        tracing::trace!(
-            "Evaluated update statement: {:?}",
-            statement_result
-        );
-        Ok((
-            statement_result[0] as u64,
-            statement_result[1] as u64,
-        ))
+        tracing::trace!("Evaluated update statement: {statement_result:?}",);
+        Ok((statement_result[0], statement_result[1]))
     }
 
     pub fn evaluate_to_stream<'a, W>(
