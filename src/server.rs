@@ -51,17 +51,25 @@ impl Server {
     pub fn is_running(&self) -> bool { self.running.load(Ordering::Relaxed) }
 
     pub fn start(role_creds: RoleCreds) -> Result<Arc<Self>, RDFStoreError> {
-        Self::start_with_parameters(role_creds, &Parameters::empty()?)
+        Self::start_with_parameters(role_creds, None)
     }
 
     pub fn start_with_parameters(
         role_creds: RoleCreds,
-        params: &Parameters,
+        params: Option<Parameters>,
     ) -> Result<Arc<Self>, RDFStoreError> {
-        database_call!(
-            "Starting a local RDFFox server",
-            CServer_startLocalServer(params.inner)
-        )?;
+        if let Some(params) = params {
+            database_call!(
+                "Starting a local RDFFox server",
+                CServer_startLocalServer(params.inner.cast_const())
+            )?;
+        } else {
+            let params = Parameters::empty()?;
+            database_call!(
+                "Starting a local RDFFox server",
+                CServer_startLocalServer(params.inner.cast_const())
+            )?;
+        };
         let server = Server {
             default_role_creds: role_creds,
             running:            AtomicBool::new(true),

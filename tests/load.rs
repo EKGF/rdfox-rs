@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 /// We're using `#[test_log::test]` tests in this file which allows
 /// you to see the log in your test runner if you set the environment
@@ -7,8 +7,6 @@
 /// See https://crates.io/crates/test-log.
 ///
 /// TODO: Add test for "import axioms" (add test ontology)
-use std::path::Path;
-
 use {
     indoc::formatdoc,
     iref::Iri,
@@ -27,6 +25,7 @@ use {
         Statement,
         Transaction,
     },
+    // std::path::Path,
     std::{ops::Deref, sync::Arc, thread::sleep, time::Duration},
 };
 
@@ -40,12 +39,14 @@ fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
 
 fn test_create_server() -> Result<Arc<Server>, RDFStoreError> {
     tracing::info!("test_create_server");
-    let server_params = &Parameters::empty()?
-        .api_log(true)?
-        .api_log_directory(Path::new("./tests"))?
+    let server_params = Parameters::empty()?
         .persist_datastore(PersistenceMode::Off)?
         .persist_roles(PersistenceMode::Off)?;
-    Server::start_with_parameters(RoleCreds::default(), server_params)
+
+    // TODO: The line below causes a SIGSEGV error when using the static link
+    // library .api_log_directory(Path::new("./tests"))?;
+
+    Server::start_with_parameters(RoleCreds::default(), Some(server_params))
 }
 
 fn test_create_server_connection(

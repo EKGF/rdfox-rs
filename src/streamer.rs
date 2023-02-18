@@ -111,7 +111,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 connection_ptr,
                 statement_text.as_ptr(),
                 statement_text_len,
-                parameters.inner,
+                parameters.inner.cast_const(),
                 stream_raw_ptr as *const COutputStream,
                 query_answer_format_name.as_ptr(),
                 &mut number_of_solutions,

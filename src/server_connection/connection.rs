@@ -85,7 +85,6 @@ impl ServerConnection {
     }
 
     pub fn get_number_of_threads(&self) -> Result<u32, RDFStoreError> {
-        tracing::trace!("get_number_of_threads");
         let mut number_of_threads = 0_u64;
         database_call!(
             format!(
@@ -116,7 +115,6 @@ impl ServerConnection {
     }
 
     pub fn get_memory_use(&self) -> Result<(u64, u64), RDFStoreError> {
-        tracing::trace!("get_memory_use");
         let mut max_used_bytes = 0_u64;
         let mut available_bytes = 0_u64;
         database_call!(CServerConnection_getMemoryUse(
@@ -149,7 +147,7 @@ impl ServerConnection {
             CServerConnection_createDataStore(
                 self.inner,
                 c_name.as_ptr(),
-                data_store.parameters.inner,
+                data_store.parameters.inner.cast_const(),
             )
         )?;
         tracing::debug!(

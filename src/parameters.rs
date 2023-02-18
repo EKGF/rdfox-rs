@@ -9,6 +9,7 @@ use {
         root::{
             CParameters,
             CParameters_destroy,
+            CParameters_getString,
             CParameters_newEmptyParameters,
             CParameters_setString,
         },
@@ -16,9 +17,12 @@ use {
     alloc::ffi::CString,
     rdf_store_rs::{consts::LOG_TARGET_DATABASE, RDFStoreError},
     std::{
+        ffi::CStr,
         fmt::{Display, Formatter},
+        os::raw::c_char,
         path::Path,
         ptr,
+        sync::Arc,
     },
 };
 
@@ -44,9 +48,9 @@ impl Display for PersistenceMode {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Parameters {
-    pub(crate) inner: *mut CParameters,
+    pub(crate) inner: Arc<*mut CParameters>,
 }
 
 unsafe impl Sync for Parameters {}
@@ -67,7 +71,7 @@ impl Drop for Parameters {
             "Parameters-object was already dropped"
         );
         unsafe {
-            CParameters_destroy(self.inner);
+            CParameters_destroy(self.inner.cast());
             tracing::trace!(target: LOG_TARGET_DATABASE, "Destroyed params");
         }
     }
@@ -80,7 +84,7 @@ impl Parameters {
             "Allocating parameters",
             CParameters_newEmptyParameters(&mut parameters)
         )?;
-        Ok(Parameters { inner: parameters })
+        Ok(Parameters { inner: Arc::new(parameters) })
     }
 
     pub fn set_string(&self, key: &str, value: &str) -> Result<(), RDFStoreError> {
@@ -93,8 +97,30 @@ impl Parameters {
         );
         database_call!(
             msg.as_str(),
-            CParameters_setString(self.inner, c_key.as_ptr(), c_value.as_ptr())
+            CParameters_setString(*self.inner, c_key.as_ptr(), c_value.as_ptr())
         )
+    }
+
+    pub fn get_string(&self, key: &str, default: &str) -> Result<String, RDFStoreError> {
+        let c_key = CString::new(key).unwrap();
+        let c_default = CString::new(default).unwrap();
+        let mut c_value: *const c_char = ptr::null();
+        let msg = format!(
+            "Getting parameter {} with default value {}",
+            c_key.to_str().unwrap(),
+            c_default.to_str().unwrap()
+        );
+        database_call!(
+            msg.as_str(),
+            CParameters_getString(
+                *self.inner,
+                c_key.as_ptr(),
+                c_default.as_ptr(),
+                &mut c_value as *mut *const c_char
+            )
+        )?;
+        let c_version = unsafe { CStr::from_ptr(c_value) };
+        Ok(c_version.to_str().unwrap().to_owned())
     }
 
     pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, RDFStoreError> {
@@ -162,7 +188,29 @@ impl Parameters {
     /// Specifies the directory into which API logs will be written.
     /// Default is directory api-log within the configured server directory.
     pub fn api_log_directory(self, dir: &Path) -> Result<Self, RDFStoreError> {
-        self.set_string("api-log.directory", dir.to_str().unwrap())?;
-        Ok(self)
+        if dir.exists() {
+            let x = self.api_log(true)?;
+            x.set_string("api-log.directory", dir.to_str().unwrap())?;
+            Ok(x)
+        } else {
+            tracing::error!(
+                "Could not enable logging since directory does not exist: {}",
+                dir.to_str().unwrap()
+            );
+            Ok(self)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Parameters;
+
+    #[test_log::test]
+    fn test_set_param() {
+        let params = Parameters::empty().unwrap();
+        params.set_string("key1", "value1").unwrap();
+        let value = params.get_string("key1", "whatever").unwrap();
+        assert_eq!(value, "value1");
     }
 }

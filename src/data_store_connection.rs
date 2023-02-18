@@ -305,7 +305,7 @@ impl DataStoreConnection {
                 self.inner,
                 statement_text.as_ptr(),
                 statement_text_len,
-                parameters.inner,
+                parameters.inner.as_ref().cast_const(),
                 &mut statement_result,
             )
         )?;

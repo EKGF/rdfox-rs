@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, agnos.ai UK Ltd, all rights reserved.
+// Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 //! build.rs
 #![feature(absolute_path)]
@@ -32,8 +32,17 @@ const BLOCKLIST_ITEMS: &[&str] = &[
     "std::remove_const_type",
     "std::remove_volatile_type",
     "^std::value$",
+    "__va_list_tag",
+    "__builtin_va_list",
+    "__darwin_va_list",
+    "va_list",
+    "vasprintf",
+    "vdprintf",
+    "__darwin_pthread_handler_rec",
     "^_Tp$",
 ];
+const ALLOWLIST_ITEMS: &[&str] = &["C.*"];
+
 const RUSTFMT_CONFIG: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.rustfmt.toml");
 
 lazy_static! {
@@ -298,7 +307,7 @@ fn main() {
         ))
         .rust_target(RustTarget::Nightly)
         .generate_comments(true)
-        .opaque_type("void")
+        // .opaque_type("void")
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: true,
         })
@@ -308,9 +317,15 @@ fn main() {
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
         // .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
-        .emit_builtins()
+        // .emit_builtins()
         .layout_tests(true)
-        .enable_function_attribute_detection()
+        // .enable_function_attribute_detection()
+        .no_copy(".*CCursor.*")
+        .no_copy(".*COutputStream.*")
+        .no_copy(".*CException.*")
+        .no_copy(".*CInputStream.*")
+        .no_copy(".*CParameters.*")
+        .no_copy(".*CPrefixes.*")
         .no_copy(".*CServerConnection.*")
         .no_copy(".*CDataStoreConnection.*")
         // Tell cargo to invalidate the built crate whenever any of the
@@ -318,22 +333,27 @@ fn main() {
         // .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .rustfmt_configuration_file(Some(PathBuf::from(RUSTFMT_CONFIG)))
         .enable_cxx_namespaces()
-        .merge_extern_blocks(true)
-        .wrap_unsafe_ops(true)
+        // .merge_extern_blocks(true)
+        // .wrap_unsafe_ops(true)
         .array_pointers_in_arguments(true)
-        .dynamic_link_require_all(true)
+        // .dynamic_link_require_all(true)
         .size_t_is_usize(false)
-        .explicit_padding(true)
+        // .explicit_padding(true)
         .sort_semantically(true)
         .respect_cxx_access_specs(true)
-        .vtable_generation(false)
-        .enable_function_attribute_detection()
-        .generate_inline_functions(true);
-
+        // .vtable_generation(false)
+        // .enable_function_attribute_detection()
+        // .generate_inline_functions(true);
+        ;
     for item in BLOCKLIST_ITEMS {
         builder = builder.blocklist_type(item);
         builder = builder.blocklist_item(item);
         builder = builder.blocklist_function(item);
+    }
+    for item in ALLOWLIST_ITEMS {
+        builder = builder.allowlist_type(item);
+        builder = builder.allowlist_var(item);
+        builder = builder.allowlist_function(item);
     }
 
     // let command_line_flags = builder.command_line_flags();

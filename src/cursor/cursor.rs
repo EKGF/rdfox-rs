@@ -64,7 +64,7 @@ impl Cursor {
                 connection.inner,
                 c_query.as_ptr(),
                 c_query_len,
-                parameters.inner,
+                parameters.inner.as_ref().cast_const(),
                 &mut c_cursor,
             )
         )?;
