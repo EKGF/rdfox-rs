@@ -1,0 +1,2796 @@
+@base <https://placeholder.kg/id/> .
+@prefix api:                     <https://ekgf.org/ontology/api/> .
+@prefix auth:                    <https://ekgf.org/ontology/authorization/> .
+@prefix concept:                 <https://ekgf.org/ontology/concept/> .
+@prefix data-mig:                <https://ekgf.org/ontology/data-migration/> .
+@prefix dct:                     <http://purl.org/dc/terms/> .
+@prefix document:                <https://ekgf.org/ontology/document/> .
+@prefix employment:              <https://ekgf.org/ontology/employment/> .
+@prefix enum:                    <https://ekgf.org/ontology/enum/> .
+@prefix event:                   <https://ekgf.org/ontology/event/> .
+@prefix fibo-fnd-plc-loc:        <https://spec.edmcouncil.org/fibo/ontology/FND/Places/Locations/> .
+@prefix file:                    <https://ekgf.org/ontology/file/> .
+@prefix fin-reg:                 <https://ekgf.org/ontology/financial-regulation/> .
+@prefix gleif-base:              <https://www.gleif.org/ontology/Base/> .
+@prefix ident:                   <https://ekgf.org/ontology/identifier/> .
+@prefix legal-entity:            <https://ekgf.org/ontology/legal-entity/> .
+@prefix lem:                     <https://placeholder.kg/ontology/legal-entity-management/> .
+@prefix organization:            <https://ekgf.org/ontology/organization/> .
+@prefix prov:                    <http://www.w3.org/ns/prov#> .
+@prefix raw:                     <https://ekgf.org/ontology/raw/> .
+@prefix rdf:                     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:                    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:                    <http://www.w3.org/2004/02/skos/core#> .
+@prefix temporality:             <https://ekgf.org/ontology/temporality/> .
+@prefix use-case:                <https://ekgf.org/ontology/use-case/> .
+@prefix user-account:            <https://ekgf.org/ontology/user-account/> .
+@prefix vcard:                   <http://www.w3.org/2006/vcard/ns#> .
+@prefix wfi:                     <https://ekgf.org/ontology/workflow-instance/> .
+@prefix xsd:                     <http://www.w3.org/2001/XMLSchema#> .
+
+<concept-legacy-id>
+  a                        concept:Concept, concept:PropertyConcept ;
+  rdfs:label               "Legacy ID" ;
+  rdfs:comment             "Represents the primary key that is being used in the original data source" ;
+  concept:key              "legacyId" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:legacyId ;
+  concept:raw              raw:referenceId ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-change-reason>
+  a            concept:PropertyConcept ;
+  concept:key  "changeReason" ;
+  rdfs:label   "Change Reason" ;
+  rdfs:comment "Reason for change" ;
+  concept:type xsd:string ;
+.
+
+<concept-created-at>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Created At" ;
+  concept:key              "createdAt" ;
+  concept:type             xsd:dateTime ;
+  concept:raw              raw:entryCreatedAt ;
+  concept:predicate        prov:atTime ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-last-updated-at>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Last Updated At" ;
+  concept:key              "lastUpdatedAt" ;
+  concept:type             xsd:dateTime ;
+  concept:raw              raw:entryCreatedAt ;
+  concept:predicate        prov:atTime ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-last-updated-by>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Last Updated By" ;
+  concept:key              "lastUpdatedBy" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:entryCreatedBy ;
+  skos:editorialNote       "the initiator of the last non-deleted workflow instance" ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-last-updated-by-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Last Updated By label" ;
+  concept:key              "lastUpdatedByLabel" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "name of the last person to effect a change on the entity" ;
+  use-case:isUsedInUseCase <use-case-audit> ; .
+
+<concept-created-by>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Created By" ;
+  concept:key              "createdBy" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:entryCreatedBy ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-audit> ; .
+
+<concept-created-by-output>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Created By" ;
+  rdfs:comment             "Created By As an output, because of an rdf4j limitation" ;
+  concept:key              "createdBy_" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:entryCreatedBy ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-audit> ; .
+
+<concept-created-by-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Created By Label" ;
+  rdfs:comment             "Label of the creator" ;
+  concept:key              "createdByLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ; .
+
+<concept-registration-authority>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Registration Authority" ;
+  concept:key              "registrationAuthority" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-registration-authority-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Registration Authority" ;
+  concept:key              "registrationAuthorityLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-commercial-register>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Commercial Register" ;
+  concept:key              "commercialRegister" ;
+  concept:predicate        gleif-base:isRegisteredIn ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-commercial-register-country>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Commercial Register Country" ;
+  concept:key              "commercialRegisterCountry" ;
+  concept:predicate        gleif-base:hasCoverageArea ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-commercial-register-region>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Commercial Register Region" ;
+  concept:key              "commercialRegisterRegion" ;
+  concept:predicate        gleif-base:hasCoverageArea ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-commercial-register-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Commercial Register Label" ;
+  concept:key              "commercialRegisterLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-commercial-register-search-text>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Commercial Register Search Text" ;
+  rdfs:comment             "Searches the commercial register, registration authority, region and country" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-business-registration> ; .
+
+<concept-commercial-register-date-of-entry>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register Date of Entry" ;
+  concept:key              "commercialRegisterDateOfEntry" ;
+  concept:predicate        gleif-base:hasInitialRegistrationDate ;
+  concept:type             xsd:dateTime ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-commercial-register-date-of-dissolution>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register Date of Dissolution" ;
+  concept:key              "dissolutionDate" ;
+  concept:type             xsd:dateTime ;
+  concept:predicate        event:hasDateTime ;
+  concept:raw              raw:dateOfDissolution ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+  use-case:isUsedInUseCase <use-case-legal-entity-dissolution> ;
+.
+
+<concept-dissolution>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Dissolution" ;
+  concept:key              "dissolution" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        event:Dissolution ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+  use-case:isUsedInUseCase <use-case-legal-entity-dissolution> ;
+.
+
+<concept-commercial-register-in-liquidation-since>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register In Liquidation Since" ;
+  concept:key              "liquidationDate" ;
+  concept:type             xsd:dateTime ;
+  concept:predicate        event:hasDateTime ;
+  concept:raw              raw:inLiquidationSince ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+  use-case:isUsedInUseCase <use-case-legal-entity-liquidation> ;
+.
+
+<concept-liquidation>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Liquidation" ;
+  concept:key              "liquidation" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        event:Liquidation ;
+  use-case:isUsedInUseCase <use-case-legal-entity-liquidation> ;
+.
+
+<concept-liquidated-legal-entity>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Liquidated Legal Entity" ;
+  concept:key              "liquidatedLegalEntity" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        event:hasPrimaryEntity ;
+  use-case:isUsedInUseCase <use-case-legal-entity-liquidation> ;
+.
+
+<concept-liquidator>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Liquidator" ;
+  concept:key              "liquidator" ;
+  concept:predicate        fin-reg:hasLiquidator ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-liquidation> ;
+.
+
+<concept-liquidator-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Liquidator Label" ;
+  concept:key              "liquidatorLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-liquidation> ;
+.
+
+<concept-liquidators>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Liquidators" ;
+  concept:key              "liquidators" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:liquidators ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-liquidation> ;
+.
+
+<concept-class>
+  a            concept:ClassConcept ;
+  rdfs:label   "Class" ;
+  rdfs:comment "an IRI for a class" ;
+  concept:key  "class" ;
+  concept:type xsd:anyURI ;
+.
+
+<concept-iri>
+  a            concept:PropertyConcept ;
+  rdfs:label   "IRI" ;
+  rdfs:comment "An IRI" ;
+  concept:key  "iri" ;
+  concept:type xsd:anyURI ;
+.
+
+<concept-iri-or-bnode>
+  a            concept:PropertyConcept ;
+  rdfs:label   "IRI Or Bnode" ;
+  rdfs:comment "An IRI or bnode, as a string" ;
+  concept:key  "iri" ;
+  concept:type xsd:string ;
+.
+
+<concept-base-iri>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Base IRI" ;
+  rdfs:comment "An EKG environment's deployment base IRI" ;
+  concept:key  "baseIri" ;
+  concept:type xsd:anyURI ;
+.
+
+<concept-deprecated-from>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Deprecated From" ;
+  rdfs:comment "DateTime from which to deprecate, inclusive" ;
+  concept:key  "deprecatedFrom" ;
+  concept:type xsd:dateTime ;
+.
+
+<concept-graph>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph" ;
+  concept:key        "graph" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-default>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Mutable default" ;
+  concept:key        "graphMutableDefault" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-mutable-audit>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Mutable Audit" ;
+  concept:key        "graphMutableAudit" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-mutable-migration>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Mutable Migration" ;
+  concept:key        "graphMutableMigration" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-mutable-sessions>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Mutable Sessions" ;
+  concept:key        "graphMutableSessions" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-mutable-metadata>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Mutable Metadata" ;
+  concept:key        "graphMutableMetadata" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-mutable-document>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Mutable Document" ;
+  concept:key        "graphMutableDocument" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-immutable-ldap>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Immutable LDAP" ;
+  concept:key        "graphImmutableLdap" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-graph-immutable-org-vcs>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Graph Immutable ORG VCS" ;
+  concept:key        "graphImmutableOrgVcs" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-data-migration>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Data Migration" ;
+  concept:key       "dataMigration" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass data-mig:DataMigration ;
+.
+
+<concept-label>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Label" ;
+  rdfs:comment      "IRI's label" ;
+  concept:key       "label" ;
+  concept:type      xsd:string ;
+  concept:rdfsClass rdfs:label ;
+.
+
+<concept-literal-value>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Literal Value" ;
+  rdfs:comment      """to send rdf string encoded literal values. AKA typed Literals e.g. "\"P1Y\""^^xsd:duration" """ ;
+  concept:key       "literalValue" ;
+  concept:type      xsd:string ;
+  concept:predicate enum:hasValue ;
+.
+
+<concept-lei>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "LEI" ;
+  concept:key              "legalEntityIdentifier" ;
+  concept:type             xsd:string ;
+  concept:predicate        gleif-base:hasTag ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-legal-entity-iri>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Legal Entity IRI" ;
+  concept:key              "legalEntityIri" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:LegalEntity ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+
+<concept-latest-activity>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Latest Activity" ;
+  concept:key              "latestActivity" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-ownership-relationship>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Ownership Relationship" ;
+  concept:key              "ownershipRelationship" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:Ownership ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-owner-legal-entity>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Owne Legal Entity" ;
+  concept:key              "ownerLegalEntity" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        legal-entity:owner ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-owned-legal-entity>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Owned Legal Entity" ;
+  concept:key              "ownedLegalEntity" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        legal-entity:owned ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-owned-legal-entity-percentage>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Owned Legal Entity Percentage" ;
+  rdfs:comment             "Percentage ownership of a legal entity" ;
+  concept:key              "percentageOwned" ;
+  concept:predicate        legal-entity:hasPercentageOwned ;
+  concept:type             xsd:decimal ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-session-id>
+  a                  concept:ClassConcept ;
+  rdfs:label         "Session ID" ;
+  concept:key        "sessionId" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate class" ;
+.
+
+<concept-legal-entity-isInternalLegalEntity>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Entity is Internal Legal Entity " ;
+  concept:predicate        legal-entity:isInternalLegalEntity ;
+  concept:key              "isInternalLegalEntity" ;
+  concept:type             xsd:boolean ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-person-legal-name>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Person Legal Name" ;
+  concept:predicate        ident:hasName ;
+  concept:key              "legalName" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-person-legal-name-iri>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Legal Person Legal Name IRI" ;
+  concept:predicate        legal-entity:hasLegalName ;
+  concept:key              "legalNameIri" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-entity-business-purpose>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Entity Business Purpose" ;
+  concept:key              "businessPurpose" ;
+  concept:predicate        legal-entity:hasBusinessPurpose ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-entity-status>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Legal Entity Status" ;
+  rdfs:comment             "The operational and/or legal registration status of the entity (may be ACTIVE or INACTIVE)" ;
+  concept:key              "legalEntityStatus" ;
+  concept:predicate        legal-entity:hasEntityStatus ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:companyStatus ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-entity-status-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Entity Status Label" ;
+  concept:key              "legalEntityStatusLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-company-owner>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Company Owner" ;
+  concept:key              "companyOwner" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:CompanyOwner ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-company-owner-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Company Owner Label" ;
+  concept:key              "companyOwnerLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-assignment>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Assigment" ;
+  concept:key              "assignment" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        wfi:Assignment ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-natural-person>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Natural Person" ;
+  concept:key       "naturalPerson" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass legal-entity:NaturalPerson ;
+.
+
+<concept-legal-person>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Legal Person" ;
+  concept:key       "legalPerson" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass legal-entity:LegalPerson ;
+.
+
+<concept-legal-person-label>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Legal Person label" ;
+  concept:key       "legalPersonLabel" ;
+  concept:type      xsd:string ;
+  concept:predicate rdfs:label ;
+.
+
+<concept-rdf-type>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Type" ;
+  concept:key       "conceptType" ;
+  concept:type      xsd:anyURI ;
+  concept:predicate rdf:type ;
+.
+
+<concept-type>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Type" ;
+  concept:key       "conceptType" ;
+  concept:type      xsd:anyURI ;
+  concept:predicate concept:type ;
+.
+
+<concept-concept>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Concept" ;
+  concept:key       "concept" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass concept:Concept ;
+.
+
+<concept-class-concept>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Class Concept" ;
+  concept:key       "classConcept" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass concept:ClassConcept ;
+.
+
+<concept-property-concept>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Property Concept" ;
+  concept:key       "propertyConcept" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass concept:PropertyConcept ;
+.
+
+<concept-concept-key>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Concept key" ;
+  concept:key       "conceptKey" ;
+  concept:type      xsd:string ;
+  concept:predicate concept:key ;
+.
+
+<concept-concept-predicate>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Concept Predicate" ;
+  concept:key       "conceptPredicate" ;
+  concept:type      xsd:anyURI ;
+  concept:predicate concept:predicate ;
+.
+
+<concept-concept-rdfs-class>
+  a                 concept:PropertyConcept ;
+  rdfs:label        "Concept RDFs Class" ;
+  concept:key       "conceptRdfsClass" ;
+  concept:type      xsd:anyURI ;
+  concept:predicate concept:rdfsClass ;
+.
+
+<concept-concept-value>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Concept Value" ;
+  concept:key  "conceptValue" ;
+  concept:type xsd:string ;
+.
+
+<concept-contact-person-legal>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Legal" ;
+  concept:key              "contactPersonLegal" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:LegalContact ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+.
+
+<concept-contact-person-legal-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Legal Label" ;
+  concept:key              "contactPersonLegalLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-contact-person-tax>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Tax" ;
+  concept:key              "contactPersonTax" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:TaxContact ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+.
+
+<concept-contact-person-tax-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Tax Label" ;
+  concept:key              "contactPersonTaxLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-compliance-officer>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Compliance Officer" ;
+  concept:key              "complianceOfficer" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:ComplianceOfficer ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-compliance-officer-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Compliance Officer Label" ;
+  concept:key              "complianceOfficerLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-contact-person-internal-audit>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Internal Audit" ;
+  concept:key              "contactPersonInternalAudit" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:InternalAuditContact ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-contact-person-internal-audit-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Internal Audit Label" ;
+  concept:key              "contactPersonInternalAuditLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-external-auditor>
+  a                        concept:ClassConcept ;
+  rdfs:label               "External Auditor" ;
+  concept:key              "externalAuditor" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:externalAuditor ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-external-auditor-name>
+  a                        concept:ClassConcept ;
+  rdfs:label               "External Auditor Name" ;
+  concept:key              "externalAuditorName" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:externalAuditor ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-auditor-relationship-iri>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Auditor Relationship IRI" ;
+  concept:key              "auditorRelationshipIri" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        fin-reg:ExternalAuditingRelationship ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-auditor-relationship-started-at>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Auditor Relationship Started At" ;
+  concept:predicate        temporality:hasStartDate ;
+  concept:key              "auditorRelationshipStartedAt" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-auditor-relationship-ended-at>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Auditor Relationship Ended At" ;
+  concept:predicate        temporality:hasEndDate ;
+  concept:key              "auditorRelationshipEndedAt" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-contact-person-accounting>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Accounting" ;
+  concept:key              "contactPersonAccounting" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        legal-entity:AccountingContact ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-contact-person-accounting-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Person Accounting Label" ;
+  concept:key              "contactPersonAccountingLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-signatory>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Signatory" ;
+  concept:key              "signatory" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        employment:Appointment ;
+  use-case:isUsedInUseCase <use-case-signatories> ;
+.
+
+<concept-signatories-list>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Signatories List" ;
+  rdfs:comment             "Comma separated list of signatories" ;
+  concept:key              "signatoriesList" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-signatories> ;
+.
+
+<concept-signatory-comment>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Signatory Comment" ;
+  concept:key              "signatoryComment" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        document:SignatoryComment ;
+  use-case:isUsedInUseCase <use-case-signatories> ;
+.
+
+<concept-signatory-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Signatory Text" ;
+  concept:key              "signatoryText" ;
+  concept:type             xsd:string ;
+  concept:rdfsClass        document:hasText ;
+  use-case:isUsedInUseCase <use-case-signatories> ;
+.
+
+<concept-subject-to-anti-money-laundering-legislation>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Subject To Anti Money Laundering Legislation" ;
+  concept:key              "subjectToAntiMoneyLaunderingLegislation" ;
+  concept:type             xsd:boolean ;
+  concept:raw              raw:subjectToAntiMoneyLaunderingLegislation ;
+  concept:predicate        legal-entity:isSubjectToAML ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-subject-to-special-regulation-fatca-dodd-frank>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Subject To Special Regulation FATCA DODD Frank" ;
+  concept:key              "subjectToSpecialRegulationFatcaDoddFrank" ;
+  concept:type             xsd:boolean ;
+  concept:raw              raw:subjectToSpecialRegulationFatcaDoddFrank ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-accounting-standard>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Accounting Standard" ;
+  concept:key              "accountingStandard" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        fin-reg:hasAccountingStandard ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-accounting-standard-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Accounting Standart Label" ;
+  concept:key              "accountingStandardLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-accounting-location>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Accounting Location" ;
+  concept:key              "accountingLocation" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-fiscal-year-month>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Fiscal Year Month" ;
+  concept:key              "fiscalYearMonth" ;
+  concept:type             xsd:integer ;
+  concept:raw              raw:fiscalYearDay ;
+  concept:predicate        legal-entity:hasFiscalYearEndMonth ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-fiscal-year-day>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Fiscal Year Day" ;
+  concept:key              "fiscalYearDay" ;
+  concept:type             xsd:integer ;
+  concept:raw              raw:fiscalYearDay ;
+  concept:predicate        legal-entity:hasFiscalYearEndDay ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-subsidiaries-shares>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Subsidiaries Shares" ;
+  rdfs:comment             "Subsidiaries, Investments (% of share capital)" ;
+  concept:key              "subsidiariesShares" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:subsidiariesInvestmentsOfShareCapital ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-subsidiaries-shares-list>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Subsidiaries Shares List" ;
+  concept:key              "subsidiariesSharesList" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:subsidiariesInvestmentsOfShareCapital ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-is-consolidated>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Is Consolidated" ;
+  concept:key              "isConsolidated" ;
+  concept:predicate        legal-entity:isConsolidated ;
+  concept:type             xsd:boolean ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-is-regulated>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Is Regulated" ;
+  concept:key              "isRegulated" ;
+  concept:type             xsd:boolean ;
+  concept:raw              raw:regulated ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-supervision-authorities>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Supervision Authorities" ;
+  concept:key              "supervisionAuthorities" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:supervisionAuthorities ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-supervision-authorities-list>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Supervision Authorities List" ;
+  rdfs:comment             "List of Supervision Authorities" ;
+  concept:key              "supervisionAuthoritiesList" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:supervisionAuthorities ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-supervision-authority>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Supervision Authority" ;
+  concept:key              "supervisionAuthority" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        fin-reg:SupervisionAuthority ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-controller>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Controller" ;
+  concept:key              "controller" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        document:hasController ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-supervision-authority-relationship>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Supervision Authority Relationship" ;
+  concept:key              "supervisionAuthorityRelationship" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-type-of-license>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Type Of License" ;
+  concept:key              "typeOfLicense" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:typeOfLicense ;
+  concept:rawStripPrefix   "Type of License/" ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-type-of-license-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Type Of License Label" ;
+  concept:key              "typeOfLicenseLabel" ;
+  concept:type             xsd:string ;
+  concept:predicate        rdfs:label ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-license>
+  a                        concept:ClassConcept ;
+  rdfs:label               "License" ;
+  concept:key              "license" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        fin-reg:hasLicense ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-license-issue-date>
+  a                        concept:ClassConcept ;
+  rdfs:label               "License Issue Date" ;
+  concept:key              "licenseIssueDate" ;
+  concept:type             xsd:dateTime ;
+  concept:predicate        document:hasIssueDate ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-formal-comment>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Formal Comment" ;
+  concept:key              "formalComment" ;
+  concept:rdfsClass        document:FormalComment ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-comment-on-main-data>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Comment On Main Data" ;
+  concept:key              "commentOnMainData" ;
+  concept:predicate        document:hasText ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-comment>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Comment" ;
+  concept:key              "comment" ;
+  concept:predicate        rdfs:comment ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-accounting-standard-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Accounting Standard Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-accounting> ;
+.
+
+<concept-audit-monitoring-method-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Audit Monitoring Method Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-audit-monitoring-method>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Audit Monitoring Method" ;
+  concept:key              "auditMonitoringMethod" ;
+  concept:predicate        legal-entity:hasMonitoringMethod ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-audit-monitoring-method-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Audit Monitoring Method Label" ;
+  concept:key              "auditMonitoringMethodLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-currency-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Currency Search Text" ;
+  rdfs:comment             "Generic concept for any search text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-country-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Country Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "Generic concept for any search text" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management> ;
+.
+
+<concept-legal-form-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Form Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "Generic concept for any search text" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management> ;
+.
+
+<concept-legal-entity-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal entity Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "Generic concept for any search text" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management> ;
+.
+
+<concept-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "Generic concept for any search text" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management> ;
+.
+
+<concept-legal-entity-abbreviations>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Entity Abbreviations" ;
+  concept:key              "legalEntityAbbreviations" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-location-of-files>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Location Of Files" ;
+  concept:key              "locationOfFiles" ;
+  concept:predicate        legal-entity:hasStorageLocation ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        document:StorageLocation ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-location-of-files-comment>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Location Of Files Comment" ;
+  concept:key              "locationOfFilesComment" ;
+  concept:predicate        rdfs:comment ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-location-of-files-city>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Location Of Files City" ;
+  concept:key              "locationOfFilesCity" ;
+  concept:predicate        document:hasStorageCity ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-location-of-files-city-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Location Of Files City Label" ;
+  concept:key              "locationOfFilesCityLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+
+<concept-location-of-files-organization>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Location Of Files Organization" ;
+  concept:key              "locationOfFilesOrganization" ;
+  concept:predicate        document:hasStorageOrganization ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-location-of-files-organizational-unit>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Location Of Files Organizational Unit" ;
+  concept:key              "locationOfFilesOrganizationalUnit" ;
+  concept:predicate        organization:hasSubUnits ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-location-of-files-organizational-unit-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Location Of Files Organizational Unit Label" ;
+  concept:key              "locationOfFilesOrganizationalUnitLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-location-of-files-legal-entity>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Location Of Files Legal Entity" ;
+  concept:key              "locationOfFilesLegalEntity" ;
+  concept:rdfsClass        legal-entity:LegalEntity ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-location-of-files-legal-entity-name>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Location Of Files Legal Entity Name" ;
+  concept:key              "locationOfFilesLegalEntityName" ;
+  concept:predicate        ident:hasName ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-commercial-register-certificate-of-registration>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register Certification Of Registration" ;
+  concept:key              "commercialRegisterCertificateOfRegistration" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-commercial-register-certificate-of-registration-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register Certification Of Registration Label" ;
+  concept:key              "commercialRegisterCertificateOfRegistrationLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-bylaws-articles-of-association>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Bylaws Articles Of Association" ;
+  concept:key              "bylawsArticlesOfAssociation" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-documentation-of-business-case>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Documentation Of Business Case" ;
+  concept:key              "documentationOfBusinessCase" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-other-documents>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Other Documents" ;
+  concept:key              "otherDocuments" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:otherDocuments ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ; .
+
+<concept-prov-activity>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Prov Activity" ;
+  concept:key              "activityId" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-audit> ;
+.
+
+<concept-started-at-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Started At Time" ;
+  concept:predicate        prov:startedAtTime ;
+  concept:key              "startedAtTime" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-audit>, <use-case-workflow> ;
+.
+
+<concept-ended-at-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Ended At Time" ;
+  concept:predicate        prov:endedAtTime ;
+  concept:key              "endedAtTime" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-audit>, <use-case-workflow> ;
+.
+
+<concept-country-of-formation>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Country Of Formation" ;
+  concept:key              "countryOfFormation" ;
+  concept:predicate        legal-entity:hasDomicile ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-country-of-domicile-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Country Of Domicile Label" ;
+  concept:key              "countryOfDomicileLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-domicile>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Domicile" ;
+  concept:key              "domicile" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-form>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Legal Form" ;
+  concept:key              "legalForm" ;
+  concept:predicate        legal-entity:hasLegalForm ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:legalNature ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-form-tag>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Form Tag" ; #The tag is useful to differentiate between legal form labels that are not unique
+  concept:key              "legalFormTag" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-form-code>
+  concept:key              "ELFCode" ;
+  rdfs:label               "Legal Form Code" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-form-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Form Label" ;
+  concept:key              "legalFormLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legal-form-abbreviation-local-language>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legal Form Abbreviation Local Language" ;
+  concept:key              "abbreviationLocalLanguage" ;
+  concept:predicate        gleif-base:hasAbbreviationLocal ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+
+<concept-coverage-area>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Coverage Area" ;
+  concept:key              "coverageArea" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-coverage-area-label>
+  concept:key              "coverageAreaLabel" ;
+  rdfs:label               "Coverage Area Label" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-domicile-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Domicile Label" ;
+  concept:key              "domicileLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-legacy-address>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legacy Address" ;
+  rdfs:comment             "Legacy Address as it appeared in the original source" ;
+  concept:key              "legacyAddress" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-address> ;
+.
+
+<concept-legacy-postal-code>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legacy Postal Code" ;
+  rdfs:comment             "Legacy Postal Code as it appeared in the original source" ;
+  concept:key              "legacyPostalCode" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:postalCode ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-address> ;
+.
+
+<concept-physical-address>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Physical Address" ;
+  rdfs:comment             "The address where communications can be addressed, papers served or representatives located for any kind of organization or person" ;
+  concept:key              "physicalAddress" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-legal-address>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Legal Address" ;
+  concept:key              "legalAddress" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        legal-entity:hasLegalAddress ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-address-line-1>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Address Line 1" ;
+  rdfs:comment             "The mandatory first address line element" ;
+  concept:key              "addressLine1" ;
+  concept:type             xsd:string ;
+  concept:predicate        gleif-base:hasAddressLine1 ;
+  concept:raw              raw:hasAddressLine1 ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-address-line-2>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Address Line 2" ;
+  rdfs:comment             "The second line of the one to three optional additional address line elements" ;
+  concept:key              "addressLine2" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:hasAddressLine2 ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-address-line-3>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Address Line 3" ;
+  rdfs:comment             "The third line of the one to three optional additional address line elements" ;
+  concept:key              "addressLine3" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:hasAddressLine3 ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-mail-routing>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Mail Routing" ;
+  concept:key              "mailRouting" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:hasMailRouting ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-postal-code>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Postal Code" ;
+  concept:key              "postalCode" ;
+  concept:type             xsd:string ;
+  concept:predicate        gleif-base:hasPostalCode ;
+  concept:raw              raw:hasPostalCode ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-legacy-city>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legacy City" ;
+  rdfs:comment             "Legacy City as it appeared in the original source" ;
+  concept:key              "legacyCity" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-address> ;
+.
+
+<concept-legacy-country>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legacy Country" ;
+  rdfs:comment             "Legacy Country as it appeared in the original source" ;
+  concept:key              "legacyCountry" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-address> ;
+.
+
+<concept-legacy-company-status>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Legacy Company Status" ;
+  rdfs:comment             "Legacy Company Status as it appeared in the original source" ;
+  concept:key              "legacyCompanyStatus" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+
+<concept-commercial-register-entry>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register Entry" ;
+  concept:key              "commercialRegisterEntry" ;
+  concept:predicate        gleif-base:hasTag ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+.
+
+<concept-lei-register-entry>
+  a                        concept:ClassConcept ;
+  rdfs:label               "LEI Register Entry" ;
+  rdfs:comment             "An identifier associated with an entry in a registry, i.e., one that provides an index to the registry for the recorded item." ;
+  concept:key              "leiRegistryEntry" ;
+  concept:rdfsClass        gleif-base:RegistryIdentifier ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+.
+
+<concept-commercial-register-number>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Commercial Register Number" ;
+  concept:key              "commercialRegisterNumber" ;
+  concept:predicate        gleif-base:hasTag ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-commercial-register> ;
+.
+
+<concept-region>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Region" ;
+  concept:key              "region" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-region-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Region Label" ;
+  concept:key              "regionLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-country-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Country Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "Country search includes English name and local name" ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-sub-region>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Sub Region" ;
+  concept:key              "subRegion" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-sub-region-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Sub Region Label" ;
+  concept:key              "subRegionLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-functional-currency>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Functional Currency" ;
+  concept:key              "functionalCurrency" ;
+  concept:predicate        legal-entity:hasFunctionalCurrency ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:functionalCurrency ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-functional-currency-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Functional Currency Label" ;
+  concept:key              "functionalCurrencyLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-currency>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Currency" ;
+  concept:key              "currency" ;
+  concept:type             xsd:anyURI ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-capital-raise>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Capital Raise" ;
+  concept:key              "capitalRaise" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        legal-entity:hasCapitalRaised ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-capital-raise-iri>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Capital Raise IRI" ;
+  concept:key              "capitalRaiseIri" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-capital-raise-currency>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Capital Raise Currency" ;
+  concept:key              "capitalRaiseCurrency" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        event:hasCurrency ;
+  concept:raw              raw:shareCapitalCurrency ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-share-issue>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Share Issue" ;
+  concept:key              "shareIssue" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-share-issue-denomination-currency>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Share Issue Denomination Currency" ;
+  concept:key              "shareIssueDenominationCurrency" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-share-issue-denomination-currency-code>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Share Issue Denomination Currency Code" ;
+  concept:key              "shareIssueDenominationCurrencyCode" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-capital-raise-paid-in-amount>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Capital Raise Paid In Amount" ;
+  concept:key              "capitalRaisePaidInAmount" ;
+  concept:predicate        event:hasValue ;
+  concept:type             xsd:decimal ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-parent-companies>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Parent Companies" ;
+  concept:key              "parentCompanies" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:parentCompanies ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-share-and-ownership> ;
+.
+
+<concept-parent-companies-list>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Parent Companies List" ;
+  rdfs:comment             "Comma separated list of parent companies and percentage ownership" ;
+  concept:key              "parentCompaniesList" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:parentCompanies ;
+  skos:editorialNote       "TODO: Link to the appropriate class" ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-mou-between-supervisor-and-fma>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "MOU Between Supervisor And FMA" ;
+  rdfs:comment             "Memorandum of Understanding between Supervisor and FMA" ;
+  concept:key              "mouBetweenSupervisorAndFma" ;
+  concept:type             xsd:boolean ;
+  concept:raw              raw:mouBetweenSupervisorAndFma ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-listed-at-the-adv-form>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Listed At The ADV Form" ;
+  concept:key              "listedAtTheAdvForm" ;
+  concept:type             xsd:boolean ;
+  concept:predicate        legal-entity:hasADVForm ;
+  concept:raw              raw:listedAtTheADVFormSec ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-domiciled-in-eu>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Domiciled In EU" ;
+  rdfs:comment             "Domiciled in an European Union country" ;
+  concept:key              "domiciledInEU" ;
+  concept:type             xsd:boolean ;
+  concept:raw              raw:eu ;
+  use-case:isUsedInUseCase <use-case-legal-entity-addresses> ;
+.
+
+<concept-name-of-counterparty>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Name of Counterparty" ;
+  concept:key              "nameOfCounterparty" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:nameOfCounterparty ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-regulation-reporting-requirement>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Regulation Reporting Requirement" ;
+  rdfs:comment             "Reporting requirement of special regulation" ;
+  concept:key              "regulationReportingRequirement" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-regulation-reporting-requests>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Regulation Reporting Requests" ;
+  rdfs:comment             "Reporting requests of special regulation" ;
+  concept:key              "regulationReportingRequests" ;
+  concept:type             xsd:boolean ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-special-regulation>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Special Regulation" ;
+  concept:key              "specialRegulation" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-special-regulation-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Special Regulation Search Text" ;
+  rdfs:comment             "Search for special regulation by label" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-name-of-special-regulation>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Name Of Special Regulation" ;
+  concept:key              "nameOfSpecialRegulation" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:nameOfSpecialRegulation ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+
+<concept-contact-job-function>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact Job Function" ;
+  concept:key              "contactJobFunction" ;
+  concept:type             xsd:anyURI ;
+# todo  when we do the ldap transform rule to join the lem-legacy to people in ldap, do we add lines for the columns?
+# LAP>JAG what's the intent for these concept entries? seems to me that if they're declarative, but don't drive behaviour, they're
+# just rot prone documentation.
+# concept:raw              raw:hasComplianceOfficer ;
+  concept:predicate        employment:hasJobFunction ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+.
+
+<concept-contact-job-function-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Contact Job Function Label" ;
+  concept:key              "contactJobFunctionLabel" ;
+  concept:type             xsd:string ;
+  concept:predicate        rdfs:label ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+.
+
+
+<concept-appointment-job-function>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Appointment Job Function" ;
+  concept:key              "appointmentJobFunction" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:function ;
+  concept:raw              raw:function1 ;
+  concept:raw              raw:function2 ;
+  concept:raw              raw:function3 ;
+  concept:raw              raw:function4 ;
+  concept:raw              raw:function5 ;
+  concept:raw              raw:function6 ;
+  concept:raw              raw:function7 ;
+  concept:raw              raw:function8 ;
+  concept:raw              raw:function9 ;
+  concept:raw              raw:function10 ;
+  concept:raw              raw:function11 ;
+  concept:raw              raw:function12 ;
+  concept:predicate        employment:hasJobFunction ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-appointment-job-function-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Appointment Job Function Label" ;
+  concept:key              "appointmentJobFunctionLabel" ;
+  concept:type             xsd:string ;
+  concept:predicate        rdfs:label ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-board-member-term-of-office>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Board Member Term Of Office" ;
+  concept:key              "boardMemberTermOfOffice" ;
+  concept:type             xsd:string ;
+  concept:raw              raw:termOfOffice ;
+  concept:raw              raw:termOfOffice1 ;
+  concept:raw              raw:termOfOffice2 ;
+  concept:raw              raw:termOfOffice3 ;
+  concept:raw              raw:termOfOffice4 ;
+  concept:raw              raw:termOfOffice5 ;
+  concept:raw              raw:termOfOffice6 ;
+  concept:raw              raw:termOfOffice8 ;
+  concept:raw              raw:termOfOffice9 ;
+  concept:raw              raw:termOfOffice10 ;
+  concept:raw              raw:termOfOffice11 ;
+  concept:raw              raw:termOfOffice12 ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-directorship>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Directorship" ;
+  concept:key              "directorship" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        employment:Directorship ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-contact>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Contact" ;
+  concept:key              "contact" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        employment:Contact ;
+  use-case:isUsedInUseCase <use-case-contacts> ;
+.
+
+<concept-directorship-date-of-last-election>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Directorship Date Of Last Election" ;
+  concept:key              "directorshipDateOfLastElection" ;
+  concept:type             xsd:dateTime ;
+  concept:predicate        employment:hasDateOfLastElection ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-appointment-start-date>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Appointment Start Date" ;
+  concept:key              "appointmentStartDate" ;
+  concept:type             xsd:dateTime ;
+  concept:predicate        temporality:hasStartDate ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-appointment-end-date>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Appointment End Date" ;
+  concept:key              "appointmentEndDate" ;
+  concept:type             xsd:dateTime ;
+  concept:predicate        temporality:hasEndDate ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-appointment-status>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Appointment Status" ;
+  concept:key              "appointmentStatus" ;
+  concept:type             xsd:anyURI ;
+  concept:raw              raw:statusOfBodMember ;
+  concept:raw              raw:statusOfBodMember1 ;
+  concept:raw              raw:statusOfBodMember2 ;
+  concept:raw              raw:statusOfBodMember3 ;
+  concept:raw              raw:statusOfBodMember4 ;
+  concept:raw              raw:statusOfBodMember5 ;
+  concept:raw              raw:statusOfBodMember6 ;
+  concept:raw              raw:statusOfBodMember7 ;
+  concept:raw              raw:statusOfBodMember8 ;
+  concept:raw              raw:statusOfBodMember9 ;
+  concept:raw              raw:statusOfBodMember10 ;
+  concept:raw              raw:statusOfBodMember11 ;
+  concept:raw              raw:statusOfBodMember12 ;
+  concept:predicate        employment:hasStatus ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-appointment-status-label>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Appointment Status Label" ;
+  concept:key              "appointmentStatusLabel" ;
+  concept:type             xsd:string ;
+  concept:predicate        rdfs:label ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-currency-tag>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Currency Tag" ;
+  concept:key              "currencyTag" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-currency-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Currency Label" ;
+  concept:key              "currencyLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-currencies> ;
+.
+
+<concept-addition-or-removal>
+  a                  concept:ClassConcept ;
+  rdfs:label         "Addition Or Removal" ;
+  concept:key        "additionOrRemoval" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate class" ;
+.
+
+<concept-subject>
+  a                  concept:ClassConcept ;
+  rdfs:label         "Subject" ;
+  concept:key        "subject" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate class" ;
+.
+
+<concept-predicate>
+  a                  concept:ClassConcept ;
+  rdfs:label         "Predicate" ;
+  concept:key        "predicate" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate class" ;
+.
+
+<concept-object>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Object" ;
+  concept:key        "object" ;
+  concept:type       xsd:string ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-object-iri>
+  a                  concept:PropertyConcept ;
+  rdfs:label         "Object IRI" ;
+  concept:key        "object" ;
+  concept:type       xsd:anyURI ;
+  skos:editorialNote "TODO: Link to the appropriate property" ;
+.
+
+<concept-object-type>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Object Type" ;
+  rdfs:comment "the literal type of the string encoded in object" ;
+  concept:key  "objectType" ;
+  concept:type xsd:anyURI ;
+.
+
+
+<concept-city>
+  a                        concept:ClassConcept ;
+  rdfs:label               "City" ;
+  concept:key              "city" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        fibo-fnd-plc-loc:hasMunicipality ;
+  concept:raw              raw:city ;
+  use-case:isUsedInUseCase <use-case-cities> ;
+.
+
+<concept-city-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "City Label" ;
+  concept:key              "cityLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-cities> ;
+.
+
+<concept-country>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Country" ;
+  concept:key              "country" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        gleif-base:hasCountry ;
+  concept:raw              raw:country ;
+  use-case:isUsedInUseCase <use-case-cities> ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-country-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Country Label" ;
+  concept:key              "countryLabel" ;
+  concept:type             xsd:string ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-cities> ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-city-search-text>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "City Search Text" ;
+  concept:key              "searchText" ;
+  concept:type             xsd:string ;
+  rdfs:comment             "City search includes English name, region and country name" ;
+  skos:editorialNote       "TODO: Link to the appropriate property" ;
+  use-case:isUsedInUseCase <use-case-cities> ;
+.
+
+<concept-workflow-instance>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Workflow Instance" ;
+  concept:key              "workflowInstance" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-occurrence-item>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Workflow Occurrence Item" ;
+  concept:key              "workflowOccurrenceItem" ;
+  concept:predicate        wfi:hasOccurrenceItem ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-workflow-occurrence-event-type>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Workflow Occurrence Event Type" ;
+  concept:key              "workflowOccurrenceEventType" ;
+  concept:predicate        wfi:hasOccurrenceEventType ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-as-at>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "As At" ;
+  concept:key              "asAt" ;
+  concept:predicate        prov:atTime ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-event-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Event Time" ;
+  concept:key              "eventTime" ;
+  concept:predicate        prov:atTime ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-subject-of-change>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Subject Of Change" ;
+  concept:key              "subjectOfChange" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-template-body>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Template Body" ;
+  concept:key              "notificationTemplateBody" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-activity-comment>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Activity Comment" ;
+  concept:key              "workflowActivityComment" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-definition>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Workflow Definition" ;
+  concept:key              "workflowDefinition" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-definition-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Definiton Label" ;
+  concept:key              "workflowDefinitionLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-instance-primary-item>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Primary Item" ;
+  concept:key              "workflowInstancePrimaryItem" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-instance-active-stage>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Active Stage" ;
+  concept:key              "workflowInstanceActiveStage" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+
+<concept-workflow-stage-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Stage Label" ;
+  concept:key              "workflowStageLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-workflow-activity-stage>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Activity Stage" ;
+  concept:key              "workflowActivityStage" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-from-stage>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "From Stage" ;
+  concept:key              "fromStage" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-display-order>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Display Order" ;
+  concept:key              "displayOrder" ;
+  concept:type             xsd:integer ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-to-stage>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "To Stage" ;
+  concept:key              "toStage" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-workflow-milestone>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Workflow Milestone" ;
+  concept:key              "workflowMilestone" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>
+.
+
+<concept-workflow-instance-history>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance History" ;
+  concept:key              "workflowInstanceHistory" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        wfi:hasWorkflowInstance ;
+# actually the inverse of this property
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-instance-initiator>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Initiator" ;
+  concept:key              "workflowInstanceInitiator" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-workflow-instance-start-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Start Time" ;
+  concept:key              "workflowInstanceStartTime" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-approved-at-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Approved At Time" ;
+  concept:key              "workflowInstanceApprovalTime" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-server-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Server Time" ;
+  concept:key              "serverTime" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-workflow-approval-comment>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Approval Comment" ;
+  concept:key              "workflowInstanceApprovalComment" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-instance-current-state>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Current State" ;
+  concept:key              "workflowInstanceCurrentState" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-workflow-instance-current-state-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Current State Label" ;
+  concept:key              "workflowInstanceCurrentStateLabel" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-workflow-instance-current-state-input>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Workflow Instance Current State Input" ;
+  concept:key              "workflowInstanceCurrentStateInput" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-workflow>, <use-case-legal-entities> ;
+.
+
+<concept-organizational-unit>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Organizational Unit" ;
+  concept:key              "organizationalUnit" ;
+  concept:predicate        organization:hasSubUnits ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-organizational-unit-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Organizational Unit Label" ;
+  concept:key              "organizationalUnitLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-business-registration> ;
+.
+
+<concept-fund-contract-type>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Fund Contract Type" ;
+  concept:key              "fundContractType" ;
+  concept:predicate        fin-reg:hasFundContractType ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-fund-contract-type-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Fund Contract Type Label" ;
+  concept:key              "fundContractTypeLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-fund-contract-start-date>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Fund Contract Start Date" ;
+  concept:key              "fundContractStartDate" ;
+  concept:predicate        temporality:hasStartDate ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-primary-party>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Primary Party" ;
+  concept:key              "primaryParty" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        organization:hasPrimaryParty ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-counter-party>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Counter Party" ;
+  concept:key              "counterParty" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        organization:hasCounterparty ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-fund-advisor-name>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Fund Advisor Name" ;
+  concept:key              "fundAdvisorName" ;
+  concept:type             xsd:string ;
+  concept:predicate        ident:hasName ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+
+<concept-fund-advisory-relationship>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Fund Advisory Relationship" ;
+  concept:key              "fundAdvisoryRelationship" ;
+  concept:predicate        rdf:type ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-compliance> ;
+.
+
+<concept-fund-advisory-agreement-in-place>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Fund Advisory Aggrement In Place" ;
+  concept:key              "hasFundAdvisoryAgreement" ;
+  concept:type             xsd:boolean ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-appointer>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Appointer" ;
+  concept:key              "appointer" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        employment:hasAppointer ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-director>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Director" ;
+  concept:key              "director" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        employment:hasAppointee ;
+  use-case:isUsedInUseCase <use-case-directorships>, <use-case-search> ;
+.
+
+<concept-director-name>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Director Name" ;
+  concept:key              "directorName" ;
+  rdfs:comment             "the name of a director" ;
+  concept:type             xsd:string ;
+  concept:predicate        ident:hasName ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-contact-person>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Contact Person" ;
+  concept:key              "contact" ;
+  concept:type             xsd:anyURI ;
+  concept:predicate        employment:hasAppointee ;
+  use-case:isUsedInUseCase <use-case-contacts>, <use-case-search> ;
+.
+
+<concept-contact-person-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Contact Person Label" ;
+  concept:key              "contactLabel" ;
+  rdfs:comment             "Name of contact person" ;
+  concept:type             xsd:string ;
+  concept:predicate        rdfs:label ;
+  use-case:isUsedInUseCase <use-case-legal-entity-details> ;
+.
+
+<concept-appointee>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Appointee" ;
+  concept:key              "appointee" ;
+  concept:rdfsClass        legal-entity:NaturalPerson ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-directorships> ;
+.
+
+<concept-has-appointee>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Has Appointee" ;
+  concept:key              "hasAppointee" ;
+  concept:predicate        employment:hasAppointee ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-internal-user-id-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Internal User ID Label" ;
+  concept:key              "internalUserIdLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-user-account>
+  a                        concept:ClassConcept ;
+  rdfs:label               "User" ;
+  concept:key              "user" ;
+  concept:rdfsClass        user-account:UserAccount ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-user-group>
+  a                        concept:ClassConcept ;
+  rdfs:label               "User Group" ;
+  concept:key              "userGroup" ;
+  concept:rdfsClass        user-account:UserGroup ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-user-group-email>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "User Group Email" ;
+  concept:key              "userGroupEmail" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-initiator>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Initiator" ;
+  concept:key              "initiator" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+
+<concept-initiator-email>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Initiator Email" ;
+  concept:key              "initiatorEmail" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-company-owner-email>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Company Owner Email" ;
+  concept:key              "companyOwnerEmail" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-rejector-name>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Rejector Name" ;
+  concept:key              "rejectorName" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-rejector-email>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "rejector Email" ;
+  concept:key              "rejectorEmail" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-notification-type>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Notification Type" ;
+  concept:key              "notificationType" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification> ;
+.
+
+<concept-person-email>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Person Email" ;
+  concept:key              "personEmail" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-management-notification>, <use-case-list-management>,
+                           <use-case-legal-entities> ;
+.
+
+<concept-vcard>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Vcard" ;
+  concept:key              "vcard" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        vcard:VCard ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-vcard-type>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Vcard Type" ;
+  concept:key              "vcardType" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        vcard:Type ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-telephone-type>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Telephone Type" ;
+  concept:key              "telephoneType" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        vcard:TelephoneType ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-telephone-number>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Telephone Number" ;
+  concept:key              "telephoneNumber" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-email>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Email" ;
+  concept:key              "email" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        vcard:Email ;
+  use-case:isUsedInUseCase <use-case-list-management> ;
+.
+
+<concept-department-code>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Department Code" ;
+  concept:key              "departmentCode" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entities> ;
+.
+
+<concept-user-group-label>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "User Group Label" ;
+  concept:key              "userGroupLabel" ;
+  concept:predicate        rdfs:label ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-authorization-rule>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Authorization Rule" ;
+  concept:key              "authorizationRule" ;
+  concept:rdfsClass        auth:AuthorizationRule ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-identity> ;
+.
+
+<concept-event>
+  a            concept:ClassConcept ;
+  rdfs:label   "Event" ;
+  rdfs:comment "A workflow event" ;
+  concept:key  "event" ;
+  concept:type xsd:anyURI ;
+.
+
+<concept-unreviewed-change-event>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Unreviewed Change Event" ;
+  concept:key              "unreviewedChangeEvent" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        wfi:EventOccurrence ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-user-submission-event>
+  a                        concept:ClassConcept ;
+  rdfs:label               "User Submission Event" ;
+  concept:key              "userSubmissionEvent" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        wfi:EventOccurrence ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-approved-event>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Approved Event" ;
+  concept:key              "approvedEvent" ;
+  concept:type             xsd:anyURI ;
+  concept:rdfsClass        wfi:EventOccurrence ;
+  use-case:isUsedInUseCase <use-case-workflow> ;
+.
+
+<concept-event-status>
+  a            concept:ClassConcept ;
+  rdfs:label   "Event Status" ;
+  rdfs:comment "A workflow event status" ;
+  concept:key  "eventStatus" ;
+  concept:type xsd:anyURI ;
+.
+
+
+<concept-event-icon>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Event Icon" ;
+  rdfs:comment "An icon IRI" ;
+  concept:key  "eventIcon" ;
+  concept:type xsd:anyURI ;
+.
+
+<concept-event-label>
+  a            concept:PropertyConcept ;
+  rdfs:label   "event Label" ;
+  concept:key  "eventLabel" ;
+  concept:type xsd:string ;
+.
+
+<concept-file-upload>
+  a                        concept:ClassConcept ;
+  rdfs:label               "File Upload" ;
+  concept:key              "fileUpload" ;
+  concept:type             xsd:anyURI ;
+#  concept:rdfsClass file:FileUpload ; # todo @PER how do we want to model this?
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-document-category>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Document Category" ;
+  concept:key              "documentCategory" ;
+  rdfs:comment             "The business category for this document" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-uploader>
+  a                 concept:ClassConcept ;
+  rdfs:label        "Uploader" ;
+  rdfs:comment      "Person who uploaded" ;
+  concept:key       "uploader" ;
+  concept:type      xsd:anyURI ;
+  concept:rdfsClass legal-entity:LegalPerson ;
+.
+
+<concept-s3-bucket>
+  a            concept:PropertyConcept ;
+  rdfs:label   "S3 Bucket" ;
+  concept:key  "s3Bucket" ;
+  concept:type xsd:string ;
+.
+
+<concept-s3-object>
+  a            concept:PropertyConcept ;
+  rdfs:label   "S3 Object" ;
+  concept:key  "s3Object" ;
+  concept:type xsd:string ;
+.
+
+<concept-s3-presigned-fields>
+  a            concept:PropertyConcept ;
+  rdfs:label   "S3 Presigned Fields" ;
+  rdfs:comment "S3 presigned url gives us json fields to pass on subsequent calls, this is them" ;
+  concept:key  "presignedFields" ;
+  concept:type xsd:string ;
+.
+
+<concept-file-size>
+  a            concept:PropertyConcept ;
+  rdfs:label   "File Size" ;
+  concept:key  "fileSize" ;
+  concept:type xsd:integer ;
+.
+
+
+<concept-upload-time>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Upload Time" ;
+  concept:key              "uploadTime" ;
+  concept:type             xsd:dateTime ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+
+<concept-source-file-name>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Source File Name" ;
+  concept:key              "sourceFilename" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+
+<concept-mime-type>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "Mime Type" ;
+  concept:key              "mimeType" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-md5-sum>
+  a                        concept:PropertyConcept ;
+  rdfs:label               "MD5 SUM" ;
+  rdfs:comment             "Hexdigest of the md5sum of the complete file" ;
+  concept:key              "md5sum" ;
+  concept:type             xsd:string ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-entity-document>
+  a                        concept:ClassConcept ;
+  rdfs:label               "Entity Document" ;
+  rdfs:comment             "Relationship between an entity and a document in the psvc-document" ;
+  concept:key              "entityDocument" ;
+  concept:type             xsd:anyURI ;
+  use-case:isUsedInUseCase <use-case-legal-entity-documents> ;
+.
+
+<concept-limit>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Limit" ;
+  rdfs:comment "Sparql limit" ;
+  concept:key  "limit" ;
+  concept:type xsd:integer ;
+.
+
+<concept-offset>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Offset" ;
+  rdfs:comment "Sparql offset" ;
+  concept:key  "offset" ;
+  concept:type xsd:integer ;
+.
+
+<concept-validation-failure-message>
+  a            concept:PropertyConcept ;
+  rdfs:label   "Validation Failure Message" ;
+  rdfs:comment "Validation message" ;
+  concept:key  "validationFailureMessage" ;
+  concept:type xsd:string ;
+.
+
+<concept-validation-rule-type>
+  a            concept:ClassConcept ;
+  rdfs:label   "Validation Rule Type" ;
+  concept:key  "validationRuleType" ;
+  concept:type xsd:anyURI ;
+.

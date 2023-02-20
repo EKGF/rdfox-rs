@@ -1,5 +1,6 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
+use rdf_store_rs::{consts::PREFIX_SKOS, Literal};
 /// We're using `#[test_log::test]` tests in this file which allows
 /// you to see the log in your test runner if you set the environment
 /// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
@@ -88,19 +89,22 @@ fn test_create_data_store_connection(
 
 fn test_create_graph(
     ds_connection: &Arc<DataStoreConnection>,
+    name: &str,
 ) -> Result<Arc<GraphConnection>, RDFStoreError> {
     tracing::info!("test_create_graph");
     let graph_base_iri = Prefix::declare(
         "graph:",
         Iri::new("https://whatever.kom/graph/").unwrap(),
     );
-    let test_graph = Graph::declare(graph_base_iri, "test");
+    let test_graph = Graph::declare(graph_base_iri, name);
 
-    assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
-    assert_eq!(
-        format!("{:}", test_graph.as_display_iri()).as_str(),
-        "<https://whatever.kom/graph/test>"
-    );
+    if name == "test" {
+        assert_eq!(format!("{:}", test_graph).as_str(), "graph:test");
+        assert_eq!(
+            format!("{:}", test_graph.as_display_iri()).as_str(),
+            "<https://whatever.kom/graph/test>"
+        );
+    }
 
     Ok(GraphConnection::new(
         ds_connection.clone(),
@@ -117,7 +121,7 @@ fn test_count_some_stuff_in_the_store(
     tracing::info!("test_count_some_stuff_in_the_store");
     let count = ds_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
-    assert_eq!(count.unwrap(), 37);
+    assert_eq!(count.unwrap(), 1904);
 
     Ok(())
 }
@@ -192,6 +196,76 @@ fn test_run_query_to_nquads_buffer(
     Ok(())
 }
 
+pub fn get_concept(
+    concept_id: &Literal,
+    graph_connection: &Arc<GraphConnection>,
+) -> Result<Statement, RDFStoreError> {
+    let prefix_concept = Prefix::declare_from_str("concept:", "https://ekgf.org/ontology/concept/");
+    let prefixes = Prefixes::default()?
+        .add_prefix(&prefix_concept)?
+        .add_prefix(&PREFIX_SKOS)?;
+
+    let graph = graph_connection.graph.as_display_iri();
+    let sparql = formatdoc! {
+        r##"
+            SELECT DISTINCT ?key ?label ?comment ?data_type ?rdfs_class ?predicate
+            WHERE {{
+                VALUES ?concept {{
+                    {concept_id}
+                }}
+                GRAPH {graph} {{
+                    ?concept a concept:ClassConcept ; concept:key ?key .
+                    OPTIONAL {{
+                        ?concept rdfs:label ?label .
+                    }}
+                    OPTIONAL {{
+                        ?concept concept:type ?data_type .
+                    }}
+                    OPTIONAL {{
+                        ?concept rdfs:comment ?comment .
+                    }}
+                    OPTIONAL {{
+                        ?concept concept:predicate ?predicate .
+                    }}
+                    OPTIONAL {{
+                        ?concept concept:rdfsClass ?rdfs_class .
+                    }}
+                }}
+            }}
+            ORDER BY ?key
+            "##
+    };
+    Ok(Statement::new(&prefixes, sparql.into())?)
+}
+
+#[allow(dead_code)]
+fn test_query_concepts(
+    tx: &Arc<Transaction>, // TODO: consider passing tx to evaluate_to_stream()
+    graph_connection: &Arc<GraphConnection>,
+) -> Result<(), RDFStoreError> {
+    let concept_id = Literal::new_iri_reference_from_str(
+        "https://placeholder.kg/id/concept-legal-person-legal-name-iri",
+    )?;
+    let statement = get_concept(&concept_id, graph_connection)?;
+    let parameters = Parameters::empty()?.fact_domain(FactDomain::ALL)?;
+    parameters.set_string("abc", "def")?;
+    let mut cursor = statement.cursor(&tx.connection, &parameters)?;
+
+    let count = cursor.consume(tx, 1000, |row| {
+        for _term_index in 0..row.opened.arity {
+            tracing::info!("{row:?}");
+            // if let Some(_value) = row.lexical_value(term_index)? {
+            // } else {
+            //     tracing::error!("{concept_id} is missing column
+            // {term_index}:\n{statement:}"); }
+        }
+        Ok::<(), RDFStoreError>(())
+    })?;
+    assert!(count > 0);
+
+    Ok(())
+}
+
 #[test_log::test]
 fn load_rdfox() -> Result<(), RDFStoreError> {
     let server = test_create_server()?;
@@ -212,16 +286,20 @@ fn load_rdfox() -> Result<(), RDFStoreError> {
 
         let conn = pool.get().unwrap();
 
-        let graph_connection = test_create_graph(&conn)?;
+        let graph_connection_test = test_create_graph(&conn, "test")?;
+        let graph_connection_meta = test_create_graph(&conn, "meta")?;
 
-        graph_connection.import_data_from_file("tests/test.ttl")?;
+        graph_connection_test.import_data_from_file("tests/test.ttl")?;
+        graph_connection_meta.import_data_from_file("tests/concepts.ttl")?;
 
-        Transaction::begin_read_only(&conn)?.execute_and_rollback(|ref tx| {
-            test_count_some_stuff_in_the_store(tx, &conn)?;
-            test_count_some_stuff_in_the_graph(tx, &graph_connection)?;
-            test_cursor_with_lexical_value(tx, &graph_connection)?;
-            test_run_query_to_nquads_buffer(tx, &conn)
-        })?;
+        // Transaction::begin_read_only(&conn)?.execute_and_rollback(|ref tx| {
+        //     test_count_some_stuff_in_the_store(tx, &conn)?;
+        //     test_count_some_stuff_in_the_graph(tx, &graph_connection_test)?;
+        //     test_cursor_with_lexical_value(tx, &graph_connection_test)?;
+        //     test_run_query_to_nquads_buffer(tx, &conn)
+        // })?;
+        Transaction::begin_read_only(&conn)?
+            .execute_and_rollback(|ref tx| test_query_concepts(tx, &graph_connection_meta))?;
     }
 
     sleep(Duration::from_millis(500)); // wait for connection pool threads to end

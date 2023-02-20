@@ -99,7 +99,12 @@ impl Prefixes {
         let c_iri = CString::new(prefix.iri.as_str()).unwrap();
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
         database_call!(
-            "declaring a prefix",
+            format!(
+                "declaring prefix [{}] for namespace [{}]",
+                prefix.name.as_str(),
+                prefix.iri.as_str()
+            )
+            .as_str(),
             CPrefixes_declarePrefix(
                 self.inner,
                 c_name.as_ptr(),
