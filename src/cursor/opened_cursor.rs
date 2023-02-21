@@ -45,8 +45,8 @@ impl<'a> OpenedCursor<'a> {
         let c_cursor = cursor.inner;
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
-        let arguments_buffer = Self::arguments_buffer(c_cursor)?;
-        let argument_indexes = Self::argument_indexes(cursor, c_cursor, arity)?;
+        let (argument_indexes, max_index) = Self::argument_indexes(cursor, c_cursor, arity)?;
+        let arguments_buffer = Self::arguments_buffer(c_cursor, max_index + 1)?;
         let opened_cursor = OpenedCursor {
             tx,
             cursor,
@@ -84,39 +84,36 @@ impl<'a> OpenedCursor<'a> {
         Ok(arity)
     }
 
-    fn arguments_buffer(c_cursor: *mut CCursor) -> Result<&'a [u64], RDFStoreError> {
+    fn arguments_buffer(c_cursor: *mut CCursor, size: u32) -> Result<&'a [u64], RDFStoreError> {
         let mut buffer: *const CResourceID = ptr::null_mut();
         database_call!(
             "getting the arguments buffer",
             CCursor_getArgumentsBuffer(c_cursor, &mut buffer)
         )?;
-        let mut index = 0_usize;
-        unsafe {
-            let mut p = buffer;
-            while !p.is_null() {
-                let resource_id: CResourceID = *p as CResourceID;
-                if resource_id == 0 {
-                    break
-                }
-                tracing::error!("{index} resource_id={:?}", resource_id);
-                index += 1;
-                p = p.offset(1);
-            }
-        }
-        tracing::error!("#{index} resource ids");
-        unsafe { Ok(std::slice::from_raw_parts(buffer, index + 1)) }
+        // let mut index = 0_usize;
+        // unsafe {
+        //     let mut p = buffer;
+        //     while !p.is_null() {
+        //         let resource_id: CResourceID = *p as CResourceID;
+        //         if resource_id == 0 {
+        //             break
+        //         }
+        //         tracing::error!("{index} resource_id={:?}", resource_id);
+        //         index += 1;
+        //         p = p.offset(1);
+        //     }
+        // }
+        // tracing::error!("#{index} resource ids size={size}");
+        let array = unsafe { std::slice::from_raw_parts(buffer, size as usize) };
+        Ok(array)
     }
 
     fn argument_indexes(
         cursor: &Cursor,
         c_cursor: *mut CCursor,
         arity: u64,
-    ) -> Result<&'a [u32], RDFStoreError> {
+    ) -> Result<(&'a [u32], u32), RDFStoreError> {
         let mut indexes: *const CArgumentIndex = ptr::null_mut();
-        // pub fn CCursor_getArgumentIndexes(
-        //     cursor: *mut root::CCursor,
-        //     argumentIndexes: *mut *const root::CArgumentIndex,
-        // ) -> *const root::CException;
         database_call!(
             "getting the argument-indexes",
             CCursor_getArgumentIndexes(c_cursor, &mut indexes)
@@ -124,26 +121,10 @@ impl<'a> OpenedCursor<'a> {
         if indexes.is_null() {
             return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() })
         }
-        tracing::error!("MMMMM2: getting {arity} indexes");
-        let mut index = 0_usize;
-        unsafe {
-            let mut p = indexes;
-            while !p.is_null() {
-                let argument_index = *p as CArgumentIndex;
-                if argument_index == 0 {
-                    break
-                }
-                tracing::error!("{index} argument_index={:?}", argument_index);
-                index += 1;
-                p = p.offset(1);
-            }
-        }
-        unsafe {
-            Ok(std::slice::from_raw_parts(
-                indexes,
-                arity as usize,
-            ))
-        }
+        let array = unsafe { std::slice::from_raw_parts(indexes, arity as usize) };
+        let max_index = array.iter().max().unwrap();
+        // tracing::error!("argument-indexes: arity={arity} {array:?} max={max_index}");
+        Ok((array, *max_index))
     }
 
     /// Get the resource ID from the arguments buffer which dynamically changes

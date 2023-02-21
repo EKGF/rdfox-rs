@@ -216,20 +216,20 @@ pub fn get_concept(
                 GRAPH {graph} {{
                     ?concept a concept:ClassConcept ; concept:key ?key .
                     OPTIONAL {{
-                        ?concept rdfs:label ?label .
-                    }}
+                        ?concept rdfs:label ?label
+                    }} .
                     OPTIONAL {{
-                        ?concept concept:type ?data_type .
-                    }}
+                        ?concept rdfs:comment ?comment
+                    }} .
                     OPTIONAL {{
-                        ?concept rdfs:comment ?comment .
-                    }}
+                        ?concept concept:rdfsClass ?rdfs_class
+                    }} .
                     OPTIONAL {{
-                        ?concept concept:predicate ?predicate .
-                    }}
+                        ?concept concept:type ?data_type
+                    }} .
                     OPTIONAL {{
-                        ?concept concept:rdfsClass ?rdfs_class .
-                    }}
+                        ?concept concept:predicate ?predicate
+                    }} .
                 }}
             }}
             ORDER BY ?key
@@ -248,17 +248,16 @@ fn test_query_concepts(
     )?;
     let statement = get_concept(&concept_id, graph_connection)?;
     let parameters = Parameters::empty()?.fact_domain(FactDomain::ALL)?;
-    parameters.set_string("abc", "def")?;
     let mut cursor = statement.cursor(&tx.connection, &parameters)?;
 
     let count = cursor.consume(tx, 1000, |row| {
-        for _term_index in 0..row.opened.arity {
-            tracing::info!("{row:?}");
-            // if let Some(_value) = row.lexical_value(term_index)? {
-            // } else {
-            //     tracing::error!("{concept_id} is missing column
-            // {term_index}:\n{statement:}"); }
-        }
+        tracing::info!("{row:?}");
+        // for _term_index in 0..row.opened.arity {
+        // if let Some(_value) = row.lexical_value(term_index)? {
+        // } else {
+        //     tracing::error!("{concept_id} is missing column
+        // {term_index}:\n{statement:}"); }
+        // }
         Ok::<(), RDFStoreError>(())
     })?;
     assert!(count > 0);
@@ -292,12 +291,12 @@ fn load_rdfox() -> Result<(), RDFStoreError> {
         graph_connection_test.import_data_from_file("tests/test.ttl")?;
         graph_connection_meta.import_data_from_file("tests/concepts.ttl")?;
 
-        // Transaction::begin_read_only(&conn)?.execute_and_rollback(|ref tx| {
-        //     test_count_some_stuff_in_the_store(tx, &conn)?;
-        //     test_count_some_stuff_in_the_graph(tx, &graph_connection_test)?;
-        //     test_cursor_with_lexical_value(tx, &graph_connection_test)?;
-        //     test_run_query_to_nquads_buffer(tx, &conn)
-        // })?;
+        Transaction::begin_read_only(&conn)?.execute_and_rollback(|ref tx| {
+            test_count_some_stuff_in_the_store(tx, &conn)?;
+            test_count_some_stuff_in_the_graph(tx, &graph_connection_test)?;
+            test_cursor_with_lexical_value(tx, &graph_connection_test)?;
+            test_run_query_to_nquads_buffer(tx, &conn)
+        })?;
         Transaction::begin_read_only(&conn)?
             .execute_and_rollback(|ref tx| test_query_concepts(tx, &graph_connection_meta))?;
     }
