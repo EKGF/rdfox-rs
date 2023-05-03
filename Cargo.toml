@@ -8,13 +8,14 @@ authors = [
   "Jacobus Geluk <jacobus.geluk@ekgf.org>",
   "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
 ]
-publish = false
 repository = "https://github.com/EKGF/rdfox-rs"
 keywords = ["rdf", "sparql", "database", "graph-database", "datalog"]
-categories = ["database", "api-bindings"
-]
+categories = ["database", "graph-database", "api-bindings", "rdf", "sparql"]
 license-file = "LICENSE"
 rust-version = "1.67"
+readme = "README.md"
+documentation = "https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html#"
+exclude = [".github/*", ".idea/*", "rust-toolchain.toml", "cog.toml"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -48,8 +49,8 @@ owo-colors = { version = "3.5.0", features = ["supports-colors"] }
 rdf-store-rs = { version = "0.0.1", path = "../rdf-store-rs" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.rdftk_iri]
-git = "https://github.com/EKGF/rust-rdftk"
-#version = "0.1.9"
+#git = "https://github.com/EKGF/rust-rdftk"
+version = "0.1.9"
 optional = true
 default-features = false
 

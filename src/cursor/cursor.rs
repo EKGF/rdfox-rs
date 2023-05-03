@@ -28,7 +28,7 @@ impl Drop for Cursor {
             if !self.inner.is_null() {
                 CCursor_destroy(self.inner);
                 self.inner = ptr::null_mut();
-                tracing::debug!("Destroyed cursor");
+                tracing::debug!(target: LOG_TARGET_DATABASE, "Destroyed cursor");
             }
         }
     }
@@ -50,7 +50,7 @@ impl Cursor {
         // };
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len = c_query.as_bytes().len() as u64;
-        tracing::trace!("Starting cursor for {:?}", c_query);
+        tracing::trace!(target: LOG_TARGET_DATABASE, "Starting cursor for {:?}", c_query);
         // pub fn CDataStoreConnection_createCursor(
         //     dataStoreConnection: *mut root::CDataStoreConnection,
         //     queryText: *const ::std::os::raw::c_char,
@@ -88,6 +88,13 @@ impl Cursor {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
+    #[tracing::instrument(
+        target = "database",
+        skip_all,
+        fields(
+            max.row = max_row,
+        )
+    )]
     pub fn consume<T, E>(&mut self, tx: &Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
     where
         T: FnMut(&CursorRow) -> Result<(), E>,

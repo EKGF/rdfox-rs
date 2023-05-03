@@ -467,7 +467,7 @@ impl DataStoreConnection {
     // noinspection RsUnreachableCode
     fn destroy(&mut self) {
         assert!(
-            !self.inner.is_null(),
+            self.inner.is_null(),
             "invalid datastore connection"
         );
 
