@@ -16,6 +16,7 @@ use {
     std::{ops::Deref, sync::Arc},
 };
 
+/// Some simple queries about a [`Class`](Class)
 #[derive(Debug, Clone)]
 pub struct ClassReport<'a>(pub &'a Class);
 

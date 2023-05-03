@@ -2,6 +2,7 @@
 //---------------------------------------------------------------
 #![feature(rustc_private)]
 #![feature(ptr_metadata)]
+#![doc = include_str ! ("../README.md")]
 
 extern crate core;
 

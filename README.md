@@ -6,7 +6,7 @@ Embedded [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/pr
 - Generates bindings from `CRDFox.h` using bindgen (which requires llvm to be installed)
 - Links to dynamic link library `libRDFox.dylib` (if you use feature `rdfox-dylib`)
 - Links to the static RDFox library by default
-- Requires an RDFox license (see https://www.oxfordsemantic.tech/product)
+- Requires an RDFox license (see <https://www.oxfordsemantic.tech/product>)
   - Copy license to `~/.RDFox/RDFox.lic`
 - Provides a higher level rust-friendly interface over the C-API
 

@@ -19,7 +19,7 @@ use {
         RDFStoreError::{self, Unknown},
         Transaction,
     },
-    rdf_store_rs::RDFStoreError::CannotGetAnyArgumentIndexes,
+    rdf_store_rs::{consts::LOG_TARGET_DATABASE, RDFStoreError::CannotGetAnyArgumentIndexes},
     std::{ptr, sync::Arc},
 };
 
@@ -69,7 +69,10 @@ impl<'a> OpenedCursor<'a> {
             "opening a cursor",
             CCursor_open(c_cursor, skip_to_offset, &mut multiplicity)
         )?;
-        tracing::debug!(target: LOG_TARGET_DATABASE, "CCursor_open ok multiplicity={multiplicity}");
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "CCursor_open ok multiplicity={multiplicity}"
+        );
         Ok(multiplicity as u64)
     }
 
@@ -134,7 +137,8 @@ impl<'a> OpenedCursor<'a> {
             if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
                 Ok(Some(*resource_id))
             } else {
-                tracing::error!(target: LOG_TARGET_DATABASE,
+                tracing::error!(
+                    target: LOG_TARGET_DATABASE,
                     "Could not get the resource ID from the arguments buffer with argument index \
                      {argument_index} and term index \
                      {term_index}:\nargument_indexes={:?},\narguments_buffer={:?}",
@@ -145,7 +149,10 @@ impl<'a> OpenedCursor<'a> {
                 Ok(None)
             }
         } else {
-            tracing::error!(target: LOG_TARGET_DATABASE, "Could not get the argument index for term index {term_index}");
+            tracing::error!(
+                target: LOG_TARGET_DATABASE,
+                "Could not get the argument index for term index {term_index}"
+            );
             Err(Unknown)
         }
     }
@@ -158,7 +165,8 @@ impl<'a> OpenedCursor<'a> {
             "advancing the cursor",
             CCursor_advance(self.cursor.inner, &mut multiplicity)
         )?;
-        tracing::trace!(target: LOG_TARGET_DATABASE, 
+        tracing::trace!(
+            target: LOG_TARGET_DATABASE,
             "cursor {:?} advanced, multiplicity={multiplicity}",
             self.cursor.inner
         );

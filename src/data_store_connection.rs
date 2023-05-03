@@ -55,6 +55,7 @@ use {
     },
 };
 
+/// A connection to a given [`DataStore`].
 #[derive(Debug)]
 pub struct DataStoreConnection {
     pub data_store:        Arc<DataStore>,

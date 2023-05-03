@@ -26,6 +26,7 @@ use {
     },
 };
 
+/// A connection to a given [`Server`].
 #[derive(Debug)]
 pub struct ServerConnection {
     #[allow(dead_code)]

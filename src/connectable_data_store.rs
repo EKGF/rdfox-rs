@@ -10,6 +10,7 @@ use {
     },
 };
 
+/// A pool-able connectable [`DataStore`]
 pub struct ConnectableDataStore {
     data_store:                Arc<DataStore>,
     server_connection:         Arc<ServerConnection>,

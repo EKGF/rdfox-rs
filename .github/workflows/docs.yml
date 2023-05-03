@@ -1,0 +1,43 @@
+name: Docs
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  push:
+    branches:
+      - main
+
+env:
+  RUSTDOCFLAGS: --enable-index-page -Zunstable-options
+
+jobs:
+  rustdoc:
+    name: Rustdoc
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+
+      - name: Create rustdoc
+        run: cargo doc --verbose --no-deps --lib --bins --workspace --document-private-items
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: target/doc
+          clean: true
+          git-config-email: info@ekgf.org
+          repository-name: EKGF/rdfox-rs
+          commit-message: "Update"
+          single-commit: true

@@ -10,6 +10,7 @@ use {
         OpenedCursor,
         RDFStoreError::{self, Unknown},
     },
+    rdf_store_rs::consts::LOG_TARGET_DATABASE,
     tracing::event_enabled,
 };
 
@@ -52,7 +53,10 @@ impl<'a> CursorRow<'a> {
         let mut lexical_form_size = 0_u64;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
         let mut resource_resolved = false;
-        tracing::trace!(target: LOG_TARGET_DATABASE, "CCursor_getResourceLexicalForm({resource_id}):");
+        tracing::trace!(
+            target: LOG_TARGET_DATABASE,
+            "CCursor_getResourceLexicalForm({resource_id}):"
+        );
         database_call!(
             "getting a resource value in lexical form",
             CCursor_appendResourceLexicalForm(
@@ -66,14 +70,18 @@ impl<'a> CursorRow<'a> {
             )
         )?;
         if !resource_resolved {
-            tracing::error!(target: LOG_TARGET_DATABASE, "Call to cursor for resource id {resource_id} could not be resolved");
+            tracing::error!(
+                target: LOG_TARGET_DATABASE,
+                "Call to cursor for resource id {resource_id} could not be resolved"
+            );
             return Err(Unknown) // TODO: Make more specific error
         }
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
 
         if event_enabled!(tracing::Level::TRACE) {
-            tracing::trace!(target: LOG_TARGET_DATABASE,
+            tracing::trace!(
+                target: LOG_TARGET_DATABASE,
                 "CCursor_getResourceLexicalForm({resource_id}): data_type={datatype_id:?} \
                  lexical_form_size={lexical_form_size:?}"
             );
@@ -87,7 +95,8 @@ impl<'a> CursorRow<'a> {
     pub fn lexical_value(&self, term_index: u64) -> Result<Option<Literal>, RDFStoreError> {
         let resource_id = self.resource_id(term_index)?;
         if event_enabled!(tracing::Level::TRACE) {
-            tracing::trace!(target: LOG_TARGET_DATABASE, 
+            tracing::trace!(
+                target: LOG_TARGET_DATABASE,
                 "row={rowid} multiplicity={multiplicity} term_index={term_index} \
                  resource_id={resource_id:?}:",
                 rowid = self.rowid,

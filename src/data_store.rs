@@ -13,6 +13,9 @@ use {
     },
 };
 
+/// A data store encapsulates a unit of logically related information.
+///
+/// See <https://docs.oxfordsemantic.tech/data-stores.html>
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct DataStore {
     pub name:       String,
