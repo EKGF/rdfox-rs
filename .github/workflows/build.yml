@@ -63,11 +63,11 @@ jobs:
           path: |
             C:/Program Files/LLVM
             ./llvm
-          key: llvm-14
+          key: llvm-16
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
         with:
-          version: "14"
+          version: "16"
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Windows - Prepare LLVM

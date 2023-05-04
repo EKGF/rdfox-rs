@@ -28,6 +28,34 @@ jobs:
           toolchain: nightly
           profile: minimal
 
+      - name: Cache LLVM and Clang
+        id: cache-llvm
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:/Program Files/LLVM
+            ./llvm
+          key: llvm-16
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: "16"
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
+
+      - name: Prepare LLVM
+        shell: bash
+        run: |
+          set -x
+          export LLVM_PATH="$(brew --prefix llvm)"
+          "$(brew --prefix llvm)/bin/clang" -v
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+          echo "CPATH=$LLVM_PATH/lib/clang/$LLVM_VERSION/include/" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$LLVM_PATH/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$LLVM_PATH/include" >> $GITHUB_ENV
+          echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
+
       - name: Create rustdoc
         run: cargo +nightly doc --verbose --no-deps --lib --bins --workspace --document-private-items
 
