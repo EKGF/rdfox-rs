@@ -1,4 +1,4 @@
-name: Docs
+name: docs
 
 on:
   schedule:
@@ -12,8 +12,8 @@ env:
   RUSTDOCFLAGS: --enable-index-page -Zunstable-options
 
 jobs:
-  rustdoc:
-    name: Rustdoc
+  docs:
+    name: docs
     runs-on: macos-latest
 
     steps:
@@ -27,6 +27,38 @@ jobs:
         with:
           toolchain: nightly
           profile: minimal
+
+      - name: Cache LLVM and Clang
+        id: cache-llvm
+        uses: actions/cache@v2
+        with:
+          path: |
+            C:/Program Files/LLVM
+            ./llvm
+          key: llvm-15
+
+      - name: Install LLVM and Clang
+        id: install-llvm
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: 15
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
+
+      - name: Prepare LLVM
+        shell: bash
+        env:
+          LLVM_PATH: /Users/runner/work/rdfox-rs/rdfox-rs/llvm
+          LLVM_VERSION: ${{ steps.install-llvm.outputs.version }}
+        run: |
+          set -x
+          # export LLVM_PATH="$(brew --prefix llvm)"
+          "$LLVM_PATH/bin/clang" -v
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+          echo "CPATH=$LLVM_PATH/lib/clang/$LLVM_VERSION/include/" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$LLVM_PATH/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$LLVM_PATH/include" >> $GITHUB_ENV
+          echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV
+          echo "CXX=$LLVM_PATH/bin/clang++" >> $GITHUB_ENV
 
       - name: Create rustdoc
         run: cargo +nightly doc --verbose --no-deps --lib --bins --workspace --document-private-items
