@@ -63,16 +63,20 @@ jobs:
           path: |
             C:/Program Files/LLVM
             ./llvm
-          key: llvm-16
+          key: llvm-15
+
       - name: Install LLVM and Clang
+        id: install-llvm
         uses: KyleMayes/install-llvm-action@v1
         with:
-          version: "16"
+          version: 15
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Windows - Prepare LLVM
         if: contains(matrix.os, 'windows')
         shell: bash
+        env:
+          LLVM_VERSION: ${{ steps.install-llvm.outputs.version }}
         run: |
           export LLVM_PATH="C:\Program Files\LLVM"
           "${LLVM_PATH}\bin\clang" -v
@@ -85,6 +89,8 @@ jobs:
       - name: MacOS - Prepare LLVM
         if: contains(matrix.os, 'macos')
         shell: bash
+        env:
+          LLVM_VERSION: ${{ steps.install-llvm.outputs.version }}
         run: |
           set -x
           export LLVM_PATH="$(brew --prefix llvm)"

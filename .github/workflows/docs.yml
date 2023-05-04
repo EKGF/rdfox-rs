@@ -38,6 +38,7 @@ jobs:
           key: llvm-15
 
       - name: Install LLVM and Clang
+        id: install-llvm
         uses: KyleMayes/install-llvm-action@v1
         with:
           version: 15
@@ -45,6 +46,8 @@ jobs:
 
       - name: Prepare LLVM
         shell: bash
+        env:
+          LLVM_VERSION: ${{ steps.install-llvm.outputs.version }}
         run: |
           set -x
           export LLVM_PATH="$(brew --prefix llvm)"
