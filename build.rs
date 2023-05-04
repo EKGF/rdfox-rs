@@ -199,14 +199,15 @@ where P: AsRef<Path> {
 
 fn add_llvm_path() {
     let path = env!("PATH");
-    let opt_llvm_dir = PathBuf::from("/usr/local/opt/llvm");
 
     let llvm_path = if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
         set_llvm_config_path(PathBuf::from(llvm_config_path.trim()).as_path())
     } else if let Some(llvm_path) = option_env!("LLVM_PATH") {
         set_llvm_config_path(PathBuf::from(llvm_path).as_path())
-    } else if opt_llvm_dir.exists() {
-        set_llvm_config_path(opt_llvm_dir.as_path())
+    } else if PathBuf::from("/usr/local/opt/llvm").exists() {
+        set_llvm_config_path(PathBuf::from("/usr/local/opt/llvm").as_path())
+    } else if PathBuf::from("/usr/bin").exists() {
+        set_llvm_config_path(PathBuf::from("/usr/bin").as_path())
     } else if let Some(brew_llvm_dir) = check_llvm_via_brew() {
         set_llvm_config_path(brew_llvm_dir)
     } else {

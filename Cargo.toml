@@ -15,7 +15,7 @@ license-file = "LICENSE"
 rust-version = "1.67"
 readme = "README.md"
 #documentation = "https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html#"
-documentation = "https://docs.rs/rdfox-rs/"
+documentation = "https://docs.rs/crate/rdfox/"
 exclude = [".github/*", ".idea/*", "rust-toolchain.toml", "cog.toml"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
