@@ -1,5 +1,5 @@
 [package]
-name = "rdfox"
+name = "rdfox-rs"
 description = "RDFox for Rust, a high-performance in-memory semantic graph database"
 version = "0.0.1"
 edition = "2021"

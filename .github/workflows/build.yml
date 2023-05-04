@@ -90,11 +90,12 @@ jobs:
         if: contains(matrix.os, 'macos')
         shell: bash
         env:
+          LLVM_PATH: /Users/runner/work/rdfox-rs/rdfox-rs/llvm
           LLVM_VERSION: ${{ steps.install-llvm.outputs.version }}
         run: |
           set -x
-          export LLVM_PATH="$(brew --prefix llvm)"
-          "$(brew --prefix llvm)/bin/clang" -v
+          # export LLVM_PATH="$(brew --prefix llvm)"
+          "$LLVM_PATH/bin/clang" -v
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "CPATH=$LLVM_PATH/lib/clang/$LLVM_VERSION/include/" >> $GITHUB_ENV
           echo "LDFLAGS=-L$LLVM_PATH/lib" >> $GITHUB_ENV
