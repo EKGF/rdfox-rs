@@ -1,7 +1,7 @@
 [package]
 name = "rdfox"
 description = "RDFox for Rust, a high-performance in-memory semantic graph database"
-version = "6.0.0"
+version = "0.0.1"
 edition = "2021"
 links = "RDFox-static"
 authors = [
@@ -70,10 +70,15 @@ bindgen = "0.65.1"
 rustc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["nom"]
+default = ["nom", "rdfox-6-0"]
 rdftk-support = ["rdftk_iri/uuid_iri"]
 nom-support = ["nom"]
 #
 # Switch on if you want to link to `libRDFox.dylib` rather than `libRDFox.a`
 #
 rdfox-dylib = []
+rdfox-6-0 = []
+rdfox-6-1 = [] # not supported yet
+rdfox-6-2 = [] # not supported yet
+
+

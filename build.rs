@@ -48,8 +48,21 @@ const RUSTFMT_CONFIG: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.rustfmt.toml
 lazy_static! {
     static ref RDFOX_DOWNLOAD_HOST: &'static str = option_env!("RDFOX_DOWNLOAD_HOST")
         .unwrap_or("https://rdfox-distribution.s3.eu-west-2.amazonaws.com/release");
+}
+#[cfg(feature = "rdfox-6-0")]
+lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
         option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.0");
+}
+#[cfg(feature = "rdfox-6-1")]
+lazy_static! {
+    static ref RDFOX_VERSION_EXPECTED: &'static str =
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.1");
+}
+#[cfg(feature = "rdfox-6-2")]
+lazy_static! {
+    static ref RDFOX_VERSION_EXPECTED: &'static str =
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.2");
 }
 
 fn rdfox_download_url() -> String {
