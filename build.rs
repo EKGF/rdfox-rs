@@ -198,8 +198,6 @@ where P: AsRef<Path> {
 }
 
 fn add_llvm_path() {
-    let path = env!("PATH");
-
     let llvm_path = if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
         set_llvm_config_path(PathBuf::from(llvm_config_path.trim()).as_path())
     } else if let Some(llvm_path) = option_env!("LLVM_PATH") {
@@ -217,7 +215,11 @@ fn add_llvm_path() {
     let llvm_config_path = Command::new("llvm-config")
         .env(
             "PATH",
-            format!("{}:{}/bin", path, llvm_path.display()),
+            format!(
+                "{}:~/llvm/build/bin:{}/bin",
+                env!("PATH"),
+                llvm_path.display()
+            ),
         )
         .args(["--prefix"])
         .output()
