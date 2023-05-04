@@ -28,7 +28,7 @@ jobs:
           profile: minimal
 
       - name: Create rustdoc
-        run: cargo doc --verbose --no-deps --lib --bins --workspace --document-private-items
+        run: cargo +nightly doc --verbose --no-deps --lib --bins --workspace --document-private-items
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.8
