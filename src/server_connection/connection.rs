@@ -40,7 +40,17 @@ unsafe impl Sync for ServerConnection {}
 unsafe impl Send for ServerConnection {}
 
 impl Drop for ServerConnection {
-    fn drop(&mut self) { self.destroy() }
+    fn drop(&mut self) {
+        assert!(
+            !self.inner.is_null(),
+            "Could not drop ServerConnection"
+        );
+        unsafe {
+            CServerConnection_destroy(self.inner);
+        }
+        self.inner = ptr::null_mut();
+        tracing::debug!(target: LOG_TARGET_DATABASE, "Dropped {self:}");
+    }
 }
 
 impl std::fmt::Display for ServerConnection {
@@ -172,11 +182,12 @@ impl ServerConnection {
         let c_name = CString::new(data_store.name.as_str()).unwrap();
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
-            "Creating datastore connection {}",
+            conn = ds_connection.number,
+            "Creating datastore connection #{}",
             ds_connection.number
         );
         database_call!(
-            "creating a datastore connection",
+            "Creating datastore connection",
             CServerConnection_newDataStoreConnection(
                 self.inner,
                 c_name.as_ptr(),
@@ -189,14 +200,5 @@ impl ServerConnection {
             data_store
         );
         Ok(Arc::new(ds_connection))
-    }
-
-    fn destroy(&mut self) {
-        assert!(!self.inner.is_null());
-        unsafe {
-            CServerConnection_destroy(self.inner);
-        }
-        self.inner = ptr::null_mut();
-        tracing::debug!(target: LOG_TARGET_DATABASE, "Destroyed {self:}");
     }
 }

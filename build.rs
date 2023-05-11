@@ -13,7 +13,7 @@ use {
         fs::File,
         io::{BufReader, Write},
         option_env,
-        path::{Path, PathBuf},
+        path::PathBuf,
         process::Command,
     },
 };
@@ -194,10 +194,14 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     unpacked_dir
 }
 
-fn set_llvm_config_path<P>(llvm_config_path: P) -> PathBuf
-where P: AsRef<Path> {
-    let path = llvm_config_path.as_ref();
-    assert!(llvm_config_path.as_ref().exists());
+fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<PathBuf> {
+    if path.is_none() {
+        return None
+    }
+    let path = PathBuf::from(path.unwrap().into());
+    if !path.exists() {
+        return None
+    }
     let path = std::fs::canonicalize(path).unwrap();
     println!(
         "cargo:warning=llvm config path is {}",
@@ -207,23 +211,26 @@ where P: AsRef<Path> {
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
         path.display()
     );
-    llvm_config_path.as_ref().into()
+    Some(path)
 }
 
 fn add_llvm_path() {
-    let llvm_path = if let Some(llvm_config_path) = option_env!("LLVM_CONFIG_PATH") {
-        set_llvm_config_path(PathBuf::from(llvm_config_path.trim()).as_path())
-    } else if let Some(llvm_path) = option_env!("LLVM_PATH") {
-        set_llvm_config_path(PathBuf::from(llvm_path).as_path())
-    } else if PathBuf::from("/usr/local/opt/llvm").exists() {
-        set_llvm_config_path(PathBuf::from("/usr/local/opt/llvm").as_path())
-    } else if PathBuf::from("/usr/bin").exists() {
-        set_llvm_config_path(PathBuf::from("/usr/bin").as_path())
-    } else if let Some(brew_llvm_dir) = check_llvm_via_brew() {
-        set_llvm_config_path(brew_llvm_dir)
+    let llvm_config_path = set_llvm_config_path(option_env!("LLVM_CONFIG_PATH"))
+        .or_else(|| set_llvm_config_path(option_env!("LLVM_PATH")))
+        .or_else(|| set_llvm_config_path(Some("/usr/local/opt/llvm")))
+        .or_else(|| set_llvm_config_path(check_llvm_via_brew()))
+        .or_else(|| set_llvm_config_path(Some("/usr/bin")))
+        .unwrap_or_else(|| panic!("Could not find the LLVM path"));
+
+    let llvm_config_bin = llvm_config_path.join("bin/llvm-config");
+    if llvm_config_bin.exists() {
+        println!(
+            "cargo:warning=using {}",
+            llvm_config_bin.display()
+        );
     } else {
-        panic!("Could not find the LLVM path")
-    };
+        panic!("{} does not exist", llvm_config_bin.display());
+    }
 
     let llvm_config_path = Command::new("llvm-config")
         .env(
@@ -231,7 +238,7 @@ fn add_llvm_path() {
             format!(
                 "{}:~/llvm/build/bin:{}/bin",
                 env!("PATH"),
-                llvm_path.display()
+                llvm_config_path.display()
             ),
         )
         .args(["--prefix"])
@@ -246,18 +253,18 @@ fn add_llvm_path() {
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-fn check_llvm_via_brew() -> Option<PathBuf> {
+fn check_llvm_via_brew() -> Option<String> {
     if let Ok(output) = Command::new("brew").args(["--prefix", "llvm"]).output() {
         let llvm_path =
             String::from_utf8(output.stdout).expect("`brew --prefix llvm` output must be UTF-8");
-        Some(PathBuf::from(llvm_path))
+        Some(llvm_path)
     } else {
         None
     }
 }
 
 #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-fn check_llvm_via_brew() -> Option<PathBuf> { None }
+fn check_llvm_via_brew() -> Option<String> { None }
 
 // The CRDFox.h file misses the `#include <cstddef>` statement which is
 // needed to define the symbol `nullptr_t`. This is only an issue on Linux,

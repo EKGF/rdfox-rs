@@ -54,7 +54,7 @@ RUST_LOG=trace cargo test --package rdfox --features rdfox-dylib --test load loa
 
 # Published where?
 
-- Crate: https://crates.io/crates/rdfox-rs
+- Crate: <https://crates.io/crates/rdfox-rs>
 - Documentation:
-  - docs.rs: https://docs.rs/rdfox-rs
-  - github: https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html
+  - docs.rs: <https://docs.rs/rdfox-rs>
+  - github: <https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html>

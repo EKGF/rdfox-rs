@@ -185,17 +185,6 @@ impl<'a> OpenedCursor<'a> {
 
     /// Get the variable name used in the executed SPARQL statement representing
     /// the given column in the output.
-    ///
-    /// ```rust
-    /// use rdfox::root;
-    /// extern "C" {
-    ///     pub fn CCursor_getAnswerVariableName(
-    ///         cursor: *mut root::CCursor,
-    ///         variable_index: usize,
-    ///         answer_variable_name: *mut *const std::os::raw::c_char,
-    ///     ) -> *const root::CException;
-    /// }
-    /// ```
     pub fn get_answer_variable_name(&self, index: u64) -> Result<String, RDFStoreError> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(

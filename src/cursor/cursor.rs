@@ -28,7 +28,7 @@ impl Drop for Cursor {
             if !self.inner.is_null() {
                 CCursor_destroy(self.inner);
                 self.inner = ptr::null_mut();
-                tracing::debug!(target: LOG_TARGET_DATABASE, "Destroyed cursor");
+                tracing::debug!(target: LOG_TARGET_DATABASE, "Dropped cursor");
             }
         }
     }
@@ -50,7 +50,11 @@ impl Cursor {
         // };
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len = c_query.as_bytes().len() as u64;
-        tracing::trace!(target: LOG_TARGET_DATABASE, "Starting cursor for {:?}", c_query);
+        tracing::trace!(
+            target: LOG_TARGET_DATABASE,
+            sparql = ?c_query,
+            "Starting a cursor"
+        );
         // pub fn CDataStoreConnection_createCursor(
         //     dataStoreConnection: *mut root::CDataStoreConnection,
         //     queryText: *const ::std::os::raw::c_char,
@@ -59,7 +63,7 @@ impl Cursor {
         //     cursor: *mut *mut root::CCursor,
         // ) -> *const root::CException;
         database_call!(
-            "creating a cursor",
+            "Starting a cursor",
             CDataStoreConnection_createCursor(
                 connection.inner,
                 c_query.as_ptr(),
@@ -78,7 +82,6 @@ impl Cursor {
             "Created cursor for {:}",
             &cursor.statement
         );
-        tracing::debug!(target: LOG_TARGET_DATABASE, "Cursor {:?}", cursor);
         Ok(cursor)
     }
 
@@ -89,11 +92,11 @@ impl Cursor {
     }
 
     #[tracing::instrument(
-        target = "database",
-        skip_all,
-        fields(
-            max.row = max_row,
-        )
+    target = "database",
+    skip_all,
+    fields(
+    max.row = max_row,
+    )
     )]
     pub fn consume<T, E>(&mut self, tx: &Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
     where
