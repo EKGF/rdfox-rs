@@ -15,7 +15,7 @@ use {
         },
     },
     alloc::ffi::CString,
-    rdf_store_rs::{consts::LOG_TARGET_DATABASE, RDFStoreError},
+    rdf_store_rs::RDFStoreError,
     std::{
         ffi::CStr,
         fmt::{Display, Formatter},
@@ -72,7 +72,7 @@ impl Drop for Parameters {
         );
         unsafe {
             CParameters_destroy(self.inner.cast());
-            tracing::trace!(target: LOG_TARGET_DATABASE, "Destroyed params");
+            // tracing::trace!(target: LOG_TARGET_DATABASE, "Dropped Params");
         }
     }
 }

@@ -46,7 +46,14 @@ unsafe impl Send for Prefixes {}
 unsafe impl Sync for Prefixes {}
 
 impl Drop for Prefixes {
-    fn drop(&mut self) { self.destroy() }
+    fn drop(&mut self) {
+        assert!(!self.inner.is_null());
+        unsafe {
+            CPrefixes_destroy(self.inner);
+        }
+        self.inner = ptr::null_mut();
+        tracing::trace!(target: LOG_TARGET_DATABASE, "Dropped Prefixes");
+    }
 }
 
 impl std::fmt::Display for Prefixes {
@@ -100,7 +107,7 @@ impl Prefixes {
         let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
         database_call!(
             format!(
-                "declaring prefix [{}] for namespace [{}]",
+                "Declaring prefix {} for namespace {}",
                 prefix.name.as_str(),
                 prefix.iri.as_str()
             )
@@ -115,6 +122,7 @@ impl Prefixes {
         match result {
             PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
                 tracing::error!(
+                    target: LOG_TARGET_DATABASE,
                     "Invalid prefix name \"{}\" while registering namespace <{}>",
                     prefix.name.as_str(),
                     prefix.iri.as_str()
@@ -123,26 +131,21 @@ impl Prefixes {
             },
             PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             PrefixDeclareResult::PREFIXES_NO_CHANGE => {
-                tracing::trace!("Registered {prefix} twice");
+                tracing::trace!(
+                    target: LOG_TARGET_DATABASE,
+                    "Registered {prefix} twice"
+                );
                 Ok(result)
             },
             _ => {
                 tracing::error!(
+                    target: LOG_TARGET_DATABASE,
                     "Result of registering prefix {prefix} is {:?}",
                     result
                 );
                 Ok(result)
             },
         }
-    }
-
-    fn destroy(&mut self) {
-        assert!(!self.inner.is_null());
-        unsafe {
-            CPrefixes_destroy(self.inner);
-        }
-        self.inner = ptr::null_mut();
-        tracing::trace!(target: LOG_TARGET_DATABASE, "Destroyed Prefixes");
     }
 
     pub fn declare<'a, Base: Into<Iri<'a>>>(

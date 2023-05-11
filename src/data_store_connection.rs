@@ -80,7 +80,26 @@ impl Display for DataStoreConnection {
 }
 
 impl Drop for DataStoreConnection {
-    fn drop(&mut self) { self.destroy() }
+    fn drop(&mut self) {
+        assert!(
+            !self.inner.is_null(),
+            "Could not drop datastore connection #{}",
+            self.number
+        );
+
+        let duration = self.started_at.elapsed();
+
+        let self_msg = format!("{self}");
+        unsafe {
+            CDataStoreConnection_destroy(self.inner.cast());
+        }
+        self.inner = null_mut();
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            duration = ?duration,
+            "Dropped {self_msg}",
+        );
+    }
 }
 
 impl DataStoreConnection {
@@ -463,26 +482,5 @@ impl DataStoreConnection {
             &Parameters::empty()?.fact_domain(fact_domain)?,
         )?
         .count(tx)
-    }
-
-    // noinspection RsUnreachableCode
-    fn destroy(&mut self) {
-        assert!(
-            self.inner.is_null(),
-            "invalid datastore connection"
-        );
-
-        let duration = self.started_at.elapsed();
-
-        let self_msg = format!("{self}");
-        unsafe {
-            CDataStoreConnection_destroy(self.inner);
-        }
-        self.inner = null_mut();
-        tracing::debug!(
-            target: LOG_TARGET_DATABASE,
-            "Destroyed {self_msg} after {:?}",
-            duration
-        );
     }
 }

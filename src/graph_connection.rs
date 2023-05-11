@@ -23,7 +23,11 @@ pub struct GraphConnection {
 
 impl Display for GraphConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "connection to {:}", self.graph)
+        write!(
+            f,
+            "graph-connection to {:} (on {:})",
+            self.graph, self.data_store_connection
+        )
     }
 }
 
@@ -32,8 +36,8 @@ impl Drop for GraphConnection {
         let duration = self.started_at.elapsed();
         tracing::trace!(
             target: LOG_TARGET_DATABASE,
-            "Dropped {self} after {:?}",
-            duration
+            duration = ?duration,
+            "Dropped {self}",
         )
     }
 }

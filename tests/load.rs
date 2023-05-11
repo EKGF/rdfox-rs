@@ -1,18 +1,23 @@
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
-use rdf_store_rs::{consts::PREFIX_SKOS, Literal};
-/// We're using `#[test_log::test]` tests in this file which allows
-/// you to see the log in your test runner if you set the environment
-/// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
-/// at the end of your cargo test command line.
-/// See https://crates.io/crates/test-log.
-///
-/// TODO: Add test for "import axioms" (add test ontology)
+// We're using `#[test_log::test]` tests in this file which allows
+// you to see the log in your test runner if you set the environment
+// variable `RUST_LOG=info` (or debug or trace) and add `--nocapture`
+// at the end of your cargo test command line.
+// See https://crates.io/crates/test-log.
+//
+// TODO: Add test for "import axioms" (add test ontology)
 use {
     indoc::formatdoc,
     iref::Iri,
-    rdf_store_rs::{consts::APPLICATION_N_QUADS, Graph, Prefix, RDFStoreError},
-    rdfox::{
+    rdf_store_rs::{
+        consts::{APPLICATION_N_QUADS, PREFIX_SKOS},
+        Graph,
+        Literal,
+        Prefix,
+        RDFStoreError,
+    },
+    rdfox_rs::{
         DataStore,
         DataStoreConnection,
         FactDomain,
@@ -267,6 +272,8 @@ fn test_query_concepts(
 
 #[test_log::test]
 fn load_rdfox() -> Result<(), RDFStoreError> {
+    eprintln!("running test load_rdfox:");
+    tracing::info!("load_rdfox test start");
     let server = test_create_server()?;
     let server_connection = test_create_server_connection(server)?;
 
@@ -303,7 +310,7 @@ fn load_rdfox() -> Result<(), RDFStoreError> {
 
     sleep(Duration::from_millis(500)); // wait for connection pool threads to end
 
-    tracing::info!("Data store connection is now destroyed, now we can delete the data store:");
+    tracing::info!("Datastore connection is now destroyed, now we can delete the data store:");
 
     server_connection.delete_data_store(&data_store)?;
 

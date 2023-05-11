@@ -96,8 +96,11 @@ jobs:
           set -x
           # export LLVM_PATH="$(brew --prefix llvm)"
           "$LLVM_PATH/bin/clang" -v
+          echo "LLVM_VERSION=$LLVM_VERSION" >> $GITHUB_ENV
           echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo "CPATH=$LLVM_PATH/lib/clang/$LLVM_VERSION/include/" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
           echo "LDFLAGS=-L$LLVM_PATH/lib" >> $GITHUB_ENV
           echo "CPPFLAGS=-I$LLVM_PATH/include" >> $GITHUB_ENV
           echo "CC=$LLVM_PATH/bin/clang" >> $GITHUB_ENV
@@ -107,4 +110,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --no-default-features --features "nom rdfox-6-0"
+          args: --release --no-default-features --features nom --features rdfox-6-0

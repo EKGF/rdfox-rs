@@ -11,6 +11,7 @@
     <option name="backtrace" value="SHORT" />
     <envs>
       <env name="RUSTDOCFLAGS" value="--enable-index-page -Zunstable-options" />
+      <env name="CARGO_PROFILE_DEV_BUILD_OVERRIDE_DEBUG" value="true" />
     </envs>
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />

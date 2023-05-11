@@ -13,7 +13,7 @@ use {
     },
 };
 
-/// A data store encapsulates a unit of logically related information.
+/// A `DataStore` encapsulates a unit of logically related information.
 ///
 /// See <https://docs.oxfordsemantic.tech/data-stores.html>
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -24,7 +24,7 @@ pub struct DataStore {
 
 impl Display for DataStore {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "data store [{}]", self.name.green())
+        write!(f, "datastore [{}]", self.name.green())
     }
 }
 
