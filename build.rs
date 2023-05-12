@@ -49,16 +49,6 @@ lazy_static! {
     static ref RDFOX_DOWNLOAD_HOST: &'static str = option_env!("RDFOX_DOWNLOAD_HOST")
         .unwrap_or("https://rdfox-distribution.s3.eu-west-2.amazonaws.com/release");
 }
-#[cfg(feature = "rdfox-6-0")]
-lazy_static! {
-    static ref RDFOX_VERSION_EXPECTED: &'static str =
-        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.0");
-}
-#[cfg(feature = "rdfox-6-1")]
-lazy_static! {
-    static ref RDFOX_VERSION_EXPECTED: &'static str =
-        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.1");
-}
 #[cfg(feature = "rdfox-6-2")]
 lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
@@ -314,11 +304,11 @@ fn main() {
 
     // Tell cargo to tell rustc to link the libRDFox.a static library.
     #[cfg(not(feature = "rdfox-dylib"))]
-    println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
-    #[cfg(not(feature = "rdfox-dylib"))]
-    println!("cargo:rustc-link-lib=static=c++");
-    #[cfg(not(feature = "rdfox-dylib"))]
-    println!("cargo:rustc-link-lib=static=c++abi");
+    {
+        println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
+        println!("cargo:rustc-link-lib=static=c++");
+        println!("cargo:rustc-link-lib=static=c++abi");
+    }
 
     let mut builder = bindgen::Builder::default()
         // The input header we would like to generate
@@ -336,13 +326,14 @@ fn main() {
         })
         .translate_enum_integer_types(true)
         .clang_arg(r"-xc++")
-        .clang_arg(r"-std=c++11")
+        .clang_arg(r"-std=c++20")
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
         // .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
         // .emit_builtins()
         .layout_tests(true)
         // .enable_function_attribute_detection()
+        .derive_default(true)
         .no_copy(".*CCursor.*")
         .no_copy(".*COutputStream.*")
         .no_copy(".*CException.*")

@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 #![feature(rustc_private)]
 #![feature(ptr_metadata)]
-#![doc = include_str ! ("../README.md")]
+#![doc = include_str!("../README.md")]
 
 extern crate core;
 
@@ -18,7 +18,7 @@ pub use {
     mime::Mime,
     parameters::{FactDomain, Parameters, PersistenceMode},
     prefixes::{Prefixes, PrefixesBuilder},
-    rdf_store_rs::{DataType, Literal, LiteralValue, Predicate, Prefix, RDFStoreError, Term},
+    rdf_store_rs::*,
     role_creds::RoleCreds,
     server::Server,
     server_connection::ServerConnection,

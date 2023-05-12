@@ -306,7 +306,7 @@ impl DataStoreConnection {
         &self,
         statement: &'b Statement,
         parameters: &Parameters,
-    ) -> Result<(u64, u64), RDFStoreError> {
+    ) -> Result<CStatementResult, RDFStoreError> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -318,7 +318,7 @@ impl DataStoreConnection {
         // };
         let statement_text = statement.as_c_string()?;
         let statement_text_len = statement_text.as_bytes().len() as u64;
-        let mut statement_result: CStatementResult = [0, 0];
+        let mut statement_result = CStatementResult::default();
         database_call!(
             "evaluating an update statement",
             CDataStoreConnection_evaluateUpdate(
@@ -330,7 +330,7 @@ impl DataStoreConnection {
             )
         )?;
         tracing::trace!("Evaluated update statement: {statement_result:?}",);
-        Ok((statement_result[0], statement_result[1]))
+        Ok(statement_result)
     }
 
     pub fn evaluate_to_stream<'a, W>(
