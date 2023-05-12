@@ -5,33 +5,27 @@ use {
     crate::{
         database_call,
         root::{
-            CArgumentIndex,
             CCursor,
             CCursor_advance,
             CCursor_getAnswerVariableName,
-            CCursor_getArgumentIndexes,
-            CCursor_getArgumentsBuffer,
             CCursor_getArity,
             CCursor_open,
-            CResourceID,
         },
         Cursor,
-        RDFStoreError::{self, Unknown},
+        RDFStoreError::{self},
         Transaction,
     },
-    rdf_store_rs::{consts::LOG_TARGET_DATABASE, RDFStoreError::CannotGetAnyArgumentIndexes},
+    rdf_store_rs::consts::LOG_TARGET_DATABASE,
     std::{ptr, sync::Arc},
 };
 
 #[derive(Debug)]
 pub struct OpenedCursor<'a> {
-    pub tx:           Arc<Transaction>,
-    pub cursor:       &'a Cursor,
+    pub tx:     Arc<Transaction>,
+    pub cursor: &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity:        u64,
-    arguments_buffer: &'a [u64],
-    argument_indexes: &'a [u32],
+    pub arity:  u64,
 }
 
 impl<'a> OpenedCursor<'a> {
@@ -45,15 +39,7 @@ impl<'a> OpenedCursor<'a> {
         let c_cursor = cursor.inner;
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
-        let (argument_indexes, max_index) = Self::argument_indexes(cursor, c_cursor, arity)?;
-        let arguments_buffer = Self::arguments_buffer(c_cursor, max_index + 1)?;
-        let opened_cursor = OpenedCursor {
-            tx,
-            cursor,
-            arity,
-            arguments_buffer,
-            argument_indexes,
-        };
+        let opened_cursor = OpenedCursor { tx, cursor, arity };
         Ok((opened_cursor, multiplicity))
     }
 
@@ -85,76 +71,6 @@ impl<'a> OpenedCursor<'a> {
             CCursor_getArity(c_cursor, &mut arity)
         )?;
         Ok(arity)
-    }
-
-    fn arguments_buffer(c_cursor: *mut CCursor, size: u32) -> Result<&'a [u64], RDFStoreError> {
-        let mut buffer: *const CResourceID = ptr::null_mut();
-        database_call!(
-            "getting the arguments buffer",
-            CCursor_getArgumentsBuffer(c_cursor, &mut buffer)
-        )?;
-        // let mut index = 0_usize;
-        // unsafe {
-        //     let mut p = buffer;
-        //     while !p.is_null() {
-        //         let resource_id: CResourceID = *p as CResourceID;
-        //         if resource_id == 0 {
-        //             break
-        //         }
-        //         tracing::error!("{index} resource_id={:?}", resource_id);
-        //         index += 1;
-        //         p = p.offset(1);
-        //     }
-        // }
-        // tracing::error!("#{index} resource ids size={size}");
-        let array = unsafe { std::slice::from_raw_parts(buffer, size as usize) };
-        Ok(array)
-    }
-
-    fn argument_indexes(
-        cursor: &Cursor,
-        c_cursor: *mut CCursor,
-        arity: u64,
-    ) -> Result<(&'a [u32], u32), RDFStoreError> {
-        let mut indexes: *const CArgumentIndex = ptr::null_mut();
-        database_call!(
-            "getting the argument-indexes",
-            CCursor_getArgumentIndexes(c_cursor, &mut indexes)
-        )?;
-        if indexes.is_null() {
-            return Err(CannotGetAnyArgumentIndexes { query: cursor.sparql_string().to_string() })
-        }
-        let array = unsafe { std::slice::from_raw_parts(indexes, arity as usize) };
-        let max_index = array.iter().max().unwrap();
-        // tracing::error!("argument-indexes: arity={arity} {array:?} max={max_index}");
-        Ok((array, *max_index))
-    }
-
-    /// Get the resource ID from the arguments buffer which dynamically changes
-    /// after each cursor advance.
-    pub(crate) fn resource_id(&self, term_index: u64) -> Result<Option<u64>, RDFStoreError> {
-        if let Some(argument_index) = self.argument_indexes.get(term_index as usize) {
-            if let Some(resource_id) = self.arguments_buffer.get(*argument_index as usize) {
-                Ok(Some(*resource_id))
-            } else {
-                tracing::error!(
-                    target: LOG_TARGET_DATABASE,
-                    "Could not get the resource ID from the arguments buffer with argument index \
-                     {argument_index} and term index \
-                     {term_index}:\nargument_indexes={:?},\narguments_buffer={:?}",
-                    self.argument_indexes,
-                    self.arguments_buffer
-                );
-                // Err(Unknown)
-                Ok(None)
-            }
-        } else {
-            tracing::error!(
-                target: LOG_TARGET_DATABASE,
-                "Could not get the argument index for term index {term_index}"
-            );
-            Err(Unknown)
-        }
     }
 
     /// TODO: Check why this panics when called after previous call returned

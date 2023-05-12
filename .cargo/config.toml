@@ -1,0 +1,23 @@
+[build]
+incremental = true
+target = "x86_64-apple-darwin"
+#target = "wasm32-unknown-unknown"
+
+[cargo-new]
+vcs = "git"
+email = "someone@agnos.ai"
+
+# Add this section because IntelliJ rust plugin does not
+# support the "sparse" protocol very well (as opposed to "git" protocol)
+[registries.crates-io]
+protocol = "git"
+
+[net]
+git-fetch-with-cli = true   # use the `git` executable for git operations
+
+[patch.crates-io]
+#rdf-store-rs = { path = "../rdf-store-rs" }
+
+[term]
+color = "always"
+

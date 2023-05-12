@@ -87,6 +87,9 @@ impl Transaction {
 
     fn get_title_for(tx_type: CTransactionType, number: usize, connection_number: usize) -> String {
         match tx_type {
+            CTransactionType::TRANSACTION_TYPE_EXCLUSIVE => {
+                format!("Exclusive Transaction #{number} on connection #{connection_number}",)
+            },
             CTransactionType::TRANSACTION_TYPE_READ_ONLY => {
                 format!("R/O Transaction #{number} on connection #{connection_number}",)
             },

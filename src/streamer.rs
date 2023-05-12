@@ -87,7 +87,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         let statement_text_len = statement_text.as_bytes().len() as u64;
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
         let query_answer_format_name = CString::new(self.mime_type.as_ref())?;
-        let mut number_of_solutions: CStatementResult = [0, 0];
+        let mut number_of_solutions = CStatementResult::default();
         let connection_ptr = self.connection_ptr();
 
         let self_p = format!("{:p}", &self);
