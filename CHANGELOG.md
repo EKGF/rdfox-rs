@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.2](https://github.com/EKGF/rdfox-rs/compare/0.0.1..0.0.2) - 2023-05-15
+#### Continuous Integration
+- **(docs)** some details - ([4bf4e4f](https://github.com/EKGF/rdfox-rs/commit/4bf4e4facb0d140d0e0c5b2f22787c1e8941c45a)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs job - ([93a26fd](https://github.com/EKGF/rdfox-rs/commit/93a26fd1877eb2cc71d9dbc8e0574cd7bba8427e)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs job - ([89c72ae](https://github.com/EKGF/rdfox-rs/commit/89c72ae36e53452cc96b165e1558d75d6835f35b)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs job - ([b13c9a7](https://github.com/EKGF/rdfox-rs/commit/b13c9a7e2dff7b6836091cc8fb7b822c49b11b19)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs job - ([ed3178b](https://github.com/EKGF/rdfox-rs/commit/ed3178b2ba454bd1d806e958726782d5a24978f3)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to rdfox-rs - ([2889b3d](https://github.com/EKGF/rdfox-rs/commit/2889b3dfed0c0da5e612d424bfcc54aa3b4f6c96)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to rdfox-rs - ([88e7b9b](https://github.com/EKGF/rdfox-rs/commit/88e7b9b55c577c6583b75c3217787d989d68e30a)) - [@jgeluk](https://github.com/jgeluk)
+#### Documentation
+- Updated README.md - ([4f58d61](https://github.com/EKGF/rdfox-rs/commit/4f58d61ec8fd705e4702b245b6a2733eac5cda78)) - [@jgeluk](https://github.com/jgeluk)
+#### Features
+- supports RDFox 6.2 now - ([6a6de53](https://github.com/EKGF/rdfox-rs/commit/6a6de53ec1c06dff2a16266dd351b18c2e6ac9c0)) - [@jgeluk](https://github.com/jgeluk)
+#### Refactoring
+- some details - ([c2e926d](https://github.com/EKGF/rdfox-rs/commit/c2e926d425883cb3d503ec1295856b7ad0d49318)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.1](https://github.com/EKGF/rdfox-rs/compare/5517fc710805ed8c92579c6c7f9310a123dbe447..0.0.1) - 2023-05-04
 #### Bug Fixes
 - **(cursor)** fixed issue with argument indexes - ([2b17f24](https://github.com/EKGF/rdfox-rs/commit/2b17f2441a27cbd6f5ecd0f317ac2f334aa898fa)) - [@jgeluk](https://github.com/jgeluk)
