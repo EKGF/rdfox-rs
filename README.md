@@ -7,16 +7,19 @@ Embedded [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/pr
 - Links to dynamic link library `libRDFox.dylib` (if you use feature `rdfox-dylib`)
 - Links to the static RDFox library by default
 - Requires an RDFox license (see <https://www.oxfordsemantic.tech/product>)
-  - Copy license to `~/.RDFox/RDFox.lic`
+    - Copy license to `~/.RDFox/RDFox.lic`
 - Provides a higher level rust-friendly interface over the C-API
 
 ## Status
 
 - All the basics work
-- Currently only supports RDFox 6.0 (6.2 will be next)
+- Currently only supports RDFox 6.2
 - RDFox itself, a C/C++ program. comes as a dynamic link library or a static library,
   both of which are supported by this Rust crate.
-  - Use feature `rdfox-dylib` if you want to use the dynamic link library
+    - Use feature `rdfox-dylib` if you want to use the dynamic link library
+    - At the moment, the static link library causes a SEGSEGV signal when running the tests.
+      This is being investigated.
+    - Therefore, this crate is not ready for production yet.
 - Has only been tested as an embedded database (meaning: running the whole RDFox database engine in your Rust process),
   however, in theory it should also be possible (with some tweaks that we have to add) to run it just as a client to
   a remote instance of RDFox.
@@ -24,10 +27,11 @@ Embedded [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/pr
 
 ## Plans
 
+- Get the static link library to not cause a SIGSEGV signal
 - Make high-level interface more abstract so that it can also be used for remote endpoints using REST calls
   and potentially any other triple store product.
-  - Core components that are RDFox-independent have already been moved to
-    the [rdf-store-rs crate](https://crates.io/crates/rdf-store-rs)
+    - Core components that are RDFox-independent have already been moved to
+      the [rdf-store-rs crate](https://crates.io/crates/rdf-store-rs)
 
 ## Version
 
@@ -43,18 +47,18 @@ RUST_LOG=info cargo test
 Or, if you want to see all output:
 
 ```shell
-RUST_LOG=trace cargo test --package rdfox --test load load_rdfox -- --exact --nocapture
+RUST_LOG=trace cargo test --package rdfox-rs --test load load_rdfox -- --exact --nocapture
 ```
 
 If you want to run the tests with the dynamic link library of RDFox, then run this:
 
 ```shell
-RUST_LOG=trace cargo test --package rdfox --features rdfox-dylib --test load load_rdfox -- --exact --nocapture
+RUST_LOG=trace cargo test --package rdfox-rs --features rdfox-dylib --test load load_rdfox -- --exact --nocapture
 ```
 
 # Published where?
 
 - Crate: <https://crates.io/crates/rdfox-rs>
 - Documentation:
-  - docs.rs: <https://docs.rs/rdfox-rs>
-  - github: <https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html>
+    - docs.rs: <https://docs.rs/rdfox-rs>
+    - github: <https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html>
