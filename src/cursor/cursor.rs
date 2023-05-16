@@ -5,7 +5,7 @@ use {
     super::{CursorRow, OpenedCursor},
     crate::{
         database_call,
-        root::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
+        rdfox_api::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
         DataStoreConnection,
         Parameters,
         Statement,

@@ -63,6 +63,7 @@ fn rdfox_download_url() -> String {
     format!("{_host}/v{_version}/RDFox-{_os}-{ARCH}-{_version}.zip")
 }
 
+// noinspection RsExternalLinter
 fn rdfox_archive_name() -> String {
     let version = *RDFOX_VERSION_EXPECTED;
     format!("RDFox-{RDFOX_OS_NAME}-{ARCH}-{version}")
@@ -185,9 +186,7 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
 }
 
 fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<PathBuf> {
-    if path.is_none() {
-        return None
-    }
+    path.as_ref()?;
     let path = PathBuf::from(path.unwrap().into());
     if !path.exists() {
         return None
@@ -306,8 +305,13 @@ fn main() {
     #[cfg(not(feature = "rdfox-dylib"))]
     {
         println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
-        println!("cargo:rustc-link-lib=static=c++");
-        println!("cargo:rustc-link-lib=static=c++abi");
+        println!(
+            "cargo:rustc-link-lib=static:+whole-archive,-bundle,+verbatim=/usr/local/Cellar/\
+             libiconv/1.17/lib/libiconv.a"
+        );
+        println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=c++");
+        println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=c++abi");
+        println!("cargo:rustc-link-search=native:/usr/local/Cellar/libiconv/1.17/lib");
     }
 
     let mut builder = bindgen::Builder::default()
@@ -320,20 +324,24 @@ fn main() {
         ))
         .rust_target(RustTarget::Nightly)
         .generate_comments(true)
-        // .opaque_type("void")
+        .opaque_type("void")
+        .opaque_type("std::.*")
         .default_enum_style(bindgen::EnumVariation::Rust {
-            non_exhaustive: true,
+            non_exhaustive: false,
         })
         .translate_enum_integer_types(true)
         .clang_arg(r"-xc++")
         .clang_arg(r"-std=c++20")
+        .clang_arg(r"-static-libstdc++")
+        .clang_arg(r"-nostdlib")
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
         // .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
         // .emit_builtins()
         .layout_tests(true)
-        // .enable_function_attribute_detection()
+        .enable_function_attribute_detection()
         .derive_default(true)
+        .ignore_methods()
         .no_copy(".*CCursor.*")
         .no_copy(".*COutputStream.*")
         .no_copy(".*CException.*")
@@ -346,18 +354,23 @@ fn main() {
         // included header files changed.
         // .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .rustfmt_configuration_file(Some(PathBuf::from(RUSTFMT_CONFIG)))
-        .enable_cxx_namespaces()
+        // .enable_cxx_namespaces()
         // .merge_extern_blocks(true)
         // .wrap_unsafe_ops(true)
         .array_pointers_in_arguments(true)
         // .dynamic_link_require_all(true)
+        .detect_include_paths(true)
+        .prepend_enum_name(false)
         .size_t_is_usize(false)
+        .translate_enum_integer_types(true)
         // .explicit_padding(true)
         .sort_semantically(true)
         .respect_cxx_access_specs(true)
-        // .vtable_generation(false)
+        .generate_inline_functions(true)
+        .vtable_generation(false)
+        .merge_extern_blocks(true)
+        .wrap_unsafe_ops(true)
         // .enable_function_attribute_detection()
-        // .generate_inline_functions(true);
         ;
     for item in BLOCKLIST_ITEMS {
         builder = builder.blocklist_type(item);

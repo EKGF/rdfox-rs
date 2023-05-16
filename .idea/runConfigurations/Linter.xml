@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Test load_rdfox" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="test --verbose --package rdfox-rs --test load -- --exact --nocapture" />
+  <configuration default="false" name="Linter" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="clippy --features rdfox-dylib" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <option name="emulateTerminal" value="false" />
     <option name="channel" value="NIGHTLY" />
@@ -9,14 +9,11 @@
     <option name="withSudo" value="false" />
     <option name="buildTarget" value="REMOTE" />
     <option name="backtrace" value="SHORT" />
-    <envs>
-      <env name="LIBCLANG_PATH" value="/usr/local/opt/llvm/lib" />
-      <env name="PKG_CONFIG_PATH" value="/usr/local/Cellar/icu4c/72.1/lib/pkgconfig" />
-      <env name="RUST_LOG" value="trace" />
-      <env name="LDFLAGS" value="/usr/local/Cellar/libiconv/1.17/lib" />
-    </envs>
+    <envs />
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
-    <method v="2" />
+    <method v="2">
+      <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+    </method>
   </configuration>
 </component>

@@ -4,7 +4,7 @@
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CDataStoreConnection,
             CDataStoreConnection_destroy,
             CDataStoreConnection_evaluateUpdate,
@@ -302,9 +302,9 @@ impl DataStoreConnection {
     }
 
     // noinspection DuplicatedCode
-    pub fn evaluate_update<'b>(
+    pub fn evaluate_update(
         &self,
-        statement: &'b Statement,
+        statement: &Statement,
         parameters: &Parameters,
     ) -> Result<CStatementResult, RDFStoreError> {
         assert!(

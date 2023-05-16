@@ -4,7 +4,7 @@
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CDataStoreConnection,
             CDataStoreConnection_evaluateStatement,
             COutputStream,

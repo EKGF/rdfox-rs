@@ -206,7 +206,7 @@ pub fn get_concept(
     graph_connection: &Arc<GraphConnection>,
 ) -> Result<Statement, RDFStoreError> {
     let prefix_concept = Prefix::declare_from_str("concept:", "https://ekgf.org/ontology/concept/");
-    let prefixes = Prefixes::default()?
+    let prefixes = Prefixes::default_prefixes()?
         .add_prefix(&prefix_concept)?
         .add_prefix(&PREFIX_SKOS)?;
 
