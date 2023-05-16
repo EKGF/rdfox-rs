@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.6](https://github.com/EKGF/rdfox-rs/compare/0.0.5..0.0.6) - 2023-05-16
+#### Refactoring
+- minor changes - ([7b757ba](https://github.com/EKGF/rdfox-rs/commit/7b757babc836ae046dba78217040da6a36c29e64)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.5](https://github.com/EKGF/rdfox-rs/compare/0.0.4..0.0.5) - 2023-05-16
 #### Continuous Integration
 - **(cog)** fix cocogitto config - ([56fc40f](https://github.com/EKGF/rdfox-rs/commit/56fc40f3d9459ff7658610e9de5597ff146ed7e6)) - [@jgeluk](https://github.com/jgeluk)
