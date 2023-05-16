@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.3](https://github.com/EKGF/rdfox-rs/compare/0.0.2..0.0.3) - 2023-05-16
+#### Miscellaneous Chores
+- **(lint)** implemented clippy advice - ([0bce486](https://github.com/EKGF/rdfox-rs/commit/0bce4862ba064044886fab623b83981ca810f44d)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.2](https://github.com/EKGF/rdfox-rs/compare/0.0.1..0.0.2) - 2023-05-15
 #### Continuous Integration
 - **(docs)** some details - ([4bf4e4f](https://github.com/EKGF/rdfox-rs/commit/4bf4e4facb0d140d0e0c5b2f22787c1e8941c45a)) - [@jgeluk](https://github.com/jgeluk)
