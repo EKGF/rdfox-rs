@@ -5,7 +5,7 @@ pre_bump_hooks = [
     "cargo set-version --locked --workspace {{version}}",
 ]
 post_bump_hooks = [
-    "git push",
+    "git push --no-verify",
     "git push origin {{version}} --no-verify",
     "cargo publish"
 ]
