@@ -4,7 +4,7 @@
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CCursor,
             CCursor_advance,
             CCursor_getAnswerVariableName,
@@ -59,7 +59,7 @@ impl<'a> OpenedCursor<'a> {
             target: LOG_TARGET_DATABASE,
             "CCursor_open ok multiplicity={multiplicity}"
         );
-        Ok(multiplicity as u64)
+        Ok(multiplicity)
     }
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
@@ -86,7 +86,7 @@ impl<'a> OpenedCursor<'a> {
             "cursor {:?} advanced, multiplicity={multiplicity}",
             self.cursor.inner
         );
-        Ok(multiplicity as u64)
+        Ok(multiplicity)
     }
 
     pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>

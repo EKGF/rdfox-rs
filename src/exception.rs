@@ -5,7 +5,7 @@
 
 use {
     crate::{
-        root::{CException_getExceptionName, CException_what},
+        rdfox_api::{CException_getExceptionName, CException_what},
         RDFStoreError::{self},
     },
     std::{
@@ -16,7 +16,7 @@ use {
     },
 };
 
-pub use crate::root::CException;
+pub use crate::rdfox_api::CException;
 
 impl CException {
     pub fn handle<F>(action: &str, f: F) -> Result<(), RDFStoreError>

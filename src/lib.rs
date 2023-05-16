@@ -12,7 +12,6 @@ pub use {
     cursor::{Cursor, CursorRow, OpenedCursor},
     data_store::DataStore,
     data_store_connection::DataStoreConnection,
-    exception::CException,
     graph_connection::GraphConnection,
     license::{find_license, RDFOX_DEFAULT_LICENSE_FILE_NAME, RDFOX_HOME},
     mime::Mime,
@@ -44,4 +43,9 @@ mod statement;
 mod streamer;
 mod transaction;
 
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+#[allow(dead_code)]
+#[allow(non_camel_case_types)]
+#[allow(non_snake_case)]
+mod rdfox_api {
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}

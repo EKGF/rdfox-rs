@@ -4,7 +4,7 @@
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CDataStoreConnection_beginTransaction,
             CDataStoreConnection_commitTransaction,
             CDataStoreConnection_rollbackTransaction,
@@ -36,10 +36,8 @@ impl Drop for Transaction {
                 conn = self.connection.number,
                 "Ended {self:}"
             );
-        } else {
-            if let Err(err) = self._rollback() {
-                panic!("{self:} could not be rolled back: {err}",);
-            }
+        } else if let Err(err) = self._rollback() {
+            panic!("{self:} could not be rolled back: {err}",);
         }
     }
 }
@@ -109,7 +107,7 @@ impl Transaction {
         connection: &Arc<DataStoreConnection>,
     ) -> Result<Arc<Self>, RDFStoreError> {
         Self::begin(
-            &connection,
+            connection,
             CTransactionType::TRANSACTION_TYPE_READ_ONLY,
         )
     }

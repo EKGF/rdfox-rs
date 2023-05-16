@@ -1,7 +1,7 @@
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CServerConnection,
             CServerConnection_createDataStore,
             CServerConnection_deleteDataStore,

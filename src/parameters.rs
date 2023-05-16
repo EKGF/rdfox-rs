@@ -6,7 +6,7 @@ extern crate alloc;
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CParameters,
             CParameters_destroy,
             CParameters_getString,

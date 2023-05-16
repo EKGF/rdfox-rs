@@ -21,7 +21,7 @@ pub struct Statement {
 
 impl Display for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "SPARQL Statement:\n")?;
+        writeln!(f, "SPARQL Statement:")?;
         for (number, line) in self.text.lines().enumerate() {
             writeln!(f, "{:0>4}: {line}", number + 1)?;
         }
@@ -39,7 +39,7 @@ impl Statement {
         Ok(s)
     }
 
-    pub fn cursor<'a>(
+    pub fn cursor(
         &self,
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
@@ -53,7 +53,7 @@ impl Statement {
 
     pub fn as_str(&self) -> &str { self.text.as_str() }
 
-    pub fn no_comments(&self) -> String { no_comments(&self.text.as_str()) }
+    pub fn no_comments(&self) -> String { no_comments(self.text.as_str()) }
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
@@ -108,7 +108,7 @@ pub fn no_comments(string: &str) -> String {
                 // (there could be multiple on one line)
                 line = result;
             } else {
-                write!(&mut output, "{result}\n").unwrap();
+                writeln!(&mut output, "{result}").unwrap();
                 break
             }
         }

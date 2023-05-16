@@ -4,7 +4,7 @@
 use {
     crate::{
         database_call,
-        root::CCursor_appendResourceLexicalForm,
+        rdfox_api::CCursor_appendResourceLexicalForm,
         DataType,
         Literal,
         OpenedCursor,

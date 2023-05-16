@@ -4,7 +4,7 @@
 use {
     crate::{
         database_call,
-        root::{
+        rdfox_api::{
             CPrefixes,
             CPrefixes_DeclareResult as PrefixDeclareResult,
             CPrefixes_declarePrefix,
@@ -81,7 +81,7 @@ impl Prefixes {
     }
 
     /// Return the RDF and RDFS prefixes
-    pub fn default() -> Result<Arc<Self>, RDFStoreError> {
+    pub fn default_prefixes() -> Result<Arc<Self>, RDFStoreError> {
         Self::empty()?
             .add_prefix(PREFIX_RDF.deref())?
             .add_prefix(PREFIX_RDFS.deref())?
@@ -193,7 +193,7 @@ pub struct PrefixesBuilder {
 }
 
 impl<'a> PrefixesBuilder {
-    pub fn default() -> Self { PrefixesBuilder { prefixes: Vec::new() } }
+    pub fn default_builder() -> Self { PrefixesBuilder { prefixes: Vec::new() } }
 
     pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
         self.prefixes.push(Prefix::declare(name, iri));
