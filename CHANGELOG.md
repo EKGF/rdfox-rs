@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.4](https://github.com/EKGF/rdfox-rs/compare/0.0.3..0.0.4) - 2023-05-16
+#### Continuous Integration
+- **(docs)** some details - ([aa77a56](https://github.com/EKGF/rdfox-rs/commit/aa77a56ded6a785c36968680b9185cd4b1bfd0c7)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs job - ([26124b1](https://github.com/EKGF/rdfox-rs/commit/26124b195838220eadefa5d517d9327e1a3dfa46)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to rdfox-rs - ([bb2b214](https://github.com/EKGF/rdfox-rs/commit/bb2b214f74cbb40cf02de30e5781e9a03757435c)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to rdfox-rs - ([b0fefda](https://github.com/EKGF/rdfox-rs/commit/b0fefda14f589b346ff26deb3db4cebbbea5b33d)) - [@jgeluk](https://github.com/jgeluk)
+#### Documentation
+- Updated README.md - ([3dfb4a4](https://github.com/EKGF/rdfox-rs/commit/3dfb4a4a6db1bf19e2ff88b9da1d79ad41c9719d)) - [@jgeluk](https://github.com/jgeluk)
+#### Features
+- supports RDFox 6.2 now - ([1d23e9c](https://github.com/EKGF/rdfox-rs/commit/1d23e9c4f8e68e1d88e34c25d88e4ea5fa4bbf0a)) - [@jgeluk](https://github.com/jgeluk)
+#### Miscellaneous Chores
+- **(lint)** implemented clippy advice - ([ecdda6f](https://github.com/EKGF/rdfox-rs/commit/ecdda6f2b2966d66f5d189264d8f58cda13d2973)) - [@jgeluk](https://github.com/jgeluk)
+- **(version)** 0.0.3 - ([8a59e1d](https://github.com/EKGF/rdfox-rs/commit/8a59e1dab7da97744d9062a6fe774edaaca3960f)) - [@jgeluk](https://github.com/jgeluk)
+- **(version)** 0.0.2 - ([a57dab1](https://github.com/EKGF/rdfox-rs/commit/a57dab1b0d5c63cbc451b5e1ec24a139c7321f3f)) - [@jgeluk](https://github.com/jgeluk)
+#### Refactoring
+- some details - ([cd6ec4a](https://github.com/EKGF/rdfox-rs/commit/cd6ec4a5ff5ba32da25244b4adacb59787cabb72)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.3](https://github.com/EKGF/rdfox-rs/compare/0.0.2..0.0.3) - 2023-05-16
 #### Miscellaneous Chores
 - **(lint)** implemented clippy advice - ([0bce486](https://github.com/EKGF/rdfox-rs/commit/0bce4862ba064044886fab623b83981ca810f44d)) - [@jgeluk](https://github.com/jgeluk)
