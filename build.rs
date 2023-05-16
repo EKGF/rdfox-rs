@@ -6,7 +6,7 @@
 extern crate core;
 
 use {
-    bindgen::RustTarget,
+    bindgen::{CodegenConfig, RustTarget},
     lazy_static::lazy_static,
     std::{
         env,
@@ -27,21 +27,84 @@ const RDFOX_OS_NAME: &str = "win64";
 
 const ARCH: &str = env::consts::ARCH;
 
-const BLOCKLIST_ITEMS: &[&str] = &[
+const BLOCK_LIST_ITEMS: &[&str] = &[
     "std::integral_constant_value_type",
     "std::remove_const_type",
     "std::remove_volatile_type",
+    "std::.*",
     "^std::value$",
+    "^__.*",
+    "^size_t.*",
+    "^user_.*",
+    "^uint_.*",
+    "^int_.*",
+    "^fpos_t.*",
+    "^FILE.*",
+    "^off_t.*",
+    "^ssize_t.*",
+    "^syscall.*",
+    "^fget.*",
+    "^getline.*",
+    "^tempnam.*",
+    "^fopen.*",
+    "^fput.*",
+    "^clearerr.*",
+    "^fclose.*",
+    "^feof.*",
+    "^fread.*",
+    "^ferror.*",
+    "^fflush.*",
+    "^freopen.*",
+    "^fscanf.*",
+    "^fseek.*",
+    "^fsetpos.*",
+    "^ftell.*",
+    "^fwrite.*",
+    "^getc.*",
+    "^putc.*",
+    "^rewind.*",
+    "^setbuf.*",
+    "^setvbuf.*",
+    "^tmpfile.*",
+    "^ungetc.*",
+    "^fdopen.*",
+    "^fileno.*",
+    "^pclose.*",
+    "^popen.*",
+    "^flockfile.*",
+    "^ftrylockfile.*",
+    "^funlockfile.*",
+    "^getc_unlocked.*",
+    "^putc_unlocked.*",
+    "^getw.*",
+    "^putw.*",
+    "^fseeko.*",
+    "^ftello.*",
+    "^getdelim.*",
+    "^fmemopen.*",
+    "^open_memstream.*",
+    "^fpurge.*",
+    "^funopen.*",
+    "^setlinebuf.*",
+    "^setbuffer.*",
+    "^fgetln.*",
     "__va_list_tag",
     "__builtin_va_list",
     "__darwin_va_list",
-    "va_list",
-    "vasprintf",
-    "vdprintf",
+    "^va_list",
+    ".*printf",
+    "^vs.*",
+    "^vf.*",
+    "^sn.*",
+    "^u_.*",
+    "^__darwin_.*",
     "__darwin_pthread_handler_rec",
+    "__std.*",
+    "_opaque.*",
     "^_Tp$",
 ];
-const ALLOWLIST_ITEMS: &[&str] = &["C.*"];
+const ALLOW_LIST_ITEMS: &[&str] = &["^RDFOX_.*", "^C.*"];
+// const ALLOW_LIST_ITEMS: &[&str] = &[".*"];
 
 const RUSTFMT_CONFIG: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/.rustfmt.toml");
 
@@ -54,6 +117,8 @@ lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
         option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.2");
 }
+#[cfg(not(any(feature = "rdfox-6-2")))]
+compile_error!("You have to at least specify one of the rdfox-X-Y version number features");
 
 fn rdfox_download_url() -> String {
     let _host = *RDFOX_DOWNLOAD_HOST;
@@ -314,6 +379,11 @@ fn main() {
         println!("cargo:rustc-link-search=native:/usr/local/Cellar/libiconv/1.17/lib");
     }
 
+    let mut codegen_config = CodegenConfig::all();
+    codegen_config.remove(CodegenConfig::CONSTRUCTORS);
+    codegen_config.remove(CodegenConfig::DESTRUCTORS);
+    codegen_config.remove(CodegenConfig::METHODS);
+
     let mut builder = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
@@ -330,18 +400,16 @@ fn main() {
             non_exhaustive: false,
         })
         .translate_enum_integer_types(true)
-        .clang_arg(r"-xc++")
-        .clang_arg(r"-std=c++20")
-        .clang_arg(r"-static-libstdc++")
-        .clang_arg(r"-nostdlib")
+        // .clang_arg(r"-xc++")
+        // .clang_arg(r"-std=c++20")
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
         // .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")
         // .emit_builtins()
         .layout_tests(true)
         .enable_function_attribute_detection()
-        .derive_default(true)
-        .ignore_methods()
+        .derive_default(false)
+        .with_codegen_config(codegen_config)
         .no_copy(".*CCursor.*")
         .no_copy(".*COutputStream.*")
         .no_copy(".*CException.*")
@@ -350,34 +418,26 @@ fn main() {
         .no_copy(".*CPrefixes.*")
         .no_copy(".*CServerConnection.*")
         .no_copy(".*CDataStoreConnection.*")
-        // Tell cargo to invalidate the built crate whenever any of the
-        // included header files changed.
         // .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .rustfmt_configuration_file(Some(PathBuf::from(RUSTFMT_CONFIG)))
-        // .enable_cxx_namespaces()
-        // .merge_extern_blocks(true)
-        // .wrap_unsafe_ops(true)
         .array_pointers_in_arguments(true)
-        // .dynamic_link_require_all(true)
         .detect_include_paths(true)
         .prepend_enum_name(false)
-        .size_t_is_usize(false)
+        .size_t_is_usize(true)
         .translate_enum_integer_types(true)
-        // .explicit_padding(true)
         .sort_semantically(true)
         .respect_cxx_access_specs(true)
         .generate_inline_functions(true)
         .vtable_generation(false)
         .merge_extern_blocks(true)
-        .wrap_unsafe_ops(true)
-        // .enable_function_attribute_detection()
-        ;
-    for item in BLOCKLIST_ITEMS {
+        .wrap_unsafe_ops(false);
+
+    for item in BLOCK_LIST_ITEMS {
         builder = builder.blocklist_type(item);
         builder = builder.blocklist_item(item);
         builder = builder.blocklist_function(item);
     }
-    for item in ALLOWLIST_ITEMS {
+    for item in ALLOW_LIST_ITEMS {
         builder = builder.allowlist_type(item);
         builder = builder.allowlist_var(item);
         builder = builder.allowlist_function(item);

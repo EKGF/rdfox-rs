@@ -2,23 +2,21 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{
-        database_call,
-        rdfox_api::CCursor_appendResourceLexicalForm,
+    crate::{database_call, rdfox_api::CCursor_appendResourceLexicalForm, OpenedCursor},
+    rdf_store_rs::{
+        consts::LOG_TARGET_DATABASE,
         DataType,
         Literal,
-        OpenedCursor,
         RDFStoreError::{self, Unknown},
     },
-    rdf_store_rs::consts::LOG_TARGET_DATABASE,
     tracing::event_enabled,
 };
 
 pub struct CursorRow<'a> {
     pub opened:       &'a OpenedCursor<'a>,
-    pub multiplicity: u64,
-    pub count:        u64,
-    pub rowid:        u64,
+    pub multiplicity: &'a usize,
+    pub count:        &'a usize,
+    pub rowid:        &'a usize,
 }
 
 impl<'a> std::fmt::Debug for CursorRow<'a> {
@@ -42,9 +40,9 @@ impl<'a> std::fmt::Debug for CursorRow<'a> {
 
 impl<'a> CursorRow<'a> {
     /// Returns the resource bound to the given index in the current answer row.
-    fn lexical_value_with_id(&self, term_index: u64) -> Result<Option<Literal>, RDFStoreError> {
+    fn lexical_value_with_id(&self, term_index: usize) -> Result<Option<Literal>, RDFStoreError> {
         let mut buffer = [0u8; 102400]; // TODO: Make this dependent on returned info about buffer size too small
-        let mut lexical_form_size = 0_u64;
+        let mut lexical_form_size = 0_usize;
         let mut datatype_id: u8 = DataType::UnboundValue as u8;
         let mut resource_resolved = false;
         tracing::trace!(
@@ -61,7 +59,7 @@ impl<'a> CursorRow<'a> {
                 self.opened.cursor.inner,
                 term_index,
                 buffer.as_mut_ptr() as *mut i8,
-                buffer.len() as u64,
+                buffer.len(),
                 &mut lexical_form_size,
                 &mut datatype_id as *mut u8,
                 &mut resource_resolved,
@@ -90,7 +88,7 @@ impl<'a> CursorRow<'a> {
 
     /// Get the value in lexical form of a term in the current solution /
     /// current row with the given term index.
-    pub fn lexical_value(&self, term_index: u64) -> Result<Option<Literal>, RDFStoreError> {
+    pub fn lexical_value(&self, term_index: usize) -> Result<Option<Literal>, RDFStoreError> {
         if event_enabled!(tracing::Level::TRACE) {
             tracing::trace!(
                 target: LOG_TARGET_DATABASE,

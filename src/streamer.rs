@@ -20,6 +20,7 @@ use {
         ffi::{c_void, CString},
         fmt::Debug,
         io::Write,
+        mem::MaybeUninit,
         ptr,
         sync::Arc,
     },
@@ -84,10 +85,10 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     /// writer, then return the streamer (i.e. self).
     fn evaluate(mut self) -> Result<Self, RDFStoreError> {
         let statement_text = self.statement.as_c_string()?;
-        let statement_text_len = statement_text.as_bytes().len() as u64;
+        let statement_text_len = statement_text.as_bytes().len();
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
         let query_answer_format_name = CString::new(self.mime_type.as_ref())?;
-        let mut number_of_solutions = CStatementResult::default();
+        let mut statement_result = MaybeUninit::<CStatementResult>::uninit();
         let connection_ptr = self.connection_ptr();
 
         let self_p = format!("{:p}", &self);
@@ -114,7 +115,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                 parameters.inner.cast_const(),
                 stream_raw_ptr as *const COutputStream,
                 query_answer_format_name.as_ptr(),
-                &mut number_of_solutions,
+                statement_result.as_mut_ptr(),
             )
         };
         // std::thread::sleep(std::time::Duration::from_millis(1000));
@@ -124,9 +125,11 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
             ptr::drop_in_place(stream_raw_ptr);
         }
 
+        let statement_result = unsafe { statement_result.assume_init() };
+
         result?; // we're doing this after the drop_in_place calls to avoid memory leak
 
-        tracing::debug!("{self_p}: number_of_solutions={number_of_solutions:?}");
+        tracing::debug!("{self_p}: statement_result={statement_result:?}");
         Ok(self)
     }
 
@@ -145,7 +148,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
     extern "C" fn write_function(
         context: *mut c_void,
         data: *const c_void,
-        number_of_bytes_to_write: u64,
+        number_of_bytes_to_write: usize,
     ) -> bool {
         let ref_to_self = unsafe { Self::context_as_ref_to_self(context) };
         let streamer = unsafe { &mut *ref_to_self.streamer };

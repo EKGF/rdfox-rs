@@ -46,6 +46,7 @@ use {
         ffi::{CStr, CString},
         fmt::{Debug, Display, Formatter},
         io::Write,
+        mem::MaybeUninit,
         ops::Deref,
         os::unix::ffi::OsStrExt,
         path::Path,
@@ -317,8 +318,8 @@ impl DataStoreConnection {
         //     CString::new(DEFAULT_BASE_IRI).unwrap()
         // };
         let statement_text = statement.as_c_string()?;
-        let statement_text_len = statement_text.as_bytes().len() as u64;
-        let mut statement_result = CStatementResult::default();
+        let statement_text_len = statement_text.as_bytes().len();
+        let mut statement_result = MaybeUninit::uninit();
         database_call!(
             "evaluating an update statement",
             CDataStoreConnection_evaluateUpdate(
@@ -326,9 +327,10 @@ impl DataStoreConnection {
                 statement_text.as_ptr(),
                 statement_text_len,
                 parameters.inner.as_ref().cast_const(),
-                &mut statement_result,
+                statement_result.as_mut_ptr(),
             )
         )?;
+        let statement_result = unsafe { statement_result.assume_init() };
         tracing::trace!("Evaluated update statement: {statement_result:?}",);
         Ok(statement_result)
     }
@@ -362,7 +364,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, RDFStoreError> {
+    ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,
@@ -392,7 +394,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, RDFStoreError> {
+    ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,
@@ -424,7 +426,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, RDFStoreError> {
+    ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,
@@ -456,7 +458,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, RDFStoreError> {
+    ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Prefixes::empty()?,

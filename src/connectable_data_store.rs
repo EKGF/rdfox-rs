@@ -2,8 +2,9 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{DataStore, DataStoreConnection, RDFStoreError, ServerConnection},
+    crate::{DataStore, DataStoreConnection, ServerConnection},
     ::r2d2::{ManageConnection, Pool},
+    rdf_store_rs::RDFStoreError,
     std::sync::{
         atomic::{AtomicBool, Ordering},
         Arc,

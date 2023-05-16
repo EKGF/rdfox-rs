@@ -4,10 +4,8 @@
 // extern crate libc;
 
 use {
-    crate::{
-        rdfox_api::{CException_getExceptionName, CException_what},
-        RDFStoreError::{self},
-    },
+    crate::rdfox_api::{CException_getExceptionName, CException_what},
+    rdf_store_rs::RDFStoreError::{self},
     std::{
         ffi::CStr,
         fmt::{Display, Formatter},

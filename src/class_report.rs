@@ -2,15 +2,7 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{
-        FactDomain,
-        GraphConnection,
-        Parameters,
-        Prefixes,
-        RDFStoreError,
-        Statement,
-        Transaction,
-    },
+    crate::{FactDomain, GraphConnection, Parameters, Prefixes, Statement, Transaction},
     indoc::formatdoc,
     rdf_store_rs::{consts::DEFAULT_GRAPH_RDFOX, Class},
     std::{ops::Deref, sync::Arc},
@@ -26,7 +18,10 @@ impl<'a> std::fmt::Display for ClassReport<'a> {
 }
 
 impl<'a> ClassReport<'a> {
-    pub fn number_of_individuals(&self, tx: &Arc<Transaction>) -> Result<u64, RDFStoreError> {
+    pub fn number_of_individuals(
+        &self,
+        tx: &Arc<Transaction>,
+    ) -> Result<usize, rdf_store_rs::RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let prefixes = Prefixes::builder().declare(self.0.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"
@@ -58,7 +53,7 @@ impl<'a> ClassReport<'a> {
         &self,
         tx: &Arc<Transaction>,
         graph_connection: &GraphConnection,
-    ) -> Result<u64, RDFStoreError> {
+    ) -> Result<usize, rdf_store_rs::RDFStoreError> {
         let graph = graph_connection.graph.as_display_iri();
         let prefixes = Prefixes::builder().declare(self.0.prefix.clone()).build()?;
         let sparql = formatdoc! {r##"

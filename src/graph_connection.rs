@@ -107,7 +107,7 @@ impl GraphConnection {
         &self,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<u64, RDFStoreError> {
+    ) -> Result<usize, RDFStoreError> {
         Statement::new(
             &Prefixes::empty()?,
             formatdoc!(

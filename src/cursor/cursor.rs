@@ -49,7 +49,7 @@ impl Cursor {
         //     CString::new(DEFAULT_BASE_IRI).unwrap()
         // };
         let c_query = CString::new(statement.text.as_str()).unwrap();
-        let c_query_len = c_query.as_bytes().len() as u64;
+        let c_query_len = c_query.as_bytes().len();
         tracing::trace!(
             target: LOG_TARGET_DATABASE,
             sparql = ?c_query,
@@ -87,7 +87,7 @@ impl Cursor {
 
     pub fn sparql_string(&self) -> &str { self.statement.text.as_str() }
 
-    pub fn count(&mut self, tx: &Arc<Transaction>) -> Result<u64, RDFStoreError> {
+    pub fn count(&mut self, tx: &Arc<Transaction>) -> Result<usize, RDFStoreError> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
@@ -98,16 +98,21 @@ impl Cursor {
     max.row = max_row,
     )
     )]
-    pub fn consume<T, E>(&mut self, tx: &Arc<Transaction>, max_row: u64, mut f: T) -> Result<u64, E>
+    pub fn consume<T, E>(
+        &mut self,
+        tx: &Arc<Transaction>,
+        max_row: usize,
+        mut f: T,
+    ) -> Result<usize, E>
     where
         T: FnMut(&CursorRow) -> Result<(), E>,
         E: From<RDFStoreError> + Debug,
     {
         let sparql_str = self.statement.text.clone();
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, tx.clone())?;
-        let mut rowid = 0_u64;
-        let mut count = 0_u64;
-        while multiplicity > 0 {
+        let mut rowid = 0_usize;
+        let mut count = 0_usize;
+        while multiplicity > 0_usize {
             if multiplicity >= max_row {
                 return Err(
                     RDFStoreError::MultiplicityExceededMaximumNumberOfRows {
@@ -121,13 +126,18 @@ impl Cursor {
             rowid += 1;
             if rowid >= max_row {
                 return Err(RDFStoreError::ExceededMaximumNumberOfRows {
-                    maxrow: max_row,
+                    maxrow: max_row as usize,
                     query:  sparql_str,
                 }
                 .into())
             }
             count += multiplicity;
-            let row = CursorRow { opened: &opened_cursor, multiplicity, count, rowid };
+            let row = CursorRow {
+                opened:       &opened_cursor,
+                multiplicity: &multiplicity,
+                count:        &count,
+                rowid:        &rowid,
+            };
             if let Err(err) = f(&row) {
                 tracing::error!("Error while consuming row: {:?}", err);
                 Err(err)?;
@@ -137,13 +147,13 @@ impl Cursor {
         Ok(count)
     }
 
-    pub fn update_and_commit<T, U>(&mut self, maxrow: u64, f: T) -> Result<u64, RDFStoreError>
+    pub fn update_and_commit<T, U>(&mut self, maxrow: usize, f: T) -> Result<usize, RDFStoreError>
     where T: FnMut(&CursorRow) -> Result<(), RDFStoreError> {
         let tx = Transaction::begin_read_write(&self.connection)?;
         self.update_and_commit_in_transaction(tx, maxrow, f)
     }
 
-    pub fn execute_and_rollback<T>(&mut self, maxrow: u64, f: T) -> Result<u64, RDFStoreError>
+    pub fn execute_and_rollback<T>(&mut self, maxrow: usize, f: T) -> Result<usize, RDFStoreError>
     where T: FnMut(&CursorRow) -> Result<(), RDFStoreError> {
         let tx = Transaction::begin_read_only(&self.connection)?;
         self.execute_and_rollback_in_transaction(&tx, maxrow, f)
@@ -152,9 +162,9 @@ impl Cursor {
     pub fn execute_and_rollback_in_transaction<T>(
         &mut self,
         tx: &Arc<Transaction>,
-        maxrow: u64,
+        maxrow: usize,
         f: T,
-    ) -> Result<u64, RDFStoreError>
+    ) -> Result<usize, RDFStoreError>
     where
         T: FnMut(&CursorRow) -> Result<(), RDFStoreError>,
     {
@@ -164,9 +174,9 @@ impl Cursor {
     pub fn update_and_commit_in_transaction<T>(
         &mut self,
         tx: Arc<Transaction>,
-        maxrow: u64,
+        maxrow: usize,
         f: T,
-    ) -> Result<u64, RDFStoreError>
+    ) -> Result<usize, RDFStoreError>
     where
         T: FnMut(&CursorRow) -> Result<(), RDFStoreError>,
     {

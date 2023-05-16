@@ -14,7 +14,6 @@ use {
         },
         DataStore,
         DataStoreConnection,
-        RDFStoreError,
         RoleCreds,
         Server,
     },
@@ -85,7 +84,7 @@ impl ServerConnection {
     ///     CServerConnection* serverConnection,
     ///     const char** version
     /// );
-    pub fn get_version(&self) -> Result<String, RDFStoreError> {
+    pub fn get_version(&self) -> Result<String, rdf_store_rs::RDFStoreError> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "Getting the version",
@@ -95,8 +94,8 @@ impl ServerConnection {
         Ok(c_version.to_str().unwrap().to_owned())
     }
 
-    pub fn get_number_of_threads(&self) -> Result<u32, RDFStoreError> {
-        let mut number_of_threads = 0_u64;
+    pub fn get_number_of_threads(&self) -> Result<u32, rdf_store_rs::RDFStoreError> {
+        let mut number_of_threads = 0_usize;
         database_call!(
             format!(
                 "Getting the number of server-threads via {}",
@@ -113,7 +112,10 @@ impl ServerConnection {
         Ok(number_of_threads as u32)
     }
 
-    pub fn set_number_of_threads(&self, number_of_threads: u64) -> Result<(), RDFStoreError> {
+    pub fn set_number_of_threads(
+        &self,
+        number_of_threads: usize,
+    ) -> Result<(), rdf_store_rs::RDFStoreError> {
         assert!(!self.inner.is_null());
         let msg = format!(
             "Setting the number of threads to {}",
@@ -125,9 +127,9 @@ impl ServerConnection {
         )
     }
 
-    pub fn get_memory_use(&self) -> Result<(u64, u64), RDFStoreError> {
-        let mut max_used_bytes = 0_u64;
-        let mut available_bytes = 0_u64;
+    pub fn get_memory_use(&self) -> Result<(usize, usize), rdf_store_rs::RDFStoreError> {
+        let mut max_used_bytes = 0_usize;
+        let mut available_bytes = 0_usize;
         database_call!(CServerConnection_getMemoryUse(
             self.inner,
             &mut max_used_bytes,
@@ -136,7 +138,10 @@ impl ServerConnection {
         Ok((max_used_bytes, available_bytes))
     }
 
-    pub fn delete_data_store(&self, data_store: &DataStore) -> Result<(), RDFStoreError> {
+    pub fn delete_data_store(
+        &self,
+        data_store: &DataStore,
+    ) -> Result<(), rdf_store_rs::RDFStoreError> {
         assert!(!self.inner.is_null());
         let msg = format!("Deleting {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
@@ -146,7 +151,10 @@ impl ServerConnection {
         )
     }
 
-    pub fn create_data_store(&self, data_store: &DataStore) -> Result<(), RDFStoreError> {
+    pub fn create_data_store(
+        &self,
+        data_store: &DataStore,
+    ) -> Result<(), rdf_store_rs::RDFStoreError> {
         tracing::trace!(
             target: LOG_TARGET_DATABASE,
             "Creating {data_store:}"
@@ -171,7 +179,7 @@ impl ServerConnection {
     pub fn connect_to_data_store(
         self: &Arc<Self>,
         data_store: &Arc<DataStore>,
-    ) -> Result<Arc<DataStoreConnection>, RDFStoreError> {
+    ) -> Result<Arc<DataStoreConnection>, rdf_store_rs::RDFStoreError> {
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
             "Connecting to {}",

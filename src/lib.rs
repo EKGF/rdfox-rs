@@ -17,7 +17,6 @@ pub use {
     mime::Mime,
     parameters::{FactDomain, Parameters, PersistenceMode},
     prefixes::{Prefixes, PrefixesBuilder},
-    rdf_store_rs::*,
     role_creds::RoleCreds,
     server::Server,
     server_connection::ServerConnection,

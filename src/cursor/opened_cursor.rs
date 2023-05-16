@@ -12,10 +12,12 @@ use {
             CCursor_open,
         },
         Cursor,
-        RDFStoreError::{self},
         Transaction,
     },
-    rdf_store_rs::consts::LOG_TARGET_DATABASE,
+    rdf_store_rs::{
+        consts::LOG_TARGET_DATABASE,
+        RDFStoreError::{self},
+    },
     std::{ptr, sync::Arc},
 };
 
@@ -25,7 +27,7 @@ pub struct OpenedCursor<'a> {
     pub cursor: &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity:  u64,
+    pub arity:  usize,
 }
 
 impl<'a> OpenedCursor<'a> {
@@ -35,7 +37,7 @@ impl<'a> OpenedCursor<'a> {
     pub(crate) fn new(
         cursor: &'a mut Cursor,
         tx: Arc<Transaction>,
-    ) -> Result<(Self, u64), RDFStoreError> {
+    ) -> Result<(Self, usize), RDFStoreError> {
         let c_cursor = cursor.inner;
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
@@ -43,14 +45,9 @@ impl<'a> OpenedCursor<'a> {
         Ok((opened_cursor, multiplicity))
     }
 
-    fn open(c_cursor: *mut CCursor) -> Result<u64, RDFStoreError> {
-        let skip_to_offset = 0_u64;
-        let mut multiplicity = 0_u64;
-        // pub fn CCursor_open(
-        //     cursor: *mut root::CCursor,
-        //     skipToOffset: usize,
-        //     multiplicity: *mut usize,
-        // ) -> *const root::CException;
+    fn open(c_cursor: *mut CCursor) -> Result<usize, RDFStoreError> {
+        let skip_to_offset = 0_usize;
+        let mut multiplicity = 0_usize;
         database_call!(
             "opening a cursor",
             CCursor_open(c_cursor, skip_to_offset, &mut multiplicity)
@@ -64,8 +61,8 @@ impl<'a> OpenedCursor<'a> {
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    fn arity(c_cursor: *mut CCursor) -> Result<u64, RDFStoreError> {
-        let mut arity = 0_u64;
+    fn arity(c_cursor: *mut CCursor) -> Result<usize, RDFStoreError> {
+        let mut arity = 0_usize;
         database_call!(
             "getting the arity",
             CCursor_getArity(c_cursor, &mut arity)
@@ -75,8 +72,8 @@ impl<'a> OpenedCursor<'a> {
 
     /// TODO: Check why this panics when called after previous call returned
     /// zero
-    pub fn advance(&mut self) -> Result<u64, RDFStoreError> {
-        let mut multiplicity = 0_u64;
+    pub fn advance(&mut self) -> Result<usize, RDFStoreError> {
+        let mut multiplicity = 0_usize;
         database_call!(
             "advancing the cursor",
             CCursor_advance(self.cursor.inner, &mut multiplicity)
@@ -101,7 +98,7 @@ impl<'a> OpenedCursor<'a> {
 
     /// Get the variable name used in the executed SPARQL statement representing
     /// the given column in the output.
-    pub fn get_answer_variable_name(&self, index: u64) -> Result<String, RDFStoreError> {
+    pub fn get_answer_variable_name(&self, index: usize) -> Result<String, RDFStoreError> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "getting a variable name",
