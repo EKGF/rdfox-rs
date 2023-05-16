@@ -6,7 +6,7 @@ pre_bump_hooks = [
 ]
 post_bump_hooks = [
     "git push",
-    "git push origin {{version}}",
+    "git push origin {{version}} --no-verify",
 ]
 
 [changelog]
