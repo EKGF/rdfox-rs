@@ -1,8 +1,6 @@
 name: docs
 
 on:
-  schedule:
-    - cron: '0 * * * *'
   push:
     branches:
       - main
@@ -68,7 +66,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
-          folder: target/doc
+          folder: target/x86_64-apple-darwin/doc
           clean: true
           git-config-email: info@ekgf.org
           repository-name: EKGF/rdfox-rs
