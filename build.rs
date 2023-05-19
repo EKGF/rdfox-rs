@@ -250,13 +250,25 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     unpacked_dir
 }
 
-fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<PathBuf> {
+fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, PathBuf)> {
     path.as_ref()?;
     let path = PathBuf::from(path.unwrap().into());
     if !path.exists() {
         return None
     }
     let path = std::fs::canonicalize(path).unwrap();
+
+    let mut llvm_config_bin = path.join("bin/llvm-config");
+    if !llvm_config_bin.exists() {
+        llvm_config_bin = path.join("llvm-config");
+    }
+    if llvm_config_bin.exists() {
+        println!(
+            "cargo:warning=using {}",
+            llvm_config_bin.display()
+        );
+    }
+
     println!(
         "cargo:warning=llvm config path is {}",
         path.display()
@@ -265,36 +277,27 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<PathBuf> {
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
         path.display()
     );
-    Some(path)
+    Some((path, llvm_config_bin))
 }
 
 fn add_llvm_path() {
-    let llvm_config_path = set_llvm_config_path(option_env!("LLVM_CONFIG_PATH"))
+    let (_, llvm_config_bin) = set_llvm_config_path(option_env!("LLVM_CONFIG_PATH"))
         .or_else(|| set_llvm_config_path(option_env!("LLVM_PATH")))
         .or_else(|| set_llvm_config_path(Some("/usr/local/opt/llvm")))
         .or_else(|| set_llvm_config_path(check_llvm_via_brew()))
         .or_else(|| set_llvm_config_path(Some("/usr/bin")))
         .unwrap_or_else(|| panic!("Could not find the LLVM path"));
 
-    let llvm_config_bin = llvm_config_path.join("bin/llvm-config");
-    if llvm_config_bin.exists() {
-        println!(
-            "cargo:warning=using {}",
-            llvm_config_bin.display()
-        );
-    } else {
-        panic!("{} does not exist", llvm_config_bin.display());
-    }
-
-    let llvm_config_path = Command::new("llvm-config")
-        .env(
-            "PATH",
-            format!(
-                "{}:~/llvm/build/bin:{}/bin",
-                env!("PATH"),
-                llvm_config_path.display()
-            ),
-        )
+    // Now get the REAL llvm path from the llvm-config utility itself
+    let llvm_config_path = Command::new(llvm_config_bin)
+        // .env(
+        //     "PATH",
+        //     format!(
+        //         "{}:~/llvm/build/bin:{}/bin",
+        //         env!("PATH"),
+        //         llvm_config_path.display()
+        //     ),
+        // )
         .args(["--prefix"])
         .output()
         .expect("`llvm-config` must be in PATH")
