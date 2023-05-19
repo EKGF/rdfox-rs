@@ -1,6 +1,6 @@
 [package]
 name = "rdfox-rs"
-description = "RDFox for Rust, a high-performance in-memory semantic graph database"
+description = "RDFox for Rust, a high-performance in-memory ACID-transactional semantic graph database"
 version = "0.0.7"
 edition = "2021"
 links = "RDFox-static"

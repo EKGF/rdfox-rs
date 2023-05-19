@@ -1,37 +1,47 @@
 # rdfox-rs
 
-Embedded [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/product) database for Rust programs.
+RDFox is a product of [Oxford Semantic Technologies RDFox](https://www.oxfordsemantic.tech/product).
 
-- Downloads RDFox zip file (to your target directory)
-- Generates bindings from `CRDFox.h` using bindgen (which requires llvm to be installed)
-- Links to dynamic link library `libRDFox.dylib` (if you use feature `rdfox-dylib`)
-- Links to the static RDFox library by default
-- Requires an RDFox license (see <https://www.oxfordsemantic.tech/product>)
-    - Copy license to `~/.RDFox/RDFox.lic`
-- Provides a higher level rust-friendly interface over the C-API
+RDFox is a high-performance, scalable and lightweight knowledge graph and semantic reasoning engine.
+It supports the storage, querying and reasoning over large-scale ontologies represented in RDF triples.
+
+This crate provides a Rust interface to the RDFox database allowing you to use RDFox as
+database engine that is part of your program, no need to run a separate RDFox server (although that is also possible).
+
+## How this crate works
+
+- It downloads the RDFox distribution zip file during build, straight from the vendor's website to your target
+  directory.
+- It then generates bindings from `CRDFox.h` using bindgen (which requires llvm to be installed)
+- It either links to the dynamic link library `libRDFox.dylib` (if you use feature `rdfox-dylib`)
+- Or else it links to the static RDFox library `libRDFox-static.a` by default.
+- It requires an RDFox license (see <https://www.oxfordsemantic.tech/product>)
+  - Copy the license file to `~/.RDFox/RDFox.lic`
+- It provides a higher level rust-friendly interface over the RDFox C-API
 
 ## Status
 
 - All the basics work
+- Proper documentation is still missing, check the [tests/load.rs](tests/load.rs) source code for an example
 - Currently only supports RDFox 6.2
-- RDFox itself, a C/C++ program. comes as a dynamic link library or a static library,
+- RDFox itself is a C++ program with a C API that comes as a dynamic link library or a static library,
   both of which are supported by this Rust crate.
-    - Use feature `rdfox-dylib` if you want to use the dynamic link library
-    - At the moment, the static link library causes a SEGSEGV signal when running the tests.
-      This is being investigated.
-    - Therefore, this crate is not ready for production yet.
+  - Use feature `rdfox-dylib` if you want to use the dynamic link library
+  - At the moment, the static link library causes a `SIGSEGV` signal when running the tests.
+    - This is being investigated.
+    - The RDFox API logging does not work when linking with the static library (issue in progress)
+  - Therefore, **this crate is not ready for production yet**.
 - Has only been tested as an embedded database (meaning: running the whole RDFox database engine in your Rust process),
   however, in theory it should also be possible (with some tweaks that we have to add) to run it just as a client to
   a remote instance of RDFox.
-- RDFox API logging does not work when linking with static library (issue in progress)
 
 ## Plans
 
-- Get the static link library to not cause a SIGSEGV signal
+- Get the static link library to not cause a `SIGSEGV` signal
 - Make high-level interface more abstract so that it can also be used for remote endpoints using REST calls
   and potentially any other triple store product.
-    - Core components that are RDFox-independent have already been moved to
-      the [rdf-store-rs crate](https://crates.io/crates/rdf-store-rs)
+  - Core components that are RDFox-independent have already been moved to
+    the [rdf-store-rs crate](https://crates.io/crates/rdf-store-rs)
 
 ## Version
 
@@ -60,5 +70,5 @@ RUST_LOG=trace cargo test --package rdfox-rs --features rdfox-dylib --test load 
 
 - Crate: <https://crates.io/crates/rdfox-rs>
 - Documentation:
-    - docs.rs: <https://docs.rs/rdfox-rs>
-    - github: <https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html>
+  - docs.rs: <https://docs.rs/rdfox-rs>
+  - github: <https://ekgf.github.io/rdfox-rs/rdfox_rs/index.html>
