@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.7](https://github.com/EKGF/rdfox-rs/compare/0.0.6..0.0.7) - 2023-05-19
+#### Documentation
+- some more info - ([3420a46](https://github.com/EKGF/rdfox-rs/commit/3420a46d9b52cc07daad766a6b6df4771ea63855)) - [@jgeluk](https://github.com/jgeluk)
+#### Refactoring
+- minor changes - ([b6d92be](https://github.com/EKGF/rdfox-rs/commit/b6d92bebf2baa5a1b08b0ba6b3d36ac44c4f4ad4)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.6](https://github.com/EKGF/rdfox-rs/compare/0.0.5..0.0.6) - 2023-05-16
 #### Refactoring
 - minor changes - ([7b757ba](https://github.com/EKGF/rdfox-rs/commit/7b757babc836ae046dba78217040da6a36c29e64)) - [@jgeluk](https://github.com/jgeluk)
