@@ -12,6 +12,8 @@ use {
     tracing::event_enabled,
 };
 
+/// A `CursorRow` is a row of a [`Cursor`](crate::Cursor), i.e., a set of
+/// bindings for the variables in the cursor's answer.
 pub struct CursorRow<'a> {
     pub opened:       &'a OpenedCursor<'a>,
     pub multiplicity: &'a usize,

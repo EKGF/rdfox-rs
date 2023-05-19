@@ -154,6 +154,9 @@ impl DataStoreConnection {
         Ok(c_str.to_str().unwrap().into())
     }
 
+    /// Import RDF data from the given file into the given graph.
+    ///
+    /// NOTE: Only supports turtle files at the moment.
     pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), RDFStoreError>
     where P: AsRef<Path> {
         assert!(
@@ -175,13 +178,6 @@ impl DataStoreConnection {
         let file_name = CString::new(rdf_file).unwrap();
         let format_name = CString::new(TEXT_TURTLE.as_ref()).unwrap();
 
-        // pub fn CDataStoreConnection_importDataFromFile(
-        //     dataStoreConnection: *mut root::CDataStoreConnection,
-        //     defaultGraphName: *const ::std::os::raw::c_char,
-        //     updateType: root::CUpdateType,
-        //     filePath: *const ::std::os::raw::c_char,
-        //     formatName: *const ::std::os::raw::c_char,
-        // ) -> *const root::CException;
         database_call!(
             format!("Importing data from {file_name:?} (format={format_name:?})").as_str(),
             CDataStoreConnection_importDataFromFile(

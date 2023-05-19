@@ -15,6 +15,9 @@ use {
     std::{ffi::CString, fmt::Debug, ptr, sync::Arc},
 };
 
+/// A Cursor handles a query result.
+///
+/// [RDFox documentation](https://docs.oxfordsemantic.tech/apis.html#cursors)
 #[derive(Debug)]
 pub struct Cursor {
     pub inner:             *mut CCursor,
@@ -43,11 +46,6 @@ impl Cursor {
     ) -> Result<Self, RDFStoreError> {
         assert!(!connection.inner.is_null());
         let mut c_cursor: *mut CCursor = ptr::null_mut();
-        // let c_base_iri = if let Some(base_iri) = base_iri {
-        //     CString::new(base_iri.as_str()).unwrap()
-        // } else {
-        //     CString::new(DEFAULT_BASE_IRI).unwrap()
-        // };
         let c_query = CString::new(statement.text.as_str()).unwrap();
         let c_query_len = c_query.as_bytes().len();
         tracing::trace!(
@@ -55,13 +53,6 @@ impl Cursor {
             sparql = ?c_query,
             "Starting a cursor"
         );
-        // pub fn CDataStoreConnection_createCursor(
-        //     dataStoreConnection: *mut root::CDataStoreConnection,
-        //     queryText: *const ::std::os::raw::c_char,
-        //     queryTextLength: usize,
-        //     compilationParameters: *const root::CParameters,
-        //     cursor: *mut *mut root::CCursor,
-        // ) -> *const root::CException;
         database_call!(
             "Starting a cursor",
             CDataStoreConnection_createCursor(

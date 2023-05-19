@@ -13,6 +13,9 @@ use {
     },
 };
 
+/// A `GraphConnection` is a wrapper around a
+/// [`DataStoreConnection`](DataStoreConnection) with a specific
+/// [`Graph`](crate::Graph) and an optional ontology [`Graph`](crate::Graph).
 #[derive(Debug)]
 pub struct GraphConnection {
     pub data_store_connection: Arc<DataStoreConnection>,
