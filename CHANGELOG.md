@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.8](https://github.com/EKGF/rdfox-rs/compare/0.0.7..0.0.8) - 2023-05-19
+#### Documentation
+- updated docs - ([6aa70c5](https://github.com/EKGF/rdfox-rs/commit/6aa70c597c8a082e0f75387b7ad68c9212aef7b8)) - [@jgeluk](https://github.com/jgeluk)
+- attempt to fix llvm-config issue on docs.rs build - ([1f09c17](https://github.com/EKGF/rdfox-rs/commit/1f09c17e852b2be8792001699859aaadee87f06d)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.7](https://github.com/EKGF/rdfox-rs/compare/0.0.6..0.0.7) - 2023-05-19
 #### Documentation
 - some more info - ([3420a46](https://github.com/EKGF/rdfox-rs/commit/3420a46d9b52cc07daad766a6b6df4771ea63855)) - [@jgeluk](https://github.com/jgeluk)
