@@ -79,12 +79,17 @@ jobs:
           LLVM_VERSION: ${{ steps.install-llvm.outputs.version }}
         run: |
           export LLVM_PATH="C:\Program Files\LLVM"
-          "${LLVM_PATH}\bin\clang" -v
+          echo LLVM_PATH="C:\Program Files\LLVM" >> $GITHUB_ENV
           echo "CPATH=$LLVM_PATH\lib\clang\$LLVM_VERSION\include\" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=$LLVM_PATH/lib" >> $GITHUB_ENV
           echo "LDFLAGS=-L$LLVM_PATH\lib" >> $GITHUB_ENV
           echo "CPPFLAGS=-I$LLVM_PATH\include" >> $GITHUB_ENV
           echo "CC=$LLVM_PATH\bin\clang" >> $GITHUB_ENV
           echo "CXX=$LLVM_PATH\bin\clang++" >> $GITHUB_ENV
+          "${LLVM_PATH}\bin\clang" -v
+          echo "---"
+          cat $GITHUB_ENV
 
       - name: MacOS - Prepare LLVM
         if: contains(matrix.os, 'macos')
