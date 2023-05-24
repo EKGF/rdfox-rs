@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.0.9](https://github.com/EKGF/rdfox-rs/compare/0.0.8..0.0.9) - 2023-05-24
+#### Continuous Integration
+- **(build)** fix windows prepare LLVM issue - ([46f0fd8](https://github.com/EKGF/rdfox-rs/commit/46f0fd8a47d1304215db5668491ba6214491479d)) - [@jgeluk](https://github.com/jgeluk)
+- **(build)** fix issue with rdfox version number - ([7dbae48](https://github.com/EKGF/rdfox-rs/commit/7dbae48d1934246e9f741b5d3f15d1cc26bcaf74)) - [@jgeluk](https://github.com/jgeluk)
+#### Refactoring
+- **(prefix)** renamed `Prefix` to `Namespace` - ([b3b74ea](https://github.com/EKGF/rdfox-rs/commit/b3b74ea31cb14837e306f923cc3cd99c2ba05a91)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.8](https://github.com/EKGF/rdfox-rs/compare/0.0.7..0.0.8) - 2023-05-19
 #### Documentation
 - updated docs - ([6aa70c5](https://github.com/EKGF/rdfox-rs/commit/6aa70c597c8a082e0f75387b7ad68c9212aef7b8)) - [@jgeluk](https://github.com/jgeluk)
