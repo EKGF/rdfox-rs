@@ -15,7 +15,7 @@ use {
         Statement,
     },
     mime::Mime,
-    rdf_store_rs::{ptr_to_cstr, Prefix, RDFStoreError},
+    rdf_store_rs::{ptr_to_cstr, Namespace, RDFStoreError},
     std::{
         ffi::{c_void, CString},
         fmt::Debug,
@@ -48,7 +48,7 @@ pub struct Streamer<'a, W: 'a + Write> {
     pub writer:       W,
     pub statement:    &'a Statement,
     pub mime_type:    &'static Mime,
-    pub base_iri:     Prefix,
+    pub base_iri:     Namespace,
     pub instant:      std::time::Instant,
     self_p:           String,
     remaining_buffer: std::cell::RefCell<Option<String>>,
@@ -66,7 +66,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         writer: W,
         statement: &'a Statement,
         mime_type: &'static Mime,
-        base_iri: Prefix,
+        base_iri: Namespace,
     ) -> Result<Self, RDFStoreError> {
         let streamer = Self {
             connection: connection.clone(),

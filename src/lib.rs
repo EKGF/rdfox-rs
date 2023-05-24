@@ -15,8 +15,8 @@ pub use {
     graph_connection::GraphConnection,
     license::{find_license, RDFOX_DEFAULT_LICENSE_FILE_NAME, RDFOX_HOME},
     mime::Mime,
+    namespaces::{Namespaces, NamespacesBuilder},
     parameters::{FactDomain, Parameters, PersistenceMode},
-    prefixes::{Prefixes, PrefixesBuilder},
     role_creds::RoleCreds,
     server::Server,
     server_connection::ServerConnection,
@@ -33,8 +33,8 @@ mod data_store_connection;
 mod exception;
 mod graph_connection;
 mod license;
+mod namespaces;
 mod parameters;
-mod prefixes;
 mod role_creds;
 mod server;
 mod server_connection;

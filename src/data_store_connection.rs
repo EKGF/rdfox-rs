@@ -17,8 +17,8 @@ use {
         },
         DataStore,
         FactDomain,
+        Namespaces,
         Parameters,
-        Prefixes,
         ServerConnection,
         Statement,
         Streamer,
@@ -39,7 +39,7 @@ use {
             TEXT_TURTLE,
         },
         Graph,
-        Prefix,
+        Namespace,
         RDFStoreError,
     },
     std::{
@@ -346,7 +346,7 @@ impl DataStoreConnection {
             writer,
             statement,
             mime_type,
-            Prefix::declare_from_str(
+            Namespace::declare_from_str(
                 "base",
                 base_iri
                     .as_ref()
@@ -363,7 +363,7 @@ impl DataStoreConnection {
     ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            &Namespaces::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?graph ?s ?p ?o
@@ -393,7 +393,7 @@ impl DataStoreConnection {
     ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            &Namespaces::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?subject
@@ -425,7 +425,7 @@ impl DataStoreConnection {
     ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            &Namespaces::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?predicate
@@ -457,7 +457,7 @@ impl DataStoreConnection {
     ) -> Result<usize, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
-            &Prefixes::empty()?,
+            &Namespaces::empty()?,
             formatdoc!(
                 r##"
                 SELECT DISTINCT ?ontology

@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{FactDomain, GraphConnection, Parameters, Prefixes, Statement, Transaction},
+    crate::{FactDomain, GraphConnection, Namespaces, Parameters, Statement, Transaction},
     indoc::formatdoc,
     rdf_store_rs::{consts::DEFAULT_GRAPH_RDFOX, Class},
     std::{ops::Deref, sync::Arc},
@@ -23,7 +23,9 @@ impl<'a> ClassReport<'a> {
         tx: &Arc<Transaction>,
     ) -> Result<usize, rdf_store_rs::RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
-        let prefixes = Prefixes::builder().declare(self.0.prefix.clone()).build()?;
+        let prefixes = Namespaces::builder()
+            .declare(self.0.namespace.clone())
+            .build()?;
         let sparql = formatdoc! {r##"
             SELECT DISTINCT ?thing
             WHERE {{
@@ -55,7 +57,9 @@ impl<'a> ClassReport<'a> {
         graph_connection: &GraphConnection,
     ) -> Result<usize, rdf_store_rs::RDFStoreError> {
         let graph = graph_connection.graph.as_display_iri();
-        let prefixes = Prefixes::builder().declare(self.0.prefix.clone()).build()?;
+        let prefixes = Namespaces::builder()
+            .declare(self.0.namespace.clone())
+            .build()?;
         let sparql = formatdoc! {r##"
             SELECT DISTINCT ?thing
             WHERE {{

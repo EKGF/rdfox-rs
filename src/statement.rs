@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{Cursor, DataStoreConnection, Parameters, Prefixes},
+    crate::{Cursor, DataStoreConnection, Namespaces, Parameters},
     core::fmt::{Display, Formatter},
     indoc::formatdoc,
     rdf_store_rs::{
@@ -15,7 +15,7 @@ use {
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Statement {
-    pub prefixes:    Arc<Prefixes>,
+    pub prefixes:    Arc<Namespaces>,
     pub(crate) text: String,
 }
 
@@ -30,7 +30,7 @@ impl Display for Statement {
 }
 
 impl Statement {
-    pub fn new(prefixes: &Arc<Prefixes>, statement: Cow<str>) -> Result<Self, RDFStoreError> {
+    pub fn new(prefixes: &Arc<Namespaces>, statement: Cow<str>) -> Result<Self, RDFStoreError> {
         let s = Self {
             prefixes: prefixes.clone(),
             text:     format!("{}\n{}", &prefixes.to_string(), statement.trim()),
@@ -57,7 +57,7 @@ impl Statement {
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
-    pub fn nquads_query(prefixes: &Arc<Prefixes>) -> Result<Statement, RDFStoreError> {
+    pub fn nquads_query(prefixes: &Arc<Namespaces>) -> Result<Statement, RDFStoreError> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let statement = Statement::new(
             prefixes,

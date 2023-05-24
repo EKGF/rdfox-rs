@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{DataStoreConnection, FactDomain, Parameters, Prefixes, Statement, Transaction},
+    crate::{DataStoreConnection, FactDomain, Namespaces, Parameters, Statement, Transaction},
     indoc::formatdoc,
     rdf_store_rs::{consts::LOG_TARGET_DATABASE, Graph, RDFStoreError},
     std::{
@@ -112,7 +112,7 @@ impl GraphConnection {
         fact_domain: FactDomain,
     ) -> Result<usize, RDFStoreError> {
         Statement::new(
-            &Prefixes::empty()?,
+            &Namespaces::empty()?,
             formatdoc!(
                 r##"
                 SELECT ?s ?p ?o
@@ -134,7 +134,7 @@ impl GraphConnection {
 
     // pub fn get_subjects_count(&self, fact_domain: FactDomain) ->
     // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
-    //         &Prefixes::default()?,
+    //         &Namespaces::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?subject
     //             WHERE {
@@ -155,7 +155,7 @@ impl GraphConnection {
     //
     // pub fn get_predicates_count(&self, fact_domain: FactDomain) ->
     // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
-    //         &Prefixes::default()?,
+    //         &Namespaces::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?predicate
     //             WHERE {
@@ -176,7 +176,7 @@ impl GraphConnection {
     //
     // pub fn get_ontologies_count(&self, fact_domain: FactDomain) ->
     // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
-    //         &Prefixes::default()?,
+    //         &Namespaces::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?ontology
     //             WHERE {

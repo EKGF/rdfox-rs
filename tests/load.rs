@@ -14,7 +14,7 @@ use {
         consts::{APPLICATION_N_QUADS, PREFIX_SKOS},
         Graph,
         Literal,
-        Prefix,
+        Namespace,
         RDFStoreError,
     },
     rdfox_rs::{
@@ -22,9 +22,9 @@ use {
         DataStoreConnection,
         FactDomain,
         GraphConnection,
+        Namespaces,
         Parameters,
         PersistenceMode,
-        Prefixes,
         RoleCreds,
         Server,
         ServerConnection,
@@ -97,7 +97,7 @@ fn test_create_graph(
     name: &str,
 ) -> Result<Arc<GraphConnection>, RDFStoreError> {
     tracing::info!("test_create_graph");
-    let graph_base_iri = Prefix::declare(
+    let graph_base_iri = Namespace::declare(
         "graph:",
         Iri::new("https://whatever.kom/graph/").unwrap(),
     );
@@ -151,7 +151,7 @@ fn test_cursor_with_lexical_value(
 ) -> Result<(), RDFStoreError> {
     tracing::info!("test_cursor_with_lexical_value");
     let graph = graph_connection.graph.as_display_iri();
-    let prefixes = Prefixes::empty()?;
+    let prefixes = Namespaces::empty()?;
     let query = Statement::new(
         &prefixes,
         formatdoc!(
@@ -189,7 +189,7 @@ fn test_run_query_to_nquads_buffer(
     ds_connection: &Arc<DataStoreConnection>,
 ) -> Result<(), RDFStoreError> {
     tracing::info!("test_run_query_to_nquads_buffer");
-    let nquads_query = Statement::nquads_query(&Prefixes::empty()?)?;
+    let nquads_query = Statement::nquads_query(&Namespaces::empty()?)?;
     let writer = std::io::stdout();
     ds_connection.evaluate_to_stream(
         writer,
@@ -205,10 +205,11 @@ pub fn get_concept(
     concept_id: &Literal,
     graph_connection: &Arc<GraphConnection>,
 ) -> Result<Statement, RDFStoreError> {
-    let prefix_concept = Prefix::declare_from_str("concept:", "https://ekgf.org/ontology/concept/");
-    let prefixes = Prefixes::default_prefixes()?
-        .add_prefix(&prefix_concept)?
-        .add_prefix(&PREFIX_SKOS)?;
+    let prefix_concept =
+        Namespace::declare_from_str("concept:", "https://ekgf.org/ontology/concept/");
+    let prefixes = Namespaces::default_namespaces()?
+        .add_namespace(&prefix_concept)?
+        .add_namespace(&PREFIX_SKOS)?;
 
     let graph = graph_connection.graph.as_display_iri();
     let sparql = formatdoc! {

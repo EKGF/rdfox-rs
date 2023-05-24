@@ -6,7 +6,7 @@ use {
         database_call,
         rdfox_api::{
             CPrefixes,
-            CPrefixes_DeclareResult as PrefixDeclareResult,
+            CPrefixes_DeclareResult as NamespaceDeclareResult,
             CPrefixes_declarePrefix,
             CPrefixes_destroy,
             CPrefixes_newDefaultPrefixes,
@@ -16,8 +16,8 @@ use {
     rdf_store_rs::{
         consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
         Class,
+        Namespace,
         Predicate,
-        Prefix,
         RDFStoreError,
     },
     std::{
@@ -30,33 +30,34 @@ use {
 };
 
 #[derive(Debug)]
-pub struct Prefixes {
+pub struct Namespaces {
     inner: *mut CPrefixes,
-    map:   Mutex<HashMap<String, Prefix>>,
+    map:   Mutex<HashMap<String, Namespace>>,
 }
 
-impl PartialEq for Prefixes {
+impl PartialEq for Namespaces {
     fn eq(&self, other: &Self) -> bool { self.c_ptr() == other.c_ptr() }
 }
 
-impl Eq for Prefixes {}
+impl Eq for Namespaces {}
 
-unsafe impl Send for Prefixes {}
+unsafe impl Send for Namespaces {}
 
-unsafe impl Sync for Prefixes {}
+unsafe impl Sync for Namespaces {}
 
-impl Drop for Prefixes {
+impl Drop for Namespaces {
     fn drop(&mut self) {
         assert!(!self.inner.is_null());
         unsafe {
             CPrefixes_destroy(self.inner);
         }
         self.inner = ptr::null_mut();
-        tracing::trace!(target: LOG_TARGET_DATABASE, "Dropped Prefixes");
+        tracing::trace!(target: LOG_TARGET_DATABASE, "Dropped Namespaces");
     }
 }
 
-impl std::fmt::Display for Prefixes {
+/// Show the namespaces in SPARQL format
+impl std::fmt::Display for Namespaces {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for _prefix in self.map.lock().unwrap().values() {
             writeln!(f, "PREFIX {_prefix}")?
@@ -65,8 +66,8 @@ impl std::fmt::Display for Prefixes {
     }
 }
 
-impl Prefixes {
-    pub fn builder() -> PrefixesBuilder { PrefixesBuilder::default() }
+impl Namespaces {
+    pub fn builder() -> NamespacesBuilder { NamespacesBuilder::default() }
 
     pub fn empty() -> Result<Arc<Self>, RDFStoreError> {
         let mut prefixes = Self {
@@ -74,42 +75,42 @@ impl Prefixes {
             map:   Mutex::new(HashMap::new()),
         };
         database_call!(
-            "allocating prefixes",
+            "allocating namespaces",
             CPrefixes_newDefaultPrefixes(&mut prefixes.inner)
         )?;
         Ok(Arc::new(prefixes))
     }
 
-    /// Return the RDF and RDFS prefixes
-    pub fn default_prefixes() -> Result<Arc<Self>, RDFStoreError> {
+    /// Return the default namespaces: `RDF`, `RDFS`, `OWL` and `XSD`
+    pub fn default_namespaces() -> Result<Arc<Self>, RDFStoreError> {
         Self::empty()?
-            .add_prefix(PREFIX_RDF.deref())?
-            .add_prefix(PREFIX_RDFS.deref())?
-            .add_prefix(PREFIX_OWL.deref())?
-            .add_prefix(PREFIX_XSD.deref())
+            .add_namespace(PREFIX_RDF.deref())?
+            .add_namespace(PREFIX_RDFS.deref())?
+            .add_namespace(PREFIX_OWL.deref())?
+            .add_namespace(PREFIX_XSD.deref())
     }
 
-    pub fn declare_prefix(
+    pub fn declare_namespace(
         self: &Arc<Self>,
-        prefix: &Prefix,
-    ) -> Result<PrefixDeclareResult, RDFStoreError> {
-        tracing::trace!("Register prefix {prefix}");
+        namespace: &Namespace,
+    ) -> Result<NamespaceDeclareResult, RDFStoreError> {
+        tracing::trace!("Register namespace {namespace}");
         if let Some(_already_registered) = self
             .map
             .lock()
             .unwrap()
-            .insert(prefix.name.clone(), prefix.clone())
+            .insert(namespace.name.clone(), namespace.clone())
         {
-            return Ok(PrefixDeclareResult::PREFIXES_NO_CHANGE)
+            return Ok(NamespaceDeclareResult::PREFIXES_NO_CHANGE)
         }
-        let c_name = CString::new(prefix.name.as_str()).unwrap();
-        let c_iri = CString::new(prefix.iri.as_str()).unwrap();
-        let mut result = PrefixDeclareResult::PREFIXES_NO_CHANGE;
+        let c_name = CString::new(namespace.name.as_str()).unwrap();
+        let c_iri = CString::new(namespace.iri.as_str()).unwrap();
+        let mut result = NamespaceDeclareResult::PREFIXES_NO_CHANGE;
         database_call!(
             format!(
                 "Declaring prefix {} for namespace {}",
-                prefix.name.as_str(),
-                prefix.iri.as_str()
+                namespace.name.as_str(),
+                namespace.iri.as_str()
             )
             .as_str(),
             CPrefixes_declarePrefix(
@@ -120,27 +121,27 @@ impl Prefixes {
             )
         )?;
         match result {
-            PrefixDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
+            NamespaceDeclareResult::PREFIXES_INVALID_PREFIX_NAME => {
                 tracing::error!(
                     target: LOG_TARGET_DATABASE,
                     "Invalid prefix name \"{}\" while registering namespace <{}>",
-                    prefix.name.as_str(),
-                    prefix.iri.as_str()
+                    namespace.name.as_str(),
+                    namespace.iri.as_str()
                 );
                 Err(RDFStoreError::InvalidPrefixName)
             },
-            PrefixDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
-            PrefixDeclareResult::PREFIXES_NO_CHANGE => {
+            NamespaceDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
+            NamespaceDeclareResult::PREFIXES_NO_CHANGE => {
                 tracing::trace!(
                     target: LOG_TARGET_DATABASE,
-                    "Registered {prefix} twice"
+                    "Registered {namespace} twice"
                 );
                 Ok(result)
             },
             _ => {
                 tracing::error!(
                     target: LOG_TARGET_DATABASE,
-                    "Result of registering prefix {prefix} is {:?}",
+                    "Result of registering prefix {namespace} is {:?}",
                     result
                 );
                 Ok(result)
@@ -152,32 +153,35 @@ impl Prefixes {
         self: &Arc<Self>,
         name: &str,
         iri: Base,
-    ) -> Result<PrefixDeclareResult, RDFStoreError> {
-        self.declare_prefix(&Prefix::declare(name, iri))
+    ) -> Result<NamespaceDeclareResult, RDFStoreError> {
+        self.declare_namespace(&Namespace::declare(name, iri))
     }
 
-    pub fn add_prefix(self: &Arc<Self>, prefix: &Prefix) -> Result<Arc<Self>, RDFStoreError> {
-        let _ = self.declare_prefix(prefix);
+    pub fn add_namespace(
+        self: &Arc<Self>,
+        namespace: &Namespace,
+    ) -> Result<Arc<Self>, RDFStoreError> {
+        let _ = self.declare_namespace(namespace);
         Ok(self.clone())
     }
 
     pub fn add_class(self: &Arc<Self>, clazz: &Class) -> Result<Arc<Self>, RDFStoreError> {
-        self.add_prefix(&clazz.prefix)
+        self.add_namespace(&clazz.namespace)
     }
 
     pub fn add_predicate(
         self: &Arc<Self>,
         predicate: &Predicate,
     ) -> Result<Arc<Self>, RDFStoreError> {
-        self.add_prefix(predicate.namespace)
+        self.add_namespace(predicate.namespace)
     }
 
-    pub fn for_each_prefix_do<F: FnMut(&str, &Prefix) -> Result<(), E>, E>(
+    pub fn for_each_namespace_do<F: FnMut(&str, &Namespace) -> Result<(), E>, E>(
         &self,
         mut f: F,
     ) -> Result<(), E> {
-        for (key, prefix) in self.map.lock().unwrap().iter() {
-            f(key.as_str(), prefix)?;
+        for (key, namespace) in self.map.lock().unwrap().iter() {
+            f(key.as_str(), namespace)?;
         }
         Ok(())
     }
@@ -188,27 +192,27 @@ impl Prefixes {
 }
 
 #[derive(Default)]
-pub struct PrefixesBuilder {
-    prefixes: Vec<Prefix>,
+pub struct NamespacesBuilder {
+    namespaces: Vec<Namespace>,
 }
 
-impl<'a> PrefixesBuilder {
-    pub fn default_builder() -> Self { PrefixesBuilder { prefixes: Vec::new() } }
+impl<'a> NamespacesBuilder {
+    pub fn default_builder() -> Self { NamespacesBuilder { namespaces: Vec::new() } }
 
     pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
-        self.prefixes.push(Prefix::declare(name, iri));
+        self.namespaces.push(Namespace::declare(name, iri));
         self
     }
 
-    pub fn declare(mut self, prefix: Prefix) -> Self {
-        self.prefixes.push(prefix);
+    pub fn declare(mut self, namespace: Namespace) -> Self {
+        self.namespaces.push(namespace);
         self
     }
 
-    pub fn build(self) -> Result<Arc<Prefixes>, RDFStoreError> {
-        let to_build = Prefixes::empty()?;
-        for prefix in self.prefixes {
-            to_build.declare_prefix(&prefix)?;
+    pub fn build(self) -> Result<Arc<Namespaces>, RDFStoreError> {
+        let to_build = Namespaces::empty()?;
+        for namespace in self.namespaces {
+            to_build.declare_namespace(&namespace)?;
         }
         Ok(to_build)
     }
