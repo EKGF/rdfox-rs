@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.1](https://github.com/EKGF/rdfox-rs/compare/0.1.0..0.1.1) - 2023-08-02
+#### Continuous Integration
+- **(build.rs)** better detection of clang - ([a31446c](https://github.com/EKGF/rdfox-rs/commit/a31446c46731c2ae50d1434af1a12ee0a5c424f5)) - [@jgeluk](https://github.com/jgeluk)
+- **(build.rs)** better detection of clang - ([d5671a7](https://github.com/EKGF/rdfox-rs/commit/d5671a709c8a14f6a740ff245954c6a8c175c255)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.0](https://github.com/EKGF/rdfox-rs/compare/0.0.9..0.1.0) - 2023-08-02
 #### Miscellaneous Chores
 - **(version)** upgrade to rdfox version 6.3 - ([ab057fa](https://github.com/EKGF/rdfox-rs/commit/ab057fa709bb6088536a376264721adafdea4ce8)) - [@jgeluk](https://github.com/jgeluk)
