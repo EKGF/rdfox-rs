@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.0](https://github.com/EKGF/rdfox-rs/compare/0.0.9..0.1.0) - 2023-08-02
+#### Miscellaneous Chores
+- **(version)** upgrade to rdfox version 6.3 - ([ab057fa](https://github.com/EKGF/rdfox-rs/commit/ab057fa709bb6088536a376264721adafdea4ce8)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.0.9](https://github.com/EKGF/rdfox-rs/compare/0.0.8..0.0.9) - 2023-05-24
 #### Continuous Integration
 - **(build)** fix windows prepare LLVM issue - ([46f0fd8](https://github.com/EKGF/rdfox-rs/commit/46f0fd8a47d1304215db5668491ba6214491479d)) - [@jgeluk](https://github.com/jgeluk)
