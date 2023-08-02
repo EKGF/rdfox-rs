@@ -303,11 +303,16 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, Pa
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
         path.display()
     );
-    println!(
-        "cargo:warning=clang path is {}",
-        option_env!("LIBCLANG_PATH").unwrap_or("not set")
-    );
     Some((path, llvm_config_bin))
+}
+
+fn add_clang_path() {
+    let clang_path = env::var("LIBCLANG_PATH")
+        .ok()
+        .unwrap_or("not set".to_owned());
+    println!("cargo:warning=clang path is {}", clang_path);
+    println!("cargo:rustc-env=LIBCLANG_PATH={:}", clang_path);
+    println!("cargo:rustc-link-search=all={clang_path}");
 }
 
 fn add_llvm_path() {
@@ -384,6 +389,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/lib.rs");
 
+    add_clang_path();
     add_llvm_path();
 
     let file_name = download_rdfox().expect("cargo:warning=Could not download RDFox");
