@@ -294,15 +294,6 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, Pa
             llvm_config_bin.display()
         );
     }
-
-    println!(
-        "cargo:warning=llvm config path is {}",
-        path.display()
-    );
-    println!(
-        "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
-        path.display()
-    );
     Some((path, llvm_config_bin))
 }
 
@@ -312,7 +303,7 @@ fn add_clang_path() {
         .unwrap_or("not set".to_owned());
     println!("cargo:warning=clang path is {}", clang_path);
     println!("cargo:rustc-env=LIBCLANG_PATH={:}", clang_path);
-    println!("cargo:rustc-link-search=all={clang_path}");
+    println!("cargo:rustc-link-search=all={:}", clang_path);
 }
 
 fn add_llvm_path() {
@@ -340,8 +331,9 @@ fn add_llvm_path() {
     let llvm_config_path =
         String::from_utf8(llvm_config_path).expect("`llvm-config --prefix` output must be UTF-8");
     let llvm_config_path = llvm_config_path.trim();
+
+    println!("cargo:warning=llvm config path is {llvm_config_path}");
     println!("cargo:rustc-env=LLVM_CONFIG_PATH={llvm_config_path}");
-    println!("cargo:rustc-link-search={llvm_config_path}/lib/c++");
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
@@ -389,8 +381,8 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/lib.rs");
 
-    add_clang_path();
     add_llvm_path();
+    add_clang_path();
 
     let file_name = download_rdfox().expect("cargo:warning=Could not download RDFox");
     unzip_rdfox(file_name, rdfox_archive_name());
