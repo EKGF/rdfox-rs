@@ -18,14 +18,28 @@ use {
     },
 };
 
-#[cfg(target_os = "macos")]
-const RDFOX_OS_NAME: &str = "macOS";
-#[cfg(target_os = "linux")]
-const RDFOX_OS_NAME: &str = "linux";
-#[cfg(target_os = "windows")]
-const RDFOX_OS_NAME: &str = "win64";
-
 const ARCH: &str = env::consts::ARCH;
+const FAMILY: &str = env::consts::FAMILY;
+const OS: &str = env::consts::OS;
+
+fn rdfox_os_name() -> &'static str {
+    match env::var("TARGET").ok().as_deref() {
+        Some("x86_64-unknown-linux-gnu") => return "linux",
+        Some("x86_64-apple-darwin") => return "macOS",
+        Some("x86_64-pc-windows-msvc") => return "windows",
+        _ => (),
+    }
+    if FAMILY == "windows" {
+        return FAMILY
+    }
+    if OS == "macos" {
+        return "macOS"
+    } else if OS == "linux" {
+        return "linux"
+    } else {
+        panic!("Unknown OS: {}", OS);
+    }
+}
 
 const BLOCK_LIST_ITEMS: &[&str] = &[
     "std::integral_constant_value_type",
@@ -117,21 +131,27 @@ lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
         option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.2");
 }
-#[cfg(not(any(feature = "rdfox-6-2")))]
+#[cfg(feature = "rdfox-6-3")]
+lazy_static! {
+    static ref RDFOX_VERSION_EXPECTED: &'static str =
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.3");
+}
+#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3")))]
 compile_error!("You have to at least specify one of the rdfox-X-Y version number features");
 
 fn rdfox_download_url() -> String {
     let _host = *RDFOX_DOWNLOAD_HOST;
     let _version = *RDFOX_VERSION_EXPECTED;
-    let _os = RDFOX_OS_NAME;
+    let _os = rdfox_os_name();
 
     format!("{_host}/v{_version}/RDFox-{_os}-{ARCH}-{_version}.zip")
 }
 
 // noinspection RsExternalLinter
 fn rdfox_archive_name() -> String {
-    let version = *RDFOX_VERSION_EXPECTED;
-    format!("RDFox-{RDFOX_OS_NAME}-{ARCH}-{version}")
+    let _version = *RDFOX_VERSION_EXPECTED;
+    let _os = rdfox_os_name();
+    format!("RDFox-{_os}-{ARCH}-{_version}")
 }
 
 fn rdfox_download_file() -> PathBuf {
@@ -165,8 +185,14 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
     println!("cargo:rerun-if-env-changed=RDFOX_DOWNLOAD_HOST");
     println!("cargo:rerun-if-env-changed=RDFOX_VERSION_EXPECTED");
 
+    println!(
+        "cargo:warning=\"TARGET: {}\"",
+        env::var("TARGET").ok().unwrap_or("not set".to_string())
+    );
+
     let mut curl = curl::easy::Easy::new();
     let url = rdfox_download_url();
+
     let file_name = rdfox_download_file();
 
     if file_name.try_exists().unwrap_or_else(|_| {
@@ -276,6 +302,10 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, Pa
     println!(
         "cargo:rustc-env=LLVM_CONFIG_PATH={:}",
         path.display()
+    );
+    println!(
+        "cargo:warning=clang path is {}",
+        option_env!("LIBCLANG_PATH").unwrap_or("not set")
     );
     Some((path, llvm_config_bin))
 }

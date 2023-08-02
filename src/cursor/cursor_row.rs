@@ -2,7 +2,7 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{database_call, rdfox_api::CCursor_appendResourceLexicalForm, OpenedCursor},
+    crate::{database_call, OpenedCursor, rdfox_api::CCursor_appendResourceLexicalForm},
     rdf_store_rs::{
         consts::LOG_TARGET_DATABASE,
         DataType,
@@ -15,10 +15,10 @@ use {
 /// A `CursorRow` is a row of a [`Cursor`](crate::Cursor), i.e., a set of
 /// bindings for the variables in the cursor's answer.
 pub struct CursorRow<'a> {
-    pub opened:       &'a OpenedCursor<'a>,
+    pub opened: &'a OpenedCursor<'a>,
     pub multiplicity: &'a usize,
-    pub count:        &'a usize,
-    pub rowid:        &'a usize,
+    pub count: &'a usize,
+    pub rowid: &'a usize,
 }
 
 impl<'a> std::fmt::Debug for CursorRow<'a> {
@@ -32,7 +32,7 @@ impl<'a> std::fmt::Debug for CursorRow<'a> {
                     } else {
                         write!(f, "{term_index}=UNDEF,")?
                     }
-                },
+                }
                 Err(err) => write!(f, "{term_index}=ERROR: {err:?},")?,
             }
         }
@@ -72,7 +72,7 @@ impl<'a> CursorRow<'a> {
                 target: LOG_TARGET_DATABASE,
                 "Call to cursor for resource value in column #{term_index} could not be resolved"
             );
-            return Err(Unknown) // TODO: Make more specific error
+            return Err(Unknown); // TODO: Make more specific error
         }
 
         let data_type = DataType::from_datatype_id(datatype_id)?;
