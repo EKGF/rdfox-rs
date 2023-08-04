@@ -9,28 +9,43 @@ use {
 pub static RDFOX_HOME: &str = concat!(env!("HOME"), "/.RDFox");
 pub const RDFOX_DEFAULT_LICENSE_FILE_NAME: &str = "RDFox.lic";
 
-pub fn find_license(dir: &Path) -> Result<PathBuf, rdf_store_rs::RDFStoreError> {
-    if dir.exists() {
-        let license = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
+/// Find the license file in the given directory or in the home directory or
+/// check the environment variable RDFOX_LICENSE_CONTENT (which takes
+/// precedence).
+///
+/// If the environment variable RDFOX_LICENSE_CONTENT is set, then the content
+/// of the license file is returned as the second element of the tuple.
+pub fn find_license(
+    dir: &Path,
+) -> Result<(Option<PathBuf>, Option<String>), rdf_store_rs::RDFStoreError> {
+    if let Some(license_content) = std::env::var("RDFOX_LICENSE_CONTENT").ok() {
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
-            "Checking license file {license:?}"
+            "Using license content from environment variable RDFOX_LICENSE_CONTENT"
         );
-        if license.exists() {
-            return Ok(license)
+        return Ok((None, Some(license_content)))
+    }
+    if dir.exists() {
+        let license_file_name = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
+        tracing::debug!(
+            target: LOG_TARGET_DATABASE,
+            "Checking license file {license_file_name:?}"
+        );
+        if license_file_name.exists() {
+            return Ok((Some(license_file_name), None))
         }
     }
     // Now check home directory ~/.RDFox/RDFox.lic
     //
-    let license = PathBuf::from(format!(
+    let license_file_name = PathBuf::from(format!(
         "{RDFOX_HOME}/{RDFOX_DEFAULT_LICENSE_FILE_NAME}"
     ));
     tracing::debug!(
         target: LOG_TARGET_DATABASE,
-        "Checking license file {license:?}"
+        "Checking license file {license_file_name:?}"
     );
-    if license.exists() {
-        return Ok(license)
+    if license_file_name.exists() {
+        return Ok((Some(license_file_name), None))
     }
 
     Err(rdf_store_rs::RDFStoreError::RDFoxLicenseFileNotFound)
