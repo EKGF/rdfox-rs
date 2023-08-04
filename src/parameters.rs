@@ -166,7 +166,9 @@ impl Parameters {
     }
 
     pub fn license_content(self, content: &str) -> Result<Self, RDFStoreError> {
-        self.set_string("license-content", content)?;
+        // Add a line feed at the end of the content just to make sure, if it's
+        // missing the last field in the license key will not be recognized
+        self.set_string("license-content", format!("{content}\n").as_str())?;
         Ok(self)
     }
 
