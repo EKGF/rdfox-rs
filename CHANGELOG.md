@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.2](https://github.com/EKGF/rdfox-rs/compare/0.1.1..0.1.2) - 2023-08-04
+#### Features
+- **(license)** Checks environment variable RDFOX_LICENCE_CONTENT - ([ac8f836](https://github.com/EKGF/rdfox-rs/commit/ac8f8369e816eb4db821fa041c8393438aae8784)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.1](https://github.com/EKGF/rdfox-rs/compare/0.1.0..0.1.1) - 2023-08-02
 #### Continuous Integration
 - **(build.rs)** better detection of clang - ([a31446c](https://github.com/EKGF/rdfox-rs/commit/a31446c46731c2ae50d1434af1a12ee0a5c424f5)) - [@jgeluk](https://github.com/jgeluk)
