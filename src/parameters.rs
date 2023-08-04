@@ -165,6 +165,11 @@ impl Parameters {
         }
     }
 
+    pub fn license_content(self, content: &str) -> Result<Self, RDFStoreError> {
+        self.set_string("license-content", content)?;
+        Ok(self)
+    }
+
     pub fn import_rename_user_blank_nodes(self, setting: bool) -> Result<Self, RDFStoreError> {
         self.set_string(
             "import.rename-user-blank-nodes",
