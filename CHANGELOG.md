@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.4](https://github.com/EKGF/rdfox-rs/compare/0.1.3..0.1.4) - 2023-08-04
+#### Refactoring
+- **(license)** Added line-feed to license content to avoid missing license field - ([bec396d](https://github.com/EKGF/rdfox-rs/commit/bec396dc148e13aa44cfac39a97e84d0fe2cfef2)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.3](https://github.com/EKGF/rdfox-rs/compare/0.1.2..0.1.3) - 2023-08-04
 #### Features
 - **(license)** Added ability to set server parameters with RDFox license content - ([db1fec3](https://github.com/EKGF/rdfox-rs/commit/db1fec3334006ec3b2aa7498b946df9f51fcd9f8)) - [@jgeluk](https://github.com/jgeluk)
