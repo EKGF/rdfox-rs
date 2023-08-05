@@ -77,6 +77,8 @@ impl Drop for Parameters {
     }
 }
 
+const SENSITIVE_PARAMETERS: [&str; 1] = ["license-content"];
+
 impl Parameters {
     pub fn empty() -> Result<Self, RDFStoreError> {
         let mut parameters: *mut CParameters = ptr::null_mut();
@@ -90,11 +92,18 @@ impl Parameters {
     pub fn set_string(&self, key: &str, value: &str) -> Result<(), RDFStoreError> {
         let c_key = CString::new(key).unwrap();
         let c_value = CString::new(value).unwrap();
-        let msg = format!(
-            "Setting parameter {}={}",
-            c_key.to_str().unwrap(),
-            c_value.to_str().unwrap()
-        );
+        let msg = if SENSITIVE_PARAMETERS.contains(&c_key.to_str().unwrap()) {
+            format!(
+                "Setting parameter {}=[***]",
+                c_key.to_str().unwrap(),
+            )
+        } else {
+            format!(
+                "Setting parameter {}=[{}]",
+                c_key.to_str().unwrap(),
+                c_value.to_str().unwrap()
+            )
+        };
         database_call!(
             msg.as_str(),
             CParameters_setString(*self.inner, c_key.as_ptr(), c_value.as_ptr())
@@ -166,10 +175,23 @@ impl Parameters {
     }
 
     pub fn license_content(self, content: &str) -> Result<Self, RDFStoreError> {
+        // Content that comes in via an environment variable can have literal `\\n`
+        // strings in them that should be replaced by actual line-feeds
+        let content = content.replace("\r\n", "\n").replace("\\n", "\n");
         // Add a line feed at the end of the content just to make sure, if it's
         // missing the last field in the license key will not be recognized
-        tracing::info!("Setting license-content parameter");
         self.set_string("license-content", format!("{content}\n").as_str())?;
+        Ok(self)
+    }
+
+    pub fn set_license(self, database_dir: Option<&Path>) -> Result<Self, RDFStoreError> {
+        match super::license::find_license(database_dir)? {
+            (Some(license_file_name), None) => {
+                return self.license_file(license_file_name.as_path())
+            },
+            (None, Some(license_content)) => return self.license_content(license_content.as_str()),
+            _ => {},
+        };
         Ok(self)
     }
 
@@ -212,8 +234,6 @@ impl Parameters {
 
 #[cfg(test)]
 mod tests {
-    use crate::Parameters;
-
     #[test_log::test]
     fn test_set_param() {
         let params = Parameters::empty().unwrap();
