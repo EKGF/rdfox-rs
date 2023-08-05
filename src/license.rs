@@ -19,7 +19,7 @@ pub fn find_license(
     dir: &Path,
 ) -> Result<(Option<PathBuf>, Option<String>), rdf_store_rs::RDFStoreError> {
     if let Some(license_content) = std::env::var("RDFOX_LICENSE_CONTENT").ok() {
-        tracing::debug!(
+        tracing::info!(
             target: LOG_TARGET_DATABASE,
             "Using license content from environment variable RDFOX_LICENSE_CONTENT"
         );
@@ -27,7 +27,7 @@ pub fn find_license(
     }
     if dir.exists() {
         let license_file_name = dir.join(RDFOX_DEFAULT_LICENSE_FILE_NAME);
-        tracing::debug!(
+        tracing::info!(
             target: LOG_TARGET_DATABASE,
             "Checking license file {license_file_name:?}"
         );
@@ -40,7 +40,7 @@ pub fn find_license(
     let license_file_name = PathBuf::from(format!(
         "{RDFOX_HOME}/{RDFOX_DEFAULT_LICENSE_FILE_NAME}"
     ));
-    tracing::debug!(
+    tracing::info!(
         target: LOG_TARGET_DATABASE,
         "Checking license file {license_file_name:?}"
     );
