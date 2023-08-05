@@ -23,7 +23,7 @@ database engine that is part of your program, no need to run a separate RDFox se
 
 - All the basics work
 - Proper documentation is still missing, check the [tests/load.rs](tests/load.rs) source code for an example
-- Currently only supports RDFox 6.2
+- Currently only supports RDFox 6.2 and RDFox 6.3
 - RDFox itself is a C++ program with a C API that comes as a dynamic link library or a static library,
   both of which are supported by this Rust crate.
   - Use feature `rdfox-dylib` if you want to use the dynamic link library
@@ -37,7 +37,7 @@ database engine that is part of your program, no need to run a separate RDFox se
 
 ## Plans
 
-- Get the static link library to not cause a `SIGSEGV` signal
+- Get the static link library to **not** cause a `SIGSEGV` signal
 - Make high-level interface more abstract so that it can also be used for remote endpoints using REST calls
   and potentially any other triple store product.
   - Core components that are RDFox-independent have already been moved to

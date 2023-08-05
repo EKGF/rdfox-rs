@@ -66,7 +66,7 @@ impl Server {
         } else {
             let params = Parameters::empty()?;
             database_call!(
-                "Starting a local RDFFox server",
+                "Starting a local RDFFox server with default parameters",
                 CServer_startLocalServer(params.inner.cast_const())
             )?;
         };

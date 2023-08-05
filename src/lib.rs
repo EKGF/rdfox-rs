@@ -16,7 +16,7 @@ pub use {
     license::{find_license, RDFOX_DEFAULT_LICENSE_FILE_NAME, RDFOX_HOME},
     mime::Mime,
     namespaces::{Namespaces, NamespacesBuilder},
-    parameters::{FactDomain, Parameters, PersistenceMode},
+    parameters::{DataStoreType, FactDomain, Parameters, PersistenceMode},
     role_creds::RoleCreds,
     server::Server,
     server_connection::ServerConnection,

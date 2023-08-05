@@ -48,6 +48,12 @@ impl Display for PersistenceMode {
     }
 }
 
+pub enum DataStoreType {
+    ParallelNN,
+    ParallelNW,
+    ParallelWW,
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Parameters {
     pub(crate) inner: Arc<*mut CParameters>,
@@ -147,7 +153,11 @@ impl Parameters {
     }
 
     pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
-        self.set_string("persist-ds", &mode.to_string())?;
+        match mode {
+            PersistenceMode::File => self.set_string("persist-ds", "file")?,
+            PersistenceMode::FileSequence => self.set_string("persist-ds", "file-sequence")?,
+            PersistenceMode::Off => self.set_string("persist-ds", "off")?,
+        };
         Ok(self)
     }
 
@@ -230,13 +240,22 @@ impl Parameters {
             Ok(self)
         }
     }
+
+    pub fn data_store_type(self, data_store_type: DataStoreType) -> Result<Self, RDFStoreError> {
+        match data_store_type {
+            DataStoreType::ParallelNN => self.set_string("type", "parallel-nn")?,
+            DataStoreType::ParallelNW => self.set_string("type", "parallel-nw")?,
+            DataStoreType::ParallelWW => self.set_string("type", "parallel-ww")?,
+        }
+        Ok(self)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     #[test_log::test]
     fn test_set_param() {
-        let params = Parameters::empty().unwrap();
+        let params = crate::Parameters::empty().unwrap();
         params.set_string("key1", "value1").unwrap();
         let value = params.get_string("key1", "whatever").unwrap();
         assert_eq!(value, "value1");

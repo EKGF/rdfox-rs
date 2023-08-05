@@ -303,7 +303,11 @@ fn add_clang_path() {
         .unwrap_or("not set".to_owned());
     println!("cargo:warning=clang path is {}", clang_path);
     println!("cargo:rustc-env=LIBCLANG_PATH={:}", clang_path);
-    println!("cargo:rustc-link-search=all={:}", clang_path);
+    println!("cargo:rustc-link-search=native={:}", clang_path);
+    println!(
+        "cargo:rustc-link-search=native={:}/c++",
+        clang_path
+    );
 }
 
 fn add_llvm_path() {
