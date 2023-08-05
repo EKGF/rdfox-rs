@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.7](https://github.com/EKGF/rdfox-rs/compare/0.1.6..0.1.7) - 2023-08-05
+#### Features
+- **(rdfox-6-3)** Better support for RDFox 6.3 - ([9811f6e](https://github.com/EKGF/rdfox-rs/commit/9811f6e378d26797239ed76d1a5686b94b742323)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.6](https://github.com/EKGF/rdfox-rs/compare/0.1.5..0.1.6) - 2023-08-05
 #### Features
 - **(license)** RDFOX_LICENCE_CONTENT env var works now even when it contains literal '\n' strings - ([94327b5](https://github.com/EKGF/rdfox-rs/commit/94327b5629b6e461e3fd207f0ef442dabca53cc5)) - [@jgeluk](https://github.com/jgeluk)
