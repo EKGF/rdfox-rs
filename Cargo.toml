@@ -37,7 +37,7 @@ colored = "2.0.0"
 ignore = "0.4.18"
 iref = "2.1.3"
 indoc = "2.0.0"
-num_enum = "0.6.1"
+num_enum = "0.7.0"
 nom = { version = "7.1.1", optional = true }
 phf = { version = "0.11", features = ["macros"] }
 r2d2 = "0.8.1"
@@ -60,13 +60,13 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter", "fmt", "ans
 curl = "0.4.43"
 lazy_static = "1.4.0"
 zip = "0.6.2"
-bindgen = "0.65.1"
+bindgen = "0.66.1"
 
 [package.metadata.docs.rs]
 rustc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["nom", "rdfox-6-3"]
+default = ["nom", "rdfox-6-3a"]
 rdftk-support = ["rdftk_iri/uuid_iri"]
 nom-support = ["nom"]
 #
@@ -77,6 +77,6 @@ rdfox-dylib = []
 # Select a version
 #
 rdfox-6-2 = []
-rdfox-6-3 = []
+rdfox-6-3a = []
 
 

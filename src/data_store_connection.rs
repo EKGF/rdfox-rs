@@ -351,7 +351,7 @@ impl DataStoreConnection {
                 base_iri
                     .as_ref()
                     .map(|iri| iri.as_str())
-                    .unwrap_or_else(|| DEFAULT_BASE_IRI.deref()),
+                    .unwrap_or_else(|| DEFAULT_BASE_IRI),
             ),
         )
     }

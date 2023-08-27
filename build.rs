@@ -131,12 +131,12 @@ lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
         option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.2");
 }
-#[cfg(feature = "rdfox-6-3")]
+#[cfg(feature = "rdfox-6-3a")]
 lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
-        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.3");
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.3a");
 }
-#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3")))]
+#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3a")))]
 compile_error!("You have to at least specify one of the rdfox-X-Y version number features");
 
 fn rdfox_download_url() -> String {
