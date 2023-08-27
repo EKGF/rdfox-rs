@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SENSITIVE_PARAMETERS"],"enum":["DataStoreType","FactDomain","PersistenceMode"],"struct":["Parameters"]};

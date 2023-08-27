@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"rdfox_rs":[["impl <a class=\"trait\" href=\"https://docs.rs/r2d2/0.8/r2d2/trait.ManageConnection.html\" title=\"trait r2d2::ManageConnection\">ManageConnection</a> for <a class=\"struct\" href=\"rdfox_rs/connectable_data_store/struct.ConnectableDataStore.html\" title=\"struct rdfox_rs::connectable_data_store::ConnectableDataStore\">ConnectableDataStore</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

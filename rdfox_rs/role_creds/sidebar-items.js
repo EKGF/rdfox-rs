@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["RDFOX_DEFAULT_ROLE_PASSWD","RDFOX_DEFAULT_ROLE_USERID"],"struct":["RoleCreds"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["RDFOX_DEFAULT_LICENSE_FILE_NAME"],"fn":["find_license"],"static":["RDFOX_HOME"]};
