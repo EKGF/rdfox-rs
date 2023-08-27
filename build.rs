@@ -30,12 +30,11 @@ fn rdfox_os_name() -> &'static str {
         _ => (),
     }
     if FAMILY == "windows" {
-        return FAMILY
-    }
-    if OS == "macos" {
-        return "macOS"
+        FAMILY
+    } else if OS == "macos" {
+        "macOS"
     } else if OS == "linux" {
-        return "linux"
+        "linux"
     } else {
         panic!("Unknown OS: {}", OS);
     }

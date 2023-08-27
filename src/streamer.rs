@@ -155,10 +155,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
         tracing::trace!("{streamer:p}: write_function");
 
-        let result = match ptr_to_cstr(
-            data as *const u8,
-            number_of_bytes_to_write as usize,
-        ) {
+        let result = match ptr_to_cstr(data as *const u8, number_of_bytes_to_write) {
             Ok(data_c_str) => {
                 tracing::trace!("{streamer:p}: writing {number_of_bytes_to_write} bytes (a)");
                 let data = if streamer.remaining_buffer.borrow().is_some() {

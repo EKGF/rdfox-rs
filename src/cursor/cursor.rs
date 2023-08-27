@@ -117,7 +117,7 @@ impl Cursor {
             rowid += 1;
             if rowid >= max_row {
                 return Err(RDFStoreError::ExceededMaximumNumberOfRows {
-                    maxrow: max_row as usize,
+                    maxrow: max_row,
                     query:  sparql_str,
                 }
                 .into())

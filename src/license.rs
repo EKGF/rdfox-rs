@@ -18,7 +18,7 @@ pub const RDFOX_DEFAULT_LICENSE_FILE_NAME: &str = "RDFox.lic";
 pub fn find_license(
     dir: Option<&Path>,
 ) -> Result<(Option<PathBuf>, Option<String>), rdf_store_rs::RDFStoreError> {
-    if let Some(license_content) = std::env::var("RDFOX_LICENSE_CONTENT").ok() {
+    if let Ok(license_content) = std::env::var("RDFOX_LICENSE_CONTENT") {
         tracing::info!(
             target: LOG_TARGET_DATABASE,
             "Using license content from environment variable RDFOX_LICENSE_CONTENT"
