@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.8](https://github.com/EKGF/rdfox-rs/compare/0.1.7..0.1.8) - 2023-08-27
+#### Features
+- **(rdfox-6-3a)** Support for RDFox 6.3a and minor fixes - ([470f51a](https://github.com/EKGF/rdfox-rs/commit/470f51ac7fa6dad3aa460bffec92d361ab12009e)) - [@jgeluk](https://github.com/jgeluk)
+#### Miscellaneous Chores
+- **(lint)** implemented clippy advice - ([773eee0](https://github.com/EKGF/rdfox-rs/commit/773eee073d05d0c9d514dee94a7fa6d06b40e620)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.7](https://github.com/EKGF/rdfox-rs/compare/0.1.6..0.1.7) - 2023-08-05
 #### Features
 - **(rdfox-6-3)** Better support for RDFox 6.3 - ([9811f6e](https://github.com/EKGF/rdfox-rs/commit/9811f6e378d26797239ed76d1a5686b94b742323)) - [@jgeluk](https://github.com/jgeluk)
