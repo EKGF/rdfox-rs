@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.9](https://github.com/EKGF/rdfox-rs/compare/0.1.8..0.1.9) - 2023-08-27
+#### Miscellaneous Chores
+- **(ci)** upgraded to rdf-store-rs 0.0.9 - ([7d773fb](https://github.com/EKGF/rdfox-rs/commit/7d773fbb42d290d399392b0c698ba8e4b1f9962c)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing github actions build job - ([80384ee](https://github.com/EKGF/rdfox-rs/commit/80384ee117483acce5757c475b3372b761a5019e)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.8](https://github.com/EKGF/rdfox-rs/compare/0.1.7..0.1.8) - 2023-08-27
 #### Features
 - **(rdfox-6-3a)** Support for RDFox 6.3a and minor fixes - ([470f51a](https://github.com/EKGF/rdfox-rs/commit/470f51ac7fa6dad3aa460bffec92d361ab12009e)) - [@jgeluk](https://github.com/jgeluk)
