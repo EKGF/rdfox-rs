@@ -1,6 +1,6 @@
 [build]
 incremental = true
-target = "x86_64-apple-darwin"
+#target = "x86_64-apple-darwin"
 #target = "wasm32-unknown-unknown"
 
 [cargo-new]

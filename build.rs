@@ -26,6 +26,7 @@ fn rdfox_os_name() -> &'static str {
     match env::var("TARGET").ok().as_deref() {
         Some("x86_64-unknown-linux-gnu") => return "linux",
         Some("x86_64-apple-darwin") => return "macOS",
+        Some("aarch64-apple-darwin") => return "macOS",
         Some("x86_64-pc-windows-msvc") => return "windows",
         _ => (),
     }
@@ -135,22 +136,30 @@ lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
         option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.3a");
 }
-#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3a")))]
+#[cfg(feature = "rdfox-6-3b")]
+lazy_static! {
+    static ref RDFOX_VERSION_EXPECTED: &'static str =
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.3b");
+}
+#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3a", feature = "rdfox-6-3b")))]
 compile_error!("You have to at least specify one of the rdfox-X-Y version number features");
 
 fn rdfox_download_url() -> String {
-    let _host = *RDFOX_DOWNLOAD_HOST;
-    let _version = *RDFOX_VERSION_EXPECTED;
-    let _os = rdfox_os_name();
+    let host = *RDFOX_DOWNLOAD_HOST;
+    let version = *RDFOX_VERSION_EXPECTED;
+    let os = rdfox_os_name();
+    let arch = if ARCH == "aarch64" { "arm64" } else { ARCH };
 
-    format!("{_host}/v{_version}/RDFox-{_os}-{ARCH}-{_version}.zip")
+    format!("{host}/v{version}/RDFox-{os}-{arch}-{version}.zip")
 }
 
 // noinspection RsExternalLinter
 fn rdfox_archive_name() -> String {
-    let _version = *RDFOX_VERSION_EXPECTED;
-    let _os = rdfox_os_name();
-    format!("RDFox-{_os}-{ARCH}-{_version}")
+    let version = *RDFOX_VERSION_EXPECTED;
+    let os = rdfox_os_name();
+    let arch = if ARCH == "aarch64" { "arm64" } else { ARCH };
+
+    format!("RDFox-{os}-{arch}-{version}")
 }
 
 fn rdfox_download_file() -> PathBuf {
@@ -275,6 +284,27 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
     unpacked_dir
 }
 
+fn set_clang_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, PathBuf)> {
+    path.as_ref()?;
+    let path = PathBuf::from(path.unwrap().into());
+    if !path.exists() {
+        return None
+    }
+    let path = std::fs::canonicalize(path).unwrap();
+
+    let mut clang_bin = path.join("bin/clang");
+    if !clang_bin.exists() {
+        clang_bin = path.join("clang");
+    }
+    if clang_bin.exists() {
+        println!(
+            "cargo:warning=using {}",
+            clang_bin.display()
+        );
+    }
+    Some((path, clang_bin))
+}
+
 fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, PathBuf)> {
     path.as_ref()?;
     let path = PathBuf::from(path.unwrap().into());
@@ -297,9 +327,12 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, Pa
 }
 
 fn add_clang_path() {
-    let clang_path = env::var("LIBCLANG_PATH")
-        .ok()
-        .unwrap_or("not set".to_owned());
+    let (_, clang_path) = set_clang_path(option_env!("LIBCLANG_PATH"))
+        .or_else(|| set_clang_path(Some("/opt/homebrew")))
+        .unwrap_or_else(|| panic!("Could not find the clang path"));
+
+    let clang_path = clang_path.to_str().unwrap();
+
     println!("cargo:warning=clang path is {}", clang_path);
     println!("cargo:rustc-env=LIBCLANG_PATH={:}", clang_path);
     println!("cargo:rustc-link-search=native={:}", clang_path);
@@ -312,6 +345,7 @@ fn add_clang_path() {
 fn add_llvm_path() {
     let (_, llvm_config_bin) = set_llvm_config_path(option_env!("LLVM_CONFIG_PATH"))
         .or_else(|| set_llvm_config_path(option_env!("LLVM_PATH")))
+        .or_else(|| set_llvm_config_path(Some("/opt/homebrew/bin")))
         .or_else(|| set_llvm_config_path(Some("/usr/local/opt/llvm")))
         .or_else(|| set_llvm_config_path(check_llvm_via_brew()))
         .or_else(|| set_llvm_config_path(Some("/usr/bin")))

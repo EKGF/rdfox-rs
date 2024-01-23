@@ -32,7 +32,7 @@ env_logger = "0.10.0"
 mime = "0.3.16"
 lazy_static = "1.4.0"
 thiserror = "1.0.31"
-fancy-regex = "0.11.0"
+fancy-regex = "0.13.0"
 colored = "2.0.0"
 ignore = "0.4.18"
 iref = "2.1.3"
@@ -60,13 +60,13 @@ tracing-subscriber = { version = "0.3.16", features = ["env-filter", "fmt", "ans
 curl = "0.4.43"
 lazy_static = "1.4.0"
 zip = "0.6.2"
-bindgen = "0.66.1"
+bindgen = "0.69.2"
 
 [package.metadata.docs.rs]
 rustc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["nom", "rdfox-6-3a"]
+default = ["nom", "rdfox-6-3b"]
 rdftk-support = ["rdftk_iri/uuid_iri"]
 nom-support = ["nom"]
 #
@@ -78,5 +78,6 @@ rdfox-dylib = []
 #
 rdfox-6-2 = []
 rdfox-6-3a = []
+rdfox-6-3b = []
 
 
