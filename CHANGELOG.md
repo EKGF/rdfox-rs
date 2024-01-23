@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.11](https://github.com/EKGF/rdfox-rs/compare/0.1.10..0.1.11) - 2024-01-23
+
+- - -
+
 ## [0.1.10](https://github.com/EKGF/rdfox-rs/compare/0.1.9..0.1.10) - 2024-01-23
 #### Features
 - upgraded to RDFOx 6.3b and now also supports aarch64 - ([7f0109b](https://github.com/EKGF/rdfox-rs/commit/7f0109b6563a0ef0c733b8b8090adfe785cce917)) - [@jgeluk](https://github.com/jgeluk)
