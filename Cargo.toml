@@ -5,8 +5,8 @@ version = "0.1.11"
 edition = "2021"
 links = "RDFox-static"
 authors = [
-  "Jacobus Geluk <jacobus.geluk@ekgf.org>",
-  "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
+    "Jacobus Geluk <jacobus.geluk@ekgf.org>",
+    "Marcelo Barbieri <marcelo.barbieri@agnos.ai>"
 ]
 repository = "https://github.com/EKGF/rdfox-rs"
 keywords = ["rdf", "sparql", "database", "graph-database", "datalog"]
@@ -26,16 +26,16 @@ bench = false
 
 [dependencies]
 tracing = "0.1.37"
-tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
-tracing-log = { version = "0.1.3", features = ["env_logger"] }
-env_logger = "0.10.0"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-log = { version = "0.2.0" }
+env_logger = "0.11.0"
 mime = "0.3.16"
 lazy_static = "1.4.0"
 thiserror = "1.0.31"
 fancy-regex = "0.13.0"
 colored = "2.0.0"
 ignore = "0.4.18"
-iref = "2.1.3"
+iref = "3.1.3"
 indoc = "2.0.0"
 num_enum = "0.7.0"
 nom = { version = "7.1.1", optional = true }
@@ -44,8 +44,8 @@ r2d2 = "0.8.1"
 iri-string = { version = "0.7.0", features = ["serde", "alloc"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-owo-colors = { version = "3.5.0", features = ["supports-colors"] }
-rdf-store-rs = { version = "0.0.9", features = ["serde"] }
+owo-colors = { version = "4.0.0", features = ["supports-colors"] }
+rdf-store-rs = { version = "0.0.10", features = ["serde"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.rdftk_iri]
 version = "0.1.9"
@@ -66,7 +66,7 @@ bindgen = "0.69.2"
 rustc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["nom", "rdfox-6-3b"]
+default = ["nom", "rdfox-7-0", "rdfox-dylib"]
 rdftk-support = ["rdftk_iri/uuid_iri"]
 nom-support = ["nom"]
 #
@@ -79,5 +79,6 @@ rdfox-dylib = []
 rdfox-6-2 = []
 rdfox-6-3a = []
 rdfox-6-3b = []
+rdfox-7-0 = []
 
 

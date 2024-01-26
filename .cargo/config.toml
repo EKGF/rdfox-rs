@@ -16,7 +16,7 @@ protocol = "git"
 git-fetch-with-cli = true   # use the `git` executable for git operations
 
 [patch.crates-io]
-#rdf-store-rs = { path = "../rdf-store-rs" }
+rdf-store-rs = { path = "../rdf-store-rs" }
 
 [term]
 color = "always"

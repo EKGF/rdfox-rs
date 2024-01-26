@@ -4,27 +4,27 @@
 use {
     crate::{
         database_call,
+        DataStoreConnection,
         rdfox_api::{
             CDataStoreConnection_beginTransaction,
             CDataStoreConnection_commitTransaction,
             CDataStoreConnection_rollbackTransaction,
             CTransactionType,
         },
-        DataStoreConnection,
     },
     rdf_store_rs::RDFStoreError,
     std::{
         fmt::{Display, Formatter},
-        sync::{atomic::AtomicBool, Arc},
+        sync::{Arc, atomic::AtomicBool},
     },
 };
 
 #[derive(Debug)]
 pub struct Transaction {
     pub connection: Arc<DataStoreConnection>,
-    committed:      AtomicBool,
-    tx_type:        CTransactionType,
-    number:         usize,
+    committed: AtomicBool,
+    tx_type: CTransactionType,
+    number: usize,
 }
 
 impl Drop for Transaction {
@@ -37,7 +37,7 @@ impl Drop for Transaction {
                 "Ended {self:}"
             );
         } else if let Err(err) = self._rollback() {
-            panic!("{self:} could not be rolled back: {err}",);
+            panic!("{self:} could not be rolled back: {err}", );
         }
     }
 }
@@ -85,15 +85,16 @@ impl Transaction {
 
     fn get_title_for(tx_type: CTransactionType, number: usize, connection_number: usize) -> String {
         match tx_type {
+            #[cfg(not(feature = "rdfox-7-0"))]
             CTransactionType::TRANSACTION_TYPE_EXCLUSIVE => {
-                format!("Exclusive Transaction #{number} on connection #{connection_number}",)
-            },
+                format!("Exclusive Transaction #{number} on connection #{connection_number}", )
+            }
             CTransactionType::TRANSACTION_TYPE_READ_ONLY => {
-                format!("R/O Transaction #{number} on connection #{connection_number}",)
-            },
+                format!("R/O Transaction #{number} on connection #{connection_number}", )
+            }
             CTransactionType::TRANSACTION_TYPE_READ_WRITE => {
-                format!("R/W Transaction #{number} on connection #{connection_number}",)
-            },
+                format!("R/W Transaction #{number} on connection #{connection_number}", )
+            }
         }
     }
 
@@ -125,8 +126,8 @@ impl Transaction {
         connection: &Arc<DataStoreConnection>,
         f: F,
     ) -> Result<T, RDFStoreError>
-    where
-        F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError>,
+        where
+            F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError>,
     {
         let tx = Self::begin_read_write(connection)?;
         let result = f(tx.clone());
@@ -204,7 +205,7 @@ impl Transaction {
     }
 
     pub fn update_and_commit<T, E: From<RDFStoreError>, F>(self: &Arc<Self>, f: F) -> Result<T, E>
-    where F: FnOnce(Arc<Transaction>) -> Result<T, E> {
+        where F: FnOnce(Arc<Transaction>) -> Result<T, E> {
         let result = f(self.clone());
         if result.is_ok() {
             self.commit()?;
@@ -215,7 +216,7 @@ impl Transaction {
     }
 
     pub fn execute_and_rollback<T, F>(self: &Arc<Self>, f: F) -> Result<T, RDFStoreError>
-    where F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError> {
+        where F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError> {
         let result = f(self.clone());
         match &result {
             Err(err) => {
@@ -225,7 +226,7 @@ impl Transaction {
                     conn = self.connection.number,
                     "Error occurred during {self:}: {err}",
                 );
-            },
+            }
             Ok(..) => {
                 tracing::debug!(
                     target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
@@ -233,7 +234,7 @@ impl Transaction {
                     conn = self.connection.number,
                     "{self:} was successful (but rolling it back anyway)",
                 );
-            },
+            }
         }
         self.rollback()?;
         result

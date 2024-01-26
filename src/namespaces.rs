@@ -12,7 +12,7 @@ use {
             CPrefixes_newDefaultPrefixes,
         },
     },
-    iref::Iri,
+    iref::iri::Iri,
     rdf_store_rs::{
         consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
         Class,
@@ -149,10 +149,10 @@ impl Namespaces {
         }
     }
 
-    pub fn declare<'a, Base: Into<Iri<'a>>>(
+    pub fn declare(
         self: &Arc<Self>,
         name: &str,
-        iri: Base,
+        iri: &iref::iri::Iri,
     ) -> Result<NamespaceDeclareResult, RDFStoreError> {
         self.declare_namespace(&Namespace::declare(name, iri))
     }
@@ -199,7 +199,7 @@ pub struct NamespacesBuilder {
 impl<'a> NamespacesBuilder {
     pub fn default_builder() -> Self { NamespacesBuilder { namespaces: Vec::new() } }
 
-    pub fn declare_with_name_and_iri<Base: Into<Iri<'a>>>(mut self, name: &str, iri: Base) -> Self {
+    pub fn declare_with_name_and_iri(mut self, name: &str, iri: &Iri) -> Self {
         self.namespaces.push(Namespace::declare(name, iri));
         self
     }

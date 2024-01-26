@@ -32,12 +32,16 @@ use {
         Transaction,
     },
     // std::path::Path,
-    std::{ops::Deref, sync::Arc, thread::sleep, time::Duration},
+    std::{ops::Deref, sync::Arc},
 };
 
 fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
     tracing::info!("test_define_data_store");
-    let data_store_params = Parameters::empty()?
+    #[cfg(feature = "rdfox-7-0")]
+        let data_store_params = Parameters::empty()?
+        .persist_datastore(PersistenceMode::Off)?;
+    #[cfg(not(feature = "rdfox-7-0"))]
+        let data_store_params = Parameters::empty()?
         .persist_datastore(PersistenceMode::Off)?
         .persist_roles(PersistenceMode::Off)?;
     DataStore::declare_with_parameters("example", data_store_params)
@@ -45,7 +49,10 @@ fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
 
 fn test_create_server() -> Result<Arc<Server>, RDFStoreError> {
     tracing::info!("test_create_server");
-    let server_params = Parameters::empty()?
+    #[cfg(feature = "rdfox-7-0")]
+        let server_params = Parameters::empty()?.persist_datastore(PersistenceMode::Off)?;
+    #[cfg(not(feature = "rdfox-7-0"))]
+        let server_params = Parameters::empty()?
         .persist_datastore(PersistenceMode::Off)?
         .persist_roles(PersistenceMode::Off)?;
 
@@ -164,7 +171,7 @@ fn test_cursor_with_lexical_value(
                 }}
                 "##,
         )
-        .into(),
+            .into(),
     )?;
     let mut cursor = query.cursor(
         &graph_connection.data_store_connection,
@@ -309,7 +316,7 @@ fn load_rdfox() -> Result<(), RDFStoreError> {
             .execute_and_rollback(|ref tx| test_query_concepts(tx, &graph_connection_meta))?;
     }
 
-    sleep(Duration::from_millis(500)); // wait for connection pool threads to end
+    std::thread::sleep(std::time::Duration::from_millis(500)); // wait for connection pool threads to end
 
     tracing::info!("Datastore connection is now destroyed, now we can delete the data store:");
 

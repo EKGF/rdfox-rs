@@ -336,7 +336,7 @@ impl DataStoreConnection {
         writer: W,
         statement: &'a Statement,
         mime_type: &'static Mime,
-        base_iri: Option<Iri>,
+        base_iri: Option<&Iri>,
     ) -> Result<Streamer<'a, W>, RDFStoreError>
     where
         W: 'a + Write,

@@ -4,17 +4,17 @@
 use {
     crate::{
         database_call,
+        Parameters,
         rdfox_api::{
-            CServerConnection,
-            CServerConnection_newServerConnection,
             CServer_createFirstLocalServerRole,
             CServer_getNumberOfLocalServerRoles,
             CServer_startLocalServer,
             CServer_stopLocalServer,
+            CServerConnection,
+            CServerConnection_newServerConnection,
         },
-        server_connection::ServerConnection,
-        Parameters,
         RoleCreds,
+        server_connection::ServerConnection,
     },
     rdf_store_rs::{
         consts::LOG_TARGET_DATABASE,
@@ -24,8 +24,8 @@ use {
         ffi::CString,
         ptr,
         sync::{
-            atomic::{AtomicBool, Ordering},
             Arc,
+            atomic::{AtomicBool, Ordering},
         },
     },
 };
@@ -33,7 +33,7 @@ use {
 #[derive(Debug)]
 pub struct Server {
     default_role_creds: RoleCreds,
-    running:            AtomicBool,
+    running: AtomicBool,
 }
 
 impl Drop for Server {
@@ -43,7 +43,7 @@ impl Drop for Server {
 impl std::fmt::Display for Server {
     // noinspection RsUnreachableCode
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "server {self:p}",)
+        write!(f, "server {self:p}", )
     }
 }
 
@@ -59,12 +59,30 @@ impl Server {
         params: Option<Parameters>,
     ) -> Result<Arc<Self>, RDFStoreError> {
         if let Some(params) = params {
+            #[cfg(feature = "rdfox-7-0")]
+            {
+                let mut number_of_data_stores_in_server: usize = 0;
+                database_call!(
+                    "Starting a local RDFFox server",
+                    CServer_startLocalServer(params.inner.cast_const(), &mut number_of_data_stores_in_server)
+                )?;
+            }
+            #[cfg(not(feature = "rdfox-7-0"))]
             database_call!(
                 "Starting a local RDFFox server",
                 CServer_startLocalServer(params.inner.cast_const())
             )?;
         } else {
             let params = Parameters::empty()?;
+            #[cfg(feature = "rdfox-7-0")]
+            {
+                let mut number_of_data_stores_in_server = 0usize;
+                database_call!(
+                    "Starting a local RDFFox server with default parameters",
+                    CServer_startLocalServer(params.inner.cast_const(), &mut number_of_data_stores_in_server)
+                )?;
+            }
+            #[cfg(not(feature = "rdfox-7-0"))]
             database_call!(
                 "Starting a local RDFFox server with default parameters",
                 CServer_startLocalServer(params.inner.cast_const())
@@ -72,7 +90,7 @@ impl Server {
         };
         let server = Server {
             default_role_creds: role_creds,
-            running:            AtomicBool::new(true),
+            running: AtomicBool::new(true),
         };
 
         if server.get_number_of_local_server_roles()? == 0 {
@@ -135,7 +153,7 @@ impl Server {
                 target: LOG_TARGET_DATABASE,
                 "Could not establish connection to {self}"
             );
-            return Err(CouldNotConnectToServer)
+            return Err(CouldNotConnectToServer);
         }
         Ok(Arc::new(ServerConnection::new(
             role_creds,

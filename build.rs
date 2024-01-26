@@ -141,7 +141,12 @@ lazy_static! {
     static ref RDFOX_VERSION_EXPECTED: &'static str =
         option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("6.3b");
 }
-#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3a", feature = "rdfox-6-3b")))]
+#[cfg(feature = "rdfox-7-0")]
+lazy_static! {
+    static ref RDFOX_VERSION_EXPECTED: &'static str =
+        option_env!("RDFOX_VERSION_EXPECTED").unwrap_or("7.0");
+}
+#[cfg(not(any(feature = "rdfox-6-2", feature = "rdfox-6-3a", feature = "rdfox-6-3b", feature = "rdfox-7-0")))]
 compile_error!("You have to at least specify one of the rdfox-X-Y version number features");
 
 fn rdfox_download_url() -> String {
@@ -177,7 +182,7 @@ fn rdfox_lib_dir() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-    .into()
+        .into()
 }
 
 fn rdfox_header_dir() -> PathBuf {
@@ -186,17 +191,17 @@ fn rdfox_header_dir() -> PathBuf {
         env::var("OUT_DIR").unwrap(),
         rdfox_archive_name()
     )
-    .into()
+        .into()
 }
 
 fn download_rdfox() -> Result<PathBuf, curl::Error> {
     println!("cargo:rerun-if-env-changed=RDFOX_DOWNLOAD_HOST");
     println!("cargo:rerun-if-env-changed=RDFOX_VERSION_EXPECTED");
 
-    println!(
-        "cargo:warning=\"TARGET: {}\"",
-        env::var("TARGET").ok().unwrap_or("not set".to_string())
-    );
+    // println!(
+    //     "cargo:warning=\"TARGET: {}\"",
+    //     env::var("TARGET").ok().unwrap_or("not set".to_string())
+    // );
 
     let mut curl = curl::easy::Easy::new();
     let url = rdfox_download_url();
@@ -209,11 +214,11 @@ fn download_rdfox() -> Result<PathBuf, curl::Error> {
             file_name.to_str().unwrap()
         )
     }) {
-        println!(
-            "cargo:warning=\"RDFox has already been downloaded: {}\"",
-            file_name.to_str().unwrap()
-        );
-        return Ok(file_name)
+        // println!(
+        //     "cargo:warning=\"RDFox has already been downloaded: {}\"",
+        //     file_name.to_str().unwrap()
+        // );
+        return Ok(file_name);
     }
 
     curl.url(url.as_str())?;
@@ -285,10 +290,13 @@ fn unzip_rdfox(zip_file: PathBuf, archive_name: String) -> PathBuf {
 }
 
 fn set_clang_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, PathBuf)> {
+    if path.is_none() {
+        return None;
+    }
     path.as_ref()?;
     let path = PathBuf::from(path.unwrap().into());
     if !path.exists() {
-        return None
+        return None;
     }
     let path = std::fs::canonicalize(path).unwrap();
 
@@ -306,10 +314,13 @@ fn set_clang_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, PathBuf)
 }
 
 fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, PathBuf)> {
+    if path.is_none() {
+        return None;
+    }
     path.as_ref()?;
     let path = PathBuf::from(path.unwrap().into());
     if !path.exists() {
-        return None
+        return None;
     }
     let path = std::fs::canonicalize(path).unwrap();
 
@@ -327,17 +338,17 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, Pa
 }
 
 fn add_clang_path() {
-    let (_, clang_path) = set_clang_path(option_env!("LIBCLANG_PATH"))
+    let (clang_path, _clang_bin) = set_clang_path(option_env!("LIBCLANG_PATH"))
+        .or_else(|| set_clang_path(option_env!("HOMEBREW_PREFIX")))
         .or_else(|| set_clang_path(Some("/opt/homebrew")))
         .unwrap_or_else(|| panic!("Could not find the clang path"));
 
     let clang_path = clang_path.to_str().unwrap();
 
-    println!("cargo:warning=clang path is {}", clang_path);
     println!("cargo:rustc-env=LIBCLANG_PATH={:}", clang_path);
-    println!("cargo:rustc-link-search=native={:}", clang_path);
+    println!("cargo:rustc-link-search=native={:}/lib", clang_path);
     println!(
-        "cargo:rustc-link-search=native={:}/c++",
+        "cargo:rustc-link-search=native={:}/lib/c++",
         clang_path
     );
 }
@@ -345,9 +356,8 @@ fn add_clang_path() {
 fn add_llvm_path() {
     let (_, llvm_config_bin) = set_llvm_config_path(option_env!("LLVM_CONFIG_PATH"))
         .or_else(|| set_llvm_config_path(option_env!("LLVM_PATH")))
-        .or_else(|| set_llvm_config_path(Some("/opt/homebrew/bin")))
-        .or_else(|| set_llvm_config_path(Some("/usr/local/opt/llvm")))
         .or_else(|| set_llvm_config_path(check_llvm_via_brew()))
+        .or_else(|| set_llvm_config_path(Some("/usr/local/opt/llvm")))
         .or_else(|| set_llvm_config_path(Some("/usr/bin")))
         .unwrap_or_else(|| panic!("Could not find the LLVM path"));
 
@@ -369,18 +379,89 @@ fn add_llvm_path() {
         String::from_utf8(llvm_config_path).expect("`llvm-config --prefix` output must be UTF-8");
     let llvm_config_path = llvm_config_path.trim();
 
-    println!("cargo:warning=llvm config path is {llvm_config_path}");
     println!("cargo:rustc-env=LLVM_CONFIG_PATH={llvm_config_path}");
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
+fn check_homebrew_prefix() -> Option<PathBuf> {
+    if let Some(path) = option_env!("HOMEBREW_PREFIX") {
+        if let Ok(path) = PathBuf::from(path).canonicalize() {
+            return Some(path);
+        }
+    }
+    if let Ok(path) = PathBuf::from("/opt/homebrew").canonicalize() {
+        return Some(path);
+    }
+    if let Ok(output) = Command::new("brew").args(["--prefix"]).output() {
+        let homebrew_prefix =
+            String::from_utf8(output.stdout).expect("`brew --prefix` output must be UTF-8");
+        if let Ok(path) = PathBuf::try_from(homebrew_prefix) {
+            return Some(path);
+        }
+    }
+    None
+}
+
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 fn check_llvm_via_brew() -> Option<String> {
+    if let Some(homebrew_prefix) = check_homebrew_prefix() {
+        if homebrew_prefix.join("opt/llvm").exists() {
+            return Some(homebrew_prefix.join("opt/llvm").to_str().unwrap().to_owned());
+        }
+    }
     if let Ok(output) = Command::new("brew").args(["--prefix", "llvm"]).output() {
         let llvm_path =
             String::from_utf8(output.stdout).expect("`brew --prefix llvm` output must be UTF-8");
         Some(llvm_path)
     } else {
         None
+    }
+}
+
+#[cfg(not(feature = "rdfox-dylib"))]
+fn check_lib_iconv() -> Option<String> {
+    if let Some(homebrew_path) = check_homebrew_prefix() {
+        if let Ok(path) = homebrew_path.join("opt/libiconv/lib/").canonicalize() {
+            if let Some(path_str) = path.to_str() {
+                println!(
+                    "cargo:rustc-link-lib=static:+whole-archive,-bundle,+verbatim={path_str}/libiconv.a"
+                );
+                println!("cargo:rustc-link-search=native={path_str}");
+                return Some(path_str.to_owned());
+            }
+            println!("cargo:warning=libiconv path is not valid: {:?}", path);
+        }
+    }
+    println!("cargo:warning=libiconv not found");
+    None
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+fn check_llvm_via_brew() -> Option<String> { None }
+
+#[cfg(not(feature = "rdfox-dylib"))]
+fn check_cpp() {
+    if let Some(homebrew_path) = check_homebrew_prefix() {
+        if let Ok(path) = homebrew_path.join("opt/llvm/c++/libc++.a").canonicalize() {
+            if let Some(path_str) = path.to_str() {
+                println!(
+                    "cargo:rustc-link-lib=static:+whole-archive,-bundle,+verbatim={path_str}"
+                );
+            } else {
+                println!("cargo:warning=libc++ path is not valid: {:?}", path);
+            }
+        }
+        if let Ok(path) = homebrew_path.join("opt/llvm/c++/libc++abi.a").canonicalize() {
+            if let Some(path_str) = path.to_str() {
+                println!(
+                    "cargo:rustc-link-lib=static:+whole-archive,-bundle,+verbatim={path_str}"
+                );
+            } else {
+                println!("cargo:warning=libc++abi path is not valid: {:?}", path);
+            }
+        }
+    } else {
+        println!("cargo:warning=homebrew not found");
     }
 }
 
@@ -438,13 +519,14 @@ fn main() {
     #[cfg(not(feature = "rdfox-dylib"))]
     {
         println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=RDFox-static");
-        println!(
-            "cargo:rustc-link-lib=static:+whole-archive,-bundle,+verbatim=/usr/local/Cellar/\
-             libiconv/1.17/lib/libiconv.a"
-        );
-        println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=c++");
-        println!("cargo:rustc-link-lib=static:+whole-archive,-bundle=c++abi");
-        println!("cargo:rustc-link-search=native:/usr/local/Cellar/libiconv/1.17/lib");
+        check_cpp();
+        check_lib_iconv();
+    }
+
+    if let Ok(_fmt_config) = PathBuf::from(RUSTFMT_CONFIG).canonicalize() {
+        // println!("cargo:warning=Found rustfmt configuration file: {}", _fmt_config.to_str().unwrap());
+    } else {
+        println!("cargo:warning=Could not find rustfmt configuration file: {}", RUSTFMT_CONFIG);
     }
 
     let mut codegen_config = CodegenConfig::all();
@@ -468,8 +550,9 @@ fn main() {
             non_exhaustive: false,
         })
         .translate_enum_integer_types(true)
-        // .clang_arg(r"-xc++")
-        // .clang_arg(r"-std=c++20")
+        .clang_arg(r"-xc++")
+        .clang_arg(r"-std=c++14")
+        .clang_arg(r"-static-libstdc++")
         .clang_arg(format!("-I{}", rdfox_header_dir().to_str().unwrap()))
         .clang_arg("-v")
         // .clang_arg(r"-Wl,--whole-archive RDFox-static -Wl,--no-whole-archive")

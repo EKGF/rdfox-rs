@@ -4,6 +4,7 @@
 extern crate alloc;
 
 use {
+    alloc::ffi::CString,
     crate::{
         database_call,
         rdfox_api::{
@@ -14,7 +15,6 @@ use {
             CParameters_setString,
         },
     },
-    alloc::ffi::CString,
     rdf_store_rs::RDFStoreError,
     std::{
         ffi::CStr,
@@ -153,6 +153,13 @@ impl Parameters {
     }
 
     pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
+        #[cfg(feature = "rdfox-7-0")]
+        match mode {
+            PersistenceMode::File => self.set_string("persistence", "file")?,
+            PersistenceMode::FileSequence => self.set_string("persistence", "file-sequence")?,
+            PersistenceMode::Off => self.set_string("persistence", "off")?,
+        };
+        #[cfg(not(feature = "rdfox-7-0"))]
         match mode {
             PersistenceMode::File => self.set_string("persist-ds", "file")?,
             PersistenceMode::FileSequence => self.set_string("persist-ds", "file-sequence")?,
@@ -161,6 +168,7 @@ impl Parameters {
         Ok(self)
     }
 
+    #[cfg(not(feature = "rdfox-7-0"))]
     pub fn persist_roles(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
         self.set_string("persist-roles", &mode.to_string())?;
         Ok(self)
@@ -197,10 +205,10 @@ impl Parameters {
     pub fn set_license(self, database_dir: Option<&Path>) -> Result<Self, RDFStoreError> {
         match super::license::find_license(database_dir)? {
             (Some(license_file_name), None) => {
-                return self.license_file(license_file_name.as_path())
-            },
+                return self.license_file(license_file_name.as_path());
+            }
             (None, Some(license_content)) => return self.license_content(license_content.as_str()),
-            _ => {},
+            _ => {}
         };
         Ok(self)
     }
