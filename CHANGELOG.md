@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.12](https://github.com/EKGF/rdfox-rs/compare/0.1.11..0.1.12) - 2024-01-26
+#### Features
+- upgraded to RDFOx 7.0 (still supporting 6.3b as well) - ([9b6fdd2](https://github.com/EKGF/rdfox-rs/commit/9b6fdd2dd881a886fd2dd0f14ed7b0d42bfed421)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.11](https://github.com/EKGF/rdfox-rs/compare/0.1.10..0.1.11) - 2024-01-23
 
 - - -
