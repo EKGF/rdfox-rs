@@ -339,9 +339,9 @@ fn set_llvm_config_path<S: Into<String>>(path: Option<S>) -> Option<(PathBuf, Pa
 
 fn add_clang_path() {
     let (clang_path, _clang_bin) = set_clang_path(option_env!("LIBCLANG_PATH"))
-        .or_else(|| set_clang_path(option_env!("HOMEBREW_PREFIX")))
-        .or_else(|| set_clang_path(Some("/opt/homebrew")))
-        .unwrap_or_else(|| panic!("Could not find the clang path"));
+        .or_else(|| set_clang_path(check_llvm_via_brew()))
+        .or_else(|| set_clang_path(Some("/usr/bin")))
+        .unwrap_or_else(|| panic!("PANIC: Could not find the clang path"));
 
     let clang_path = clang_path.to_str().unwrap();
 
