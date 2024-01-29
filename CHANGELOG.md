@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.15](https://github.com/EKGF/rdfox-rs/compare/0.1.14..0.1.15) - 2024-01-29
+#### Miscellaneous Chores
+- bumped version ekg-* crates - ([a820446](https://github.com/EKGF/rdfox-rs/commit/a820446a3194837b0c80e6fd01ba8f36811791f9)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.14](https://github.com/EKGF/rdfox-rs/compare/0.1.13..0.1.14) - 2024-01-29
 #### Refactoring
 - replaced dependency rdf-store-rs with ekg-namespace and ekg-error - ([384e40c](https://github.com/EKGF/rdfox-rs/commit/384e40ceffb8bd0a69d341e045b443dafa92077b)) - [@jgeluk](https://github.com/jgeluk)
