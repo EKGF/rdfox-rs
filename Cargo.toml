@@ -45,8 +45,8 @@ iri-string = { version = "0.7.0", features = ["serde", "alloc"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 owo-colors = { version = "4.0.0", features = ["supports-colors"] }
-ekg-error = { version = "0.0.8", features = ["rdfox", "fs"] }
-ekg-namespace = { version = "0.0.8" }
+ekg-error = { version = "0.0.9", features = ["rdfox", "fs"] }
+ekg-namespace = { version = "0.0.9" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.rdftk_iri]
 version = "0.1.9"
