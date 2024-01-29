@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.1.16](https://github.com/EKGF/rdfox-rs/compare/0.1.15..0.1.16) - 2024-01-29
+#### Miscellaneous Chores
+- bumped version ekg-* crates - ([362f491](https://github.com/EKGF/rdfox-rs/commit/362f491d82362af59262166b04091517ccb47528)) - [@jgeluk](https://github.com/jgeluk)
+
+- - -
+
 ## [0.1.15](https://github.com/EKGF/rdfox-rs/compare/0.1.14..0.1.15) - 2024-01-29
 #### Miscellaneous Chores
 - bumped version ekg-* crates - ([a820446](https://github.com/EKGF/rdfox-rs/commit/a820446a3194837b0c80e6fd01ba8f36811791f9)) - [@jgeluk](https://github.com/jgeluk)
