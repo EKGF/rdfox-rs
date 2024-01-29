@@ -3,8 +3,8 @@
 
 use {
     crate::{DataStoreConnection, FactDomain, Namespaces, Parameters, Statement, Transaction},
+    ekg_namespace::{consts::LOG_TARGET_DATABASE, Graph},
     indoc::formatdoc,
-    rdf_store_rs::{consts::LOG_TARGET_DATABASE, Graph, RDFStoreError},
     std::{
         fmt::{Display, Formatter},
         path::Path,
@@ -19,9 +19,9 @@ use {
 #[derive(Debug)]
 pub struct GraphConnection {
     pub data_store_connection: Arc<DataStoreConnection>,
-    started_at:                Instant,
-    pub graph:                 Graph,
-    pub ontology_graph:        Option<Graph>,
+    started_at: Instant,
+    pub graph: Graph,
+    pub ontology_graph: Option<Graph>,
 }
 
 impl Display for GraphConnection {
@@ -68,19 +68,19 @@ impl GraphConnection {
     ) -> Arc<Self> {
         Arc::new(Self {
             data_store_connection: data_store_connection.clone(),
-            started_at:            self.started_at,
-            graph:                 self.graph.clone(),
-            ontology_graph:        self.ontology_graph.clone(),
+            started_at: self.started_at,
+            graph: self.graph.clone(),
+            ontology_graph: self.ontology_graph.clone(),
         })
     }
 
-    pub fn import_data_from_file<P>(&self, file: P) -> Result<(), RDFStoreError>
-    where P: AsRef<Path> {
+    pub fn import_data_from_file<P>(&self, file: P) -> Result<(), ekg_error::Error>
+        where P: AsRef<Path> {
         self.data_store_connection
             .import_data_from_file(file, &self.graph)
     }
 
-    pub fn import_axioms(&self) -> Result<(), RDFStoreError> {
+    pub fn import_axioms(&self) -> Result<(), ekg_error::Error> {
         assert!(
             self.ontology_graph.is_some(),
             "no ontology graph specified"
@@ -98,7 +98,7 @@ impl GraphConnection {
     /// TODO: Support '*.gz' files
     /// TODO: Parallelize appropriately in sync with number of threads that
     /// RDFox uses
-    pub fn import_rdf_from_directory(&self, root: &Path) -> Result<u16, RDFStoreError> {
+    pub fn import_rdf_from_directory(&self, root: &Path) -> Result<u16, ekg_error::Error> {
         self.data_store_connection
             .import_rdf_from_directory(root, &self.graph)
     }
@@ -110,7 +110,7 @@ impl GraphConnection {
         &self,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<usize, RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         Statement::new(
             &Namespaces::empty()?,
             formatdoc!(
@@ -123,17 +123,17 @@ impl GraphConnection {
             "##,
                 self.graph.as_display_iri()
             )
-            .into(),
+                .into(),
         )?
-        .cursor(
-            &self.data_store_connection,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-        )?
-        .count(tx)
+            .cursor(
+                &self.data_store_connection,
+                &Parameters::empty()?.fact_domain(fact_domain)?,
+            )?
+            .count(tx)
     }
 
     // pub fn get_subjects_count(&self, fact_domain: FactDomain) ->
-    // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
+    // Result<std::os::raw::c_ulong, ekg_error::Error> {     Statement::query(
     //         &Namespaces::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?subject
@@ -154,7 +154,7 @@ impl GraphConnection {
     // }
     //
     // pub fn get_predicates_count(&self, fact_domain: FactDomain) ->
-    // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
+    // Result<std::os::raw::c_ulong, ekg_error::Error> {     Statement::query(
     //         &Namespaces::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?predicate
@@ -175,7 +175,7 @@ impl GraphConnection {
     // }
     //
     // pub fn get_ontologies_count(&self, fact_domain: FactDomain) ->
-    // Result<std::os::raw::c_ulong, RDFStoreError> {     Statement::query(
+    // Result<std::os::raw::c_ulong, ekg_error::Error> {     Statement::query(
     //         &Namespaces::default()?,
     //         indoc! {r##"
     //             SELECT DISTINCT ?ontology

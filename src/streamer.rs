@@ -4,18 +4,18 @@
 use {
     crate::{
         database_call,
+        DataStoreConnection,
+        Parameters,
         rdfox_api::{
             CDataStoreConnection,
             CDataStoreConnection_evaluateStatement,
             COutputStream,
             CStatementResult,
         },
-        DataStoreConnection,
-        Parameters,
         Statement,
     },
+    ekg_namespace::{Namespace, ptr_to_cstr},
     mime::Mime,
-    rdf_store_rs::{ptr_to_cstr, Namespace, RDFStoreError},
     std::{
         ffi::{c_void, CString},
         fmt::Debug,
@@ -44,13 +44,13 @@ impl<'a, W: 'a + Write> Drop for RefToSelf<'a, W> {
 /// to handle the various callbacks from the underlying C-API to RDFox.
 #[derive(Debug)]
 pub struct Streamer<'a, W: 'a + Write> {
-    pub connection:   Arc<DataStoreConnection>,
-    pub writer:       W,
-    pub statement:    &'a Statement,
-    pub mime_type:    &'static Mime,
-    pub base_iri:     Namespace,
-    pub instant:      std::time::Instant,
-    self_p:           String,
+    pub connection: Arc<DataStoreConnection>,
+    pub writer: W,
+    pub statement: &'a Statement,
+    pub mime_type: &'static Mime,
+    pub base_iri: Namespace,
+    pub instant: std::time::Instant,
+    self_p: String,
     remaining_buffer: std::cell::RefCell<Option<String>>,
 }
 
@@ -67,7 +67,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
         statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Namespace,
-    ) -> Result<Self, RDFStoreError> {
+    ) -> Result<Self, ekg_error::Error> {
         let streamer = Self {
             connection: connection.clone(),
             writer,
@@ -83,7 +83,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
 
     /// Evaluate/execute the statement and stream all content to the given
     /// writer, then return the streamer (i.e. self).
-    fn evaluate(mut self) -> Result<Self, RDFStoreError> {
+    fn evaluate(mut self) -> Result<Self, ekg_error::Error> {
         let statement_text = self.statement.as_c_string()?;
         let statement_text_len = statement_text.as_bytes().len();
         let parameters = Parameters::empty()?.fact_domain(crate::FactDomain::ALL)?;
@@ -170,7 +170,7 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                             .as_bytes(),
                         data_c_str.to_bytes_with_nul(),
                     ]
-                    .concat()
+                        .concat()
                 } else {
                     data_c_str.to_bytes_with_nul().to_vec()
                 };
@@ -196,16 +196,16 @@ impl<'a, W: 'a + Write> Streamer<'a, W> {
                             streamer.remaining_buffer.replace(None);
                         }
                         true
-                    },
+                    }
                     Err(err) => {
                         panic!("{streamer:p}: could not write: {err:?}")
-                    },
+                    }
                 }
-            },
+            }
             Err(error) => {
                 tracing::error!("{streamer:p}: could not write: {error:?}");
                 false
-            },
+            }
         };
         tracing::trace!("{streamer:p}: write_function result={result}");
         result

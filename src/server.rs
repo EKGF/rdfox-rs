@@ -16,10 +16,7 @@ use {
         RoleCreds,
         server_connection::ServerConnection,
     },
-    rdf_store_rs::{
-        consts::LOG_TARGET_DATABASE,
-        RDFStoreError::{self, CouldNotConnectToServer},
-    },
+    ekg_namespace::consts::LOG_TARGET_DATABASE,
     std::{
         ffi::CString,
         ptr,
@@ -50,14 +47,14 @@ impl std::fmt::Display for Server {
 impl Server {
     pub fn is_running(&self) -> bool { self.running.load(Ordering::Relaxed) }
 
-    pub fn start(role_creds: RoleCreds) -> Result<Arc<Self>, RDFStoreError> {
+    pub fn start(role_creds: RoleCreds) -> Result<Arc<Self>, ekg_error::Error> {
         Self::start_with_parameters(role_creds, None)
     }
 
     pub fn start_with_parameters(
         role_creds: RoleCreds,
         params: Option<Parameters>,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         if let Some(params) = params {
             #[cfg(feature = "rdfox-7-0")]
             {
@@ -104,7 +101,7 @@ impl Server {
         Ok(Arc::new(server))
     }
 
-    pub fn create_role(&self, role_creds: &RoleCreds) -> Result<(), RDFStoreError> {
+    pub fn create_role(&self, role_creds: &RoleCreds) -> Result<(), ekg_error::Error> {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         let msg = format!(
@@ -117,7 +114,7 @@ impl Server {
         )
     }
 
-    pub fn get_number_of_local_server_roles(&self) -> Result<u16, RDFStoreError> {
+    pub fn get_number_of_local_server_roles(&self) -> Result<u16, ekg_error::Error> {
         let mut number_of_roles = 0_usize;
         database_call!(
             "Getting the number of local server roles",
@@ -128,7 +125,7 @@ impl Server {
 
     pub fn connection_with_default_role(
         self: &Arc<Self>,
-    ) -> Result<Arc<ServerConnection>, RDFStoreError> {
+    ) -> Result<Arc<ServerConnection>, ekg_error::Error> {
         let role_creds = &self.default_role_creds;
         self.connection(role_creds.clone())
     }
@@ -136,7 +133,7 @@ impl Server {
     pub fn connection(
         self: &Arc<Self>,
         role_creds: RoleCreds,
-    ) -> Result<Arc<ServerConnection>, RDFStoreError> {
+    ) -> Result<Arc<ServerConnection>, ekg_error::Error> {
         let c_role_name = CString::new(role_creds.role_name.as_str()).unwrap();
         let c_password = CString::new(role_creds.password.as_str()).unwrap();
         let mut server_connection_ptr: *mut CServerConnection = ptr::null_mut();
@@ -153,7 +150,7 @@ impl Server {
                 target: LOG_TARGET_DATABASE,
                 "Could not establish connection to {self}"
             );
-            return Err(CouldNotConnectToServer);
+            return Err(ekg_error::Error::CouldNotConnectToServer);
         }
         Ok(Arc::new(ServerConnection::new(
             role_creds,

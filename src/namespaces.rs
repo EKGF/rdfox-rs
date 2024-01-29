@@ -6,20 +6,19 @@ use {
         database_call,
         rdfox_api::{
             CPrefixes,
-            CPrefixes_DeclareResult as NamespaceDeclareResult,
             CPrefixes_declarePrefix,
+            CPrefixes_DeclareResult as NamespaceDeclareResult,
             CPrefixes_destroy,
             CPrefixes_newDefaultPrefixes,
         },
     },
-    iref::iri::Iri,
-    rdf_store_rs::{
-        consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
+    ekg_namespace::{
         Class,
+        consts::{LOG_TARGET_DATABASE, PREFIX_OWL, PREFIX_RDF, PREFIX_RDFS, PREFIX_XSD},
         Namespace,
         Predicate,
-        RDFStoreError,
     },
+    iref::iri::Iri,
     std::{
         collections::HashMap,
         ffi::CString,
@@ -32,7 +31,7 @@ use {
 #[derive(Debug)]
 pub struct Namespaces {
     inner: *mut CPrefixes,
-    map:   Mutex<HashMap<String, Namespace>>,
+    map: Mutex<HashMap<String, Namespace>>,
 }
 
 impl PartialEq for Namespaces {
@@ -69,10 +68,10 @@ impl std::fmt::Display for Namespaces {
 impl Namespaces {
     pub fn builder() -> NamespacesBuilder { NamespacesBuilder::default() }
 
-    pub fn empty() -> Result<Arc<Self>, RDFStoreError> {
+    pub fn empty() -> Result<Arc<Self>, ekg_error::Error> {
         let mut prefixes = Self {
             inner: ptr::null_mut(),
-            map:   Mutex::new(HashMap::new()),
+            map: Mutex::new(HashMap::new()),
         };
         database_call!(
             "allocating namespaces",
@@ -82,7 +81,7 @@ impl Namespaces {
     }
 
     /// Return the default namespaces: `RDF`, `RDFS`, `OWL` and `XSD`
-    pub fn default_namespaces() -> Result<Arc<Self>, RDFStoreError> {
+    pub fn default_namespaces() -> Result<Arc<Self>, ekg_error::Error> {
         Self::empty()?
             .add_namespace(PREFIX_RDF.deref())?
             .add_namespace(PREFIX_RDFS.deref())?
@@ -93,7 +92,7 @@ impl Namespaces {
     pub fn declare_namespace(
         self: &Arc<Self>,
         namespace: &Namespace,
-    ) -> Result<NamespaceDeclareResult, RDFStoreError> {
+    ) -> Result<NamespaceDeclareResult, ekg_error::Error> {
         tracing::trace!("Register namespace {namespace}");
         if let Some(_already_registered) = self
             .map
@@ -101,7 +100,7 @@ impl Namespaces {
             .unwrap()
             .insert(namespace.name.clone(), namespace.clone())
         {
-            return Ok(NamespaceDeclareResult::PREFIXES_NO_CHANGE)
+            return Ok(NamespaceDeclareResult::PREFIXES_NO_CHANGE);
         }
         let c_name = CString::new(namespace.name.as_str()).unwrap();
         let c_iri = CString::new(namespace.iri.as_str()).unwrap();
@@ -128,8 +127,8 @@ impl Namespaces {
                     namespace.name.as_str(),
                     namespace.iri.as_str()
                 );
-                Err(RDFStoreError::InvalidPrefixName)
-            },
+                Err(ekg_error::Error::InvalidPrefixName)
+            }
             NamespaceDeclareResult::PREFIXES_DECLARED_NEW => Ok(result),
             NamespaceDeclareResult::PREFIXES_NO_CHANGE => {
                 tracing::trace!(
@@ -137,7 +136,7 @@ impl Namespaces {
                     "Registered {namespace} twice"
                 );
                 Ok(result)
-            },
+            }
             _ => {
                 tracing::error!(
                     target: LOG_TARGET_DATABASE,
@@ -145,7 +144,7 @@ impl Namespaces {
                     result
                 );
                 Ok(result)
-            },
+            }
         }
     }
 
@@ -153,26 +152,26 @@ impl Namespaces {
         self: &Arc<Self>,
         name: &str,
         iri: &iref::iri::Iri,
-    ) -> Result<NamespaceDeclareResult, RDFStoreError> {
-        self.declare_namespace(&Namespace::declare(name, iri))
+    ) -> Result<NamespaceDeclareResult, ekg_error::Error> {
+        self.declare_namespace(&Namespace::declare_iref_iri(name, iri)?)
     }
 
     pub fn add_namespace(
         self: &Arc<Self>,
         namespace: &Namespace,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         let _ = self.declare_namespace(namespace);
         Ok(self.clone())
     }
 
-    pub fn add_class(self: &Arc<Self>, clazz: &Class) -> Result<Arc<Self>, RDFStoreError> {
+    pub fn add_class(self: &Arc<Self>, clazz: &Class) -> Result<Arc<Self>, ekg_error::Error> {
         self.add_namespace(&clazz.namespace)
     }
 
     pub fn add_predicate(
         self: &Arc<Self>,
         predicate: &Predicate,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         self.add_namespace(predicate.namespace)
     }
 
@@ -199,9 +198,9 @@ pub struct NamespacesBuilder {
 impl<'a> NamespacesBuilder {
     pub fn default_builder() -> Self { NamespacesBuilder { namespaces: Vec::new() } }
 
-    pub fn declare_with_name_and_iri(mut self, name: &str, iri: &Iri) -> Self {
-        self.namespaces.push(Namespace::declare(name, iri));
-        self
+    pub fn declare_with_name_and_iri(mut self, name: &str, iri: &Iri) -> Result<Self, ekg_error::Error> {
+        self.namespaces.push(Namespace::declare_iref_iri(name, iri)?);
+        Ok(self)
     }
 
     pub fn declare(mut self, namespace: Namespace) -> Self {
@@ -209,7 +208,7 @@ impl<'a> NamespacesBuilder {
         self
     }
 
-    pub fn build(self) -> Result<Arc<Namespaces>, RDFStoreError> {
+    pub fn build(self) -> Result<Arc<Namespaces>, ekg_error::Error> {
         let to_build = Namespaces::empty()?;
         for namespace in self.namespaces {
             to_build.declare_namespace(&namespace)?;

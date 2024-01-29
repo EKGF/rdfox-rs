@@ -2,20 +2,17 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{Cursor, DataStoreConnection, Namespaces, Parameters},
     core::fmt::{Display, Formatter},
+    crate::{Cursor, DataStoreConnection, Namespaces, Parameters},
+    ekg_namespace::consts::{DEFAULT_GRAPH_RDFOX, LOG_TARGET_SPARQL},
     indoc::formatdoc,
-    rdf_store_rs::{
-        consts::{DEFAULT_GRAPH_RDFOX, LOG_TARGET_SPARQL},
-        RDFStoreError,
-    },
     std::{borrow::Cow, ffi::CString, ops::Deref, sync::Arc},
 };
 
 /// SPARQL Statement
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Statement {
-    pub prefixes:    Arc<Namespaces>,
+    pub prefixes: Arc<Namespaces>,
     pub(crate) text: String,
 }
 
@@ -30,10 +27,10 @@ impl Display for Statement {
 }
 
 impl Statement {
-    pub fn new(prefixes: &Arc<Namespaces>, statement: Cow<str>) -> Result<Self, RDFStoreError> {
+    pub fn new(prefixes: &Arc<Namespaces>, statement: Cow<str>) -> Result<Self, ekg_error::Error> {
         let s = Self {
             prefixes: prefixes.clone(),
-            text:     format!("{}\n{}", &prefixes.to_string(), statement.trim()),
+            text: format!("{}\n{}", &prefixes.to_string(), statement.trim()),
         };
         tracing::trace!(target: LOG_TARGET_SPARQL, "{:}", s);
         Ok(s)
@@ -43,11 +40,11 @@ impl Statement {
         &self,
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
-    ) -> Result<Cursor, RDFStoreError> {
+    ) -> Result<Cursor, ekg_error::Error> {
         Cursor::create(connection, parameters, self)
     }
 
-    pub(crate) fn as_c_string(&self) -> Result<CString, RDFStoreError> {
+    pub(crate) fn as_c_string(&self) -> Result<CString, ekg_error::Error> {
         Ok(CString::new(self.text.as_str())?)
     }
 
@@ -57,7 +54,7 @@ impl Statement {
 
     /// Return a Statement that can be used to export all data in
     /// `application/nquads` format
-    pub fn nquads_query(prefixes: &Arc<Namespaces>) -> Result<Statement, RDFStoreError> {
+    pub fn nquads_query(prefixes: &Arc<Namespaces>) -> Result<Statement, ekg_error::Error> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let statement = Statement::new(
             prefixes,
@@ -74,7 +71,7 @@ impl Statement {
                 }}
             "##
             )
-            .into(),
+                .into(),
         )?;
         Ok(statement)
     }
@@ -109,7 +106,7 @@ pub fn no_comments(string: &str) -> String {
                 line = result;
             } else {
                 writeln!(&mut output, "{result}").unwrap();
-                break
+                break;
             }
         }
     }
@@ -118,11 +115,9 @@ pub fn no_comments(string: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use {crate::statement::no_comments, indoc::formatdoc};
-
     #[test_log::test]
     fn test_no_comments() {
-        let sparql = formatdoc! {r##"
+        let sparql = indoc::formatdoc! {r##"
             PREFIX abc: <https://whatever.org#> # focus on this and the next line
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             SELECT DISTINCT ?thing
@@ -139,7 +134,7 @@ mod tests {
             }}
             "##
         };
-        let expected = formatdoc! {r##"
+        let expected = indoc::formatdoc! {r##"
             PREFIX abc: <https://whatever.org#>
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             SELECT DISTINCT ?thing
@@ -156,7 +151,7 @@ mod tests {
             }}
             "##
         };
-        let actual = no_comments(sparql.as_str());
+        let actual = crate::statement::no_comments(sparql.as_str());
         assert_eq!(actual.as_str(), expected.as_str());
     }
 }

@@ -4,8 +4,8 @@
 // extern crate libc;
 
 use {
-    crate::rdfox_api::{CException_getExceptionName, CException_what},
-    rdf_store_rs::RDFStoreError::{self},
+    crate::rdfox_api::{CException_getExceptionName, CException_what}
+    ,
     std::{
         ffi::CStr,
         fmt::{Display, Formatter},
@@ -17,16 +17,16 @@ use {
 pub use crate::rdfox_api::CException;
 
 impl CException {
-    pub fn handle<F>(action: &str, f: F) -> Result<(), RDFStoreError>
-    where F: FnOnce() -> *const CException + std::panic::UnwindSafe {
+    pub fn handle<F>(action: &str, f: F) -> Result<(), ekg_error::Error>
+        where F: FnOnce() -> *const CException + std::panic::UnwindSafe {
         unsafe {
             let result = catch_unwind(|| {
                 let c_exception = f();
                 if c_exception.is_null() {
                     Ok(())
                 } else {
-                    Err(RDFStoreError::Exception {
-                        action:  action.to_string(),
+                    Err(ekg_error::Error::Exception {
+                        action: action.to_string(),
                         message: format!("{:}", *c_exception).replace("RDFoxException: ", ""),
                     })
                 }
@@ -38,12 +38,12 @@ impl CException {
                         Err(err) => {
                             // panic!("{err:}")
                             Err(err)
-                        },
+                        }
                     }
-                },
+                }
                 Err(err) => {
                     panic!("RDFox panicked while {action}: {err:?}")
-                },
+                }
             }
         }
     }
@@ -63,7 +63,7 @@ impl Display for CException {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if let Ok(name) = self.name() {
             if let Ok(what) = self.what() {
-                return writeln!(f, "{:}: {:}", name, what)
+                return writeln!(f, "{:}: {:}", name, what);
             };
         };
         f.write_str("Could not show exception, unicode error")
@@ -81,7 +81,7 @@ macro_rules! database_call {
     ($action:expr, $function:expr) => {{
         // tracing::trace!("{} at line {}", stringify!($function), line!());
         tracing::trace!(
-            target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+            target: ekg_namespace::consts::LOG_TARGET_DATABASE,
             "{}",
             $action
         );

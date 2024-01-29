@@ -2,19 +2,19 @@
 //---------------------------------------------------------------
 
 use {
-    crate::{DataStore, DataStoreConnection, ServerConnection},
     ::r2d2::{ManageConnection, Pool},
-    rdf_store_rs::RDFStoreError,
+    crate::{DataStore, DataStoreConnection, ServerConnection},
     std::sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
-    },
+        atomic::{AtomicBool, Ordering},
+    }
+    ,
 };
 
 /// A pool-able connectable [`DataStore`]
 pub struct ConnectableDataStore {
-    data_store:                Arc<DataStore>,
-    server_connection:         Arc<ServerConnection>,
+    data_store: Arc<DataStore>,
+    server_connection: Arc<ServerConnection>,
     /// Indicates that we want to release all connections on return to the pool
     /// (used to shutdown gracefully)
     release_on_return_to_pool: AtomicBool,
@@ -29,14 +29,14 @@ impl ConnectableDataStore {
         release_on_return_to_pool: bool,
     ) -> Self {
         Self {
-            data_store:                data_store.clone(),
-            server_connection:         server_connection.clone(),
+            data_store: data_store.clone(),
+            server_connection: server_connection.clone(),
             release_on_return_to_pool: AtomicBool::new(release_on_return_to_pool),
         }
     }
 
     /// Build an `r2d2::Pool` for the given `DataStore` and `ServerConnection`
-    pub fn build_pool(self) -> Result<Pool<ConnectableDataStore>, RDFStoreError> {
+    pub fn build_pool(self) -> Result<Pool<ConnectableDataStore>, ekg_error::Error> {
         let cds = Pool::builder()
             .max_size(self.server_connection.get_number_of_threads()?)
             .build(self)?;
@@ -46,7 +46,7 @@ impl ConnectableDataStore {
 
 impl ManageConnection for ConnectableDataStore {
     type Connection = Arc<DataStoreConnection>;
-    type Error = RDFStoreError;
+    type Error = ekg_error::Error;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         self.server_connection

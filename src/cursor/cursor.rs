@@ -2,17 +2,18 @@
 //---------------------------------------------------------------
 
 use {
-    super::{CursorRow, OpenedCursor},
     crate::{
         database_call,
-        rdfox_api::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
         DataStoreConnection,
         Parameters,
+        rdfox_api::{CCursor, CCursor_destroy, CDataStoreConnection_createCursor},
         Statement,
         Transaction,
     },
-    rdf_store_rs::{consts::LOG_TARGET_DATABASE, RDFStoreError},
-    std::{ffi::CString, fmt::Debug, ptr, sync::Arc},
+    ekg_namespace::consts::LOG_TARGET_DATABASE,
+    std::{ffi::CString, fmt::Debug, ptr, sync::Arc}
+    ,
+    super::{CursorRow, OpenedCursor},
 };
 
 /// A Cursor handles a query result.
@@ -20,9 +21,9 @@ use {
 /// [RDFox documentation](https://docs.oxfordsemantic.tech/apis.html#cursors)
 #[derive(Debug)]
 pub struct Cursor {
-    pub inner:             *mut CCursor,
+    pub inner: *mut CCursor,
     pub(crate) connection: Arc<DataStoreConnection>,
-    statement:             Statement,
+    statement: Statement,
 }
 
 impl Drop for Cursor {
@@ -43,7 +44,7 @@ impl Cursor {
         connection: &Arc<DataStoreConnection>,
         parameters: &Parameters,
         statement: &Statement,
-    ) -> Result<Self, RDFStoreError> {
+    ) -> Result<Self, ekg_error::Error> {
         assert!(!connection.inner.is_null());
         let mut c_cursor: *mut CCursor = ptr::null_mut();
         let c_query = CString::new(statement.text.as_str()).unwrap();
@@ -64,9 +65,9 @@ impl Cursor {
             )
         )?;
         let cursor = Cursor {
-            inner:      c_cursor,
+            inner: c_cursor,
             connection: connection.clone(),
-            statement:  statement.clone(),
+            statement: statement.clone(),
         };
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
@@ -78,7 +79,7 @@ impl Cursor {
 
     pub fn sparql_string(&self) -> &str { self.statement.text.as_str() }
 
-    pub fn count(&mut self, tx: &Arc<Transaction>) -> Result<usize, RDFStoreError> {
+    pub fn count(&mut self, tx: &Arc<Transaction>) -> Result<usize, ekg_error::Error> {
         self.consume(tx, 1000000000, |_row| Ok(()))
     }
 
@@ -95,9 +96,9 @@ impl Cursor {
         max_row: usize,
         mut f: T,
     ) -> Result<usize, E>
-    where
-        T: FnMut(&CursorRow) -> Result<(), E>,
-        E: From<RDFStoreError> + Debug,
+        where
+            T: FnMut(&CursorRow) -> Result<(), E>,
+            E: From<ekg_error::Error> + Debug,
     {
         let sparql_str = self.statement.text.clone();
         let (mut opened_cursor, mut multiplicity) = OpenedCursor::new(self, tx.clone())?;
@@ -106,28 +107,28 @@ impl Cursor {
         while multiplicity > 0_usize {
             if multiplicity >= max_row {
                 return Err(
-                    RDFStoreError::MultiplicityExceededMaximumNumberOfRows {
+                    ekg_error::Error::MultiplicityExceededMaximumNumberOfRows {
                         maxrow: max_row,
                         multiplicity,
                         query: sparql_str,
                     }
-                    .into(),
-                )
+                        .into(),
+                );
             }
             rowid += 1;
             if rowid >= max_row {
-                return Err(RDFStoreError::ExceededMaximumNumberOfRows {
+                return Err(ekg_error::Error::ExceededMaximumNumberOfRows {
                     maxrow: max_row,
-                    query:  sparql_str,
+                    query: sparql_str,
                 }
-                .into())
+                    .into());
             }
             count += multiplicity;
             let row = CursorRow {
-                opened:       &opened_cursor,
+                opened: &opened_cursor,
                 multiplicity: &multiplicity,
-                count:        &count,
-                rowid:        &rowid,
+                count: &count,
+                rowid: &rowid,
             };
             if let Err(err) = f(&row) {
                 tracing::error!("Error while consuming row: {:?}", err);
@@ -138,14 +139,14 @@ impl Cursor {
         Ok(count)
     }
 
-    pub fn update_and_commit<T, U>(&mut self, maxrow: usize, f: T) -> Result<usize, RDFStoreError>
-    where T: FnMut(&CursorRow) -> Result<(), RDFStoreError> {
+    pub fn update_and_commit<T, U>(&mut self, maxrow: usize, f: T) -> Result<usize, ekg_error::Error>
+        where T: FnMut(&CursorRow) -> Result<(), ekg_error::Error> {
         let tx = Transaction::begin_read_write(&self.connection)?;
         self.update_and_commit_in_transaction(tx, maxrow, f)
     }
 
-    pub fn execute_and_rollback<T>(&mut self, maxrow: usize, f: T) -> Result<usize, RDFStoreError>
-    where T: FnMut(&CursorRow) -> Result<(), RDFStoreError> {
+    pub fn execute_and_rollback<T>(&mut self, maxrow: usize, f: T) -> Result<usize, ekg_error::Error>
+        where T: FnMut(&CursorRow) -> Result<(), ekg_error::Error> {
         let tx = Transaction::begin_read_only(&self.connection)?;
         self.execute_and_rollback_in_transaction(&tx, maxrow, f)
     }
@@ -155,9 +156,9 @@ impl Cursor {
         tx: &Arc<Transaction>,
         maxrow: usize,
         f: T,
-    ) -> Result<usize, RDFStoreError>
-    where
-        T: FnMut(&CursorRow) -> Result<(), RDFStoreError>,
+    ) -> Result<usize, ekg_error::Error>
+        where
+            T: FnMut(&CursorRow) -> Result<(), ekg_error::Error>,
     {
         tx.execute_and_rollback(|ref tx| self.consume(tx, maxrow, f))
     }
@@ -167,9 +168,9 @@ impl Cursor {
         tx: Arc<Transaction>,
         maxrow: usize,
         f: T,
-    ) -> Result<usize, RDFStoreError>
-    where
-        T: FnMut(&CursorRow) -> Result<(), RDFStoreError>,
+    ) -> Result<usize, ekg_error::Error>
+        where
+            T: FnMut(&CursorRow) -> Result<(), ekg_error::Error>,
     {
         tx.update_and_commit(|ref tx| self.consume(tx, maxrow, f))
     }

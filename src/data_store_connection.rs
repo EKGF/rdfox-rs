@@ -2,8 +2,13 @@
 //---------------------------------------------------------------
 
 use {
+    colored::Colorize,
     crate::{
         database_call,
+        DataStore,
+        FactDomain,
+        Namespaces,
+        Parameters,
         rdfox_api::{
             CDataStoreConnection,
             CDataStoreConnection_destroy,
@@ -15,22 +20,12 @@ use {
             CStatementResult,
             CUpdateType,
         },
-        DataStore,
-        FactDomain,
-        Namespaces,
-        Parameters,
         ServerConnection,
         Statement,
         Streamer,
         Transaction,
     },
-    colored::Colorize,
-    fancy_regex::Regex,
-    ignore::{types::TypesBuilder, WalkBuilder},
-    indoc::formatdoc,
-    iref::Iri,
-    mime::Mime,
-    rdf_store_rs::{
+    ekg_namespace::{
         consts::{
             DEFAULT_BASE_IRI,
             DEFAULT_GRAPH_RDFOX,
@@ -40,8 +35,12 @@ use {
         },
         Graph,
         Namespace,
-        RDFStoreError,
     },
+    fancy_regex::Regex,
+    ignore::{types::TypesBuilder, WalkBuilder},
+    indoc::formatdoc,
+    iref::Iri,
+    mime::Mime,
     std::{
         ffi::{CStr, CString},
         fmt::{Debug, Display, Formatter},
@@ -59,11 +58,11 @@ use {
 /// A connection to a given [`DataStore`].
 #[derive(Debug)]
 pub struct DataStoreConnection {
-    pub data_store:        Arc<DataStore>,
+    pub data_store: Arc<DataStore>,
     pub server_connection: Arc<ServerConnection>,
-    pub(crate) inner:      *mut CDataStoreConnection,
-    started_at:            Instant,
-    pub number:            usize,
+    pub(crate) inner: *mut CDataStoreConnection,
+    started_at: Instant,
+    pub number: usize,
 }
 
 unsafe impl Sync for DataStoreConnection {}
@@ -126,7 +125,7 @@ impl DataStoreConnection {
         COUNTER.fetch_add(1, Ordering::Relaxed)
     }
 
-    pub fn get_id(&self) -> Result<String, RDFStoreError> {
+    pub fn get_id(&self) -> Result<String, ekg_error::Error> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -140,7 +139,7 @@ impl DataStoreConnection {
         Ok(c_str.to_str().unwrap().into())
     }
 
-    pub fn get_unique_id(&self) -> Result<String, RDFStoreError> {
+    pub fn get_unique_id(&self) -> Result<String, ekg_error::Error> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -157,8 +156,8 @@ impl DataStoreConnection {
     /// Import RDF data from the given file into the given graph.
     ///
     /// NOTE: Only supports turtle files at the moment.
-    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), RDFStoreError>
-    where P: AsRef<Path> {
+    pub fn import_data_from_file<P>(&self, file: P, graph: &Graph) -> Result<(), ekg_error::Error>
+        where P: AsRef<Path> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -202,7 +201,7 @@ impl DataStoreConnection {
         &self,
         source_graph: &Graph,
         target_graph: &Graph,
-    ) -> Result<(), RDFStoreError> {
+    ) -> Result<(), ekg_error::Error> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -244,7 +243,7 @@ impl DataStoreConnection {
         &self,
         root: &Path,
         graph: &Graph,
-    ) -> Result<u16, RDFStoreError> {
+    ) -> Result<u16, ekg_error::Error> {
         let mut count = 0u16;
         let regex = Regex::new(r"^.*.ttl$").unwrap();
 
@@ -282,17 +281,17 @@ impl DataStoreConnection {
                 Ok(dir_entry) => {
                     let file_type = dir_entry.file_type().unwrap();
                     if file_type.is_dir() {
-                        continue
+                        continue;
                     }
                     let rdf_file = dir_entry.path();
                     // tracing::debug!("entry {:?}", dir_entry);
                     self.import_data_from_file(rdf_file, graph)?;
                     count += 1;
-                },
+                }
                 Err(error) => {
                     tracing::error!(target: LOG_TARGET_FILES, "error {:?}", error);
-                    return Err(RDFStoreError::WalkError(error))
-                },
+                    return Err(ekg_error::Error::WalkError(error));
+                }
             }
         }
         Ok(count)
@@ -303,7 +302,7 @@ impl DataStoreConnection {
         &self,
         statement: &Statement,
         parameters: &Parameters,
-    ) -> Result<CStatementResult, RDFStoreError> {
+    ) -> Result<CStatementResult, ekg_error::Error> {
         assert!(
             !self.inner.is_null(),
             "invalid datastore connection"
@@ -337,9 +336,9 @@ impl DataStoreConnection {
         statement: &'a Statement,
         mime_type: &'static Mime,
         base_iri: Option<&Iri>,
-    ) -> Result<Streamer<'a, W>, RDFStoreError>
-    where
-        W: 'a + Write,
+    ) -> Result<Streamer<'a, W>, ekg_error::Error>
+        where
+            W: 'a + Write,
     {
         Streamer::run(
             self,
@@ -352,7 +351,7 @@ impl DataStoreConnection {
                     .as_ref()
                     .map(|iri| iri.as_str())
                     .unwrap_or_else(|| DEFAULT_BASE_IRI),
-            ),
+            )?,
         )
     }
 
@@ -360,7 +359,7 @@ impl DataStoreConnection {
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<usize, RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Namespaces::empty()?,
@@ -377,20 +376,20 @@ impl DataStoreConnection {
                 }}
             "##
             )
-            .into(),
+                .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-        )?
-        .count(tx)
+            .cursor(
+                self,
+                &Parameters::empty()?.fact_domain(fact_domain)?,
+            )?
+            .count(tx)
     }
 
     pub fn get_subjects_count(
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<usize, RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Namespaces::empty()?,
@@ -409,20 +408,20 @@ impl DataStoreConnection {
                 }}
             "##
             )
-            .into(),
+                .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-        )?
-        .count(tx)
+            .cursor(
+                self,
+                &Parameters::empty()?.fact_domain(fact_domain)?,
+            )?
+            .count(tx)
     }
 
     pub fn get_predicates_count(
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<usize, RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Namespaces::empty()?,
@@ -441,20 +440,20 @@ impl DataStoreConnection {
                 }}
             "##
             )
-            .into(),
+                .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-        )?
-        .count(tx)
+            .cursor(
+                self,
+                &Parameters::empty()?.fact_domain(fact_domain)?,
+            )?
+            .count(tx)
     }
 
     pub fn get_ontologies_count(
         self: &Arc<Self>,
         tx: &Arc<Transaction>,
         fact_domain: FactDomain,
-    ) -> Result<usize, RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         Statement::new(
             &Namespaces::empty()?,
@@ -473,12 +472,12 @@ impl DataStoreConnection {
                 }}
                 "##
             )
-            .into(),
+                .into(),
         )?
-        .cursor(
-            self,
-            &Parameters::empty()?.fact_domain(fact_domain)?,
-        )?
-        .count(tx)
+            .cursor(
+                self,
+                &Parameters::empty()?.fact_domain(fact_domain)?,
+            )?
+            .count(tx)
     }
 }

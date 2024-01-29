@@ -14,8 +14,8 @@ use {
             CParameters_newEmptyParameters,
             CParameters_setString,
         },
-    },
-    rdf_store_rs::RDFStoreError,
+    }
+    ,
     std::{
         ffi::CStr,
         fmt::{Display, Formatter},
@@ -86,7 +86,7 @@ impl Drop for Parameters {
 const SENSITIVE_PARAMETERS: [&str; 1] = ["license-content"];
 
 impl Parameters {
-    pub fn empty() -> Result<Self, RDFStoreError> {
+    pub fn empty() -> Result<Self, ekg_error::Error> {
         let mut parameters: *mut CParameters = ptr::null_mut();
         database_call!(
             "Allocating parameters",
@@ -95,7 +95,7 @@ impl Parameters {
         Ok(Parameters { inner: Arc::new(parameters) })
     }
 
-    pub fn set_string(&self, key: &str, value: &str) -> Result<(), RDFStoreError> {
+    pub fn set_string(&self, key: &str, value: &str) -> Result<(), ekg_error::Error> {
         let c_key = CString::new(key).unwrap();
         let c_value = CString::new(value).unwrap();
         let msg = if SENSITIVE_PARAMETERS.contains(&c_key.to_str().unwrap()) {
@@ -116,7 +116,7 @@ impl Parameters {
         )
     }
 
-    pub fn get_string(&self, key: &str, default: &str) -> Result<String, RDFStoreError> {
+    pub fn get_string(&self, key: &str, default: &str) -> Result<String, ekg_error::Error> {
         let c_key = CString::new(key).unwrap();
         let c_default = CString::new(default).unwrap();
         let mut c_value: *const c_char = ptr::null();
@@ -138,7 +138,7 @@ impl Parameters {
         Ok(c_version.to_str().unwrap().to_owned())
     }
 
-    pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, RDFStoreError> {
+    pub fn fact_domain(self, fact_domain: FactDomain) -> Result<Self, ekg_error::Error> {
         match fact_domain {
             FactDomain::ASSERTED => self.set_string("fact-domain", "explicit")?,
             FactDomain::INFERRED => self.set_string("fact-domain", "derived")?,
@@ -147,12 +147,12 @@ impl Parameters {
         Ok(self)
     }
 
-    pub fn switch_off_file_access_sandboxing(self) -> Result<Self, RDFStoreError> {
+    pub fn switch_off_file_access_sandboxing(self) -> Result<Self, ekg_error::Error> {
         self.set_string("sandbox-directory", "")?;
         Ok(self)
     }
 
-    pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
+    pub fn persist_datastore(self, mode: PersistenceMode) -> Result<Self, ekg_error::Error> {
         #[cfg(feature = "rdfox-7-0")]
         match mode {
             PersistenceMode::File => self.set_string("persistence", "file")?,
@@ -169,12 +169,12 @@ impl Parameters {
     }
 
     #[cfg(not(feature = "rdfox-7-0"))]
-    pub fn persist_roles(self, mode: PersistenceMode) -> Result<Self, RDFStoreError> {
+    pub fn persist_roles(self, mode: PersistenceMode) -> Result<Self, ekg_error::Error> {
         self.set_string("persist-roles", &mode.to_string())?;
         Ok(self)
     }
 
-    pub fn server_directory(self, dir: &Path) -> Result<Self, RDFStoreError> {
+    pub fn server_directory(self, dir: &Path) -> Result<Self, ekg_error::Error> {
         if dir.is_dir() {
             self.set_string("server-directory", dir.to_str().unwrap())?;
             Ok(self)
@@ -183,7 +183,7 @@ impl Parameters {
         }
     }
 
-    pub fn license_file(self, file: &Path) -> Result<Self, RDFStoreError> {
+    pub fn license_file(self, file: &Path) -> Result<Self, ekg_error::Error> {
         if file.is_file() {
             self.set_string("license-file", file.to_str().unwrap())?;
             Ok(self)
@@ -192,7 +192,7 @@ impl Parameters {
         }
     }
 
-    pub fn license_content(self, content: &str) -> Result<Self, RDFStoreError> {
+    pub fn license_content(self, content: &str) -> Result<Self, ekg_error::Error> {
         // Content that comes in via an environment variable can have literal `\\n`
         // strings in them that should be replaced by actual line-feeds
         let content = content.replace("\r\n", "\n").replace("\\n", "\n");
@@ -202,7 +202,7 @@ impl Parameters {
         Ok(self)
     }
 
-    pub fn set_license(self, database_dir: Option<&Path>) -> Result<Self, RDFStoreError> {
+    pub fn set_license(self, database_dir: Option<&Path>) -> Result<Self, ekg_error::Error> {
         match super::license::find_license(database_dir)? {
             (Some(license_file_name), None) => {
                 return self.license_file(license_file_name.as_path());
@@ -213,7 +213,7 @@ impl Parameters {
         Ok(self)
     }
 
-    pub fn import_rename_user_blank_nodes(self, setting: bool) -> Result<Self, RDFStoreError> {
+    pub fn import_rename_user_blank_nodes(self, setting: bool) -> Result<Self, ekg_error::Error> {
         self.set_string(
             "import.rename-user-blank-nodes",
             format!("{setting:?}").as_str(),
@@ -224,7 +224,7 @@ impl Parameters {
     /// If true, all API calls are recorded in a script that
     /// the shell can replay later. later.
     /// The default value is false.
-    pub fn api_log(self, on: bool) -> Result<Self, RDFStoreError> {
+    pub fn api_log(self, on: bool) -> Result<Self, ekg_error::Error> {
         if on {
             self.set_string("api-log", "on")?;
         } else {
@@ -235,7 +235,7 @@ impl Parameters {
 
     /// Specifies the directory into which API logs will be written.
     /// Default is directory api-log within the configured server directory.
-    pub fn api_log_directory(self, dir: &Path) -> Result<Self, RDFStoreError> {
+    pub fn api_log_directory(self, dir: &Path) -> Result<Self, ekg_error::Error> {
         if dir.exists() {
             let x = self.api_log(true)?;
             x.set_string("api-log.directory", dir.to_str().unwrap())?;
@@ -249,7 +249,7 @@ impl Parameters {
         }
     }
 
-    pub fn data_store_type(self, data_store_type: DataStoreType) -> Result<Self, RDFStoreError> {
+    pub fn data_store_type(self, data_store_type: DataStoreType) -> Result<Self, ekg_error::Error> {
         match data_store_type {
             DataStoreType::ParallelNN => self.set_string("type", "parallel-nn")?,
             DataStoreType::ParallelNW => self.set_string("type", "parallel-nw")?,

@@ -3,8 +3,8 @@
 
 use {
     crate::{FactDomain, GraphConnection, Namespaces, Parameters, Statement, Transaction},
+    ekg_namespace::{Class, consts::DEFAULT_GRAPH_RDFOX},
     indoc::formatdoc,
-    rdf_store_rs::{consts::DEFAULT_GRAPH_RDFOX, Class},
     std::{ops::Deref, sync::Arc},
 };
 
@@ -21,7 +21,7 @@ impl<'a> ClassReport<'a> {
     pub fn number_of_individuals(
         &self,
         tx: &Arc<Transaction>,
-    ) -> Result<usize, rdf_store_rs::RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         let default_graph = DEFAULT_GRAPH_RDFOX.deref().as_display_iri();
         let prefixes = Namespaces::builder()
             .declare(self.0.namespace.clone())
@@ -55,7 +55,7 @@ impl<'a> ClassReport<'a> {
         &self,
         tx: &Arc<Transaction>,
         graph_connection: &GraphConnection,
-    ) -> Result<usize, rdf_store_rs::RDFStoreError> {
+    ) -> Result<usize, ekg_error::Error> {
         let graph = graph_connection.graph.as_display_iri();
         let prefixes = Namespaces::builder()
             .declare(self.0.namespace.clone())

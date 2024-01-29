@@ -3,6 +3,7 @@
 
 use {
     crate::{
+        Cursor,
         database_call,
         rdfox_api::{
             CCursor,
@@ -11,23 +12,19 @@ use {
             CCursor_getArity,
             CCursor_open,
         },
-        Cursor,
         Transaction,
     },
-    rdf_store_rs::{
-        consts::LOG_TARGET_DATABASE,
-        RDFStoreError::{self},
-    },
+    ekg_namespace::consts::LOG_TARGET_DATABASE,
     std::{ptr, sync::Arc},
 };
 
 #[derive(Debug)]
 pub struct OpenedCursor<'a> {
-    pub tx:     Arc<Transaction>,
+    pub tx: Arc<Transaction>,
     pub cursor: &'a Cursor,
     /// the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    pub arity:  usize,
+    pub arity: usize,
 }
 
 impl<'a> OpenedCursor<'a> {
@@ -37,7 +34,7 @@ impl<'a> OpenedCursor<'a> {
     pub(crate) fn new(
         cursor: &'a mut Cursor,
         tx: Arc<Transaction>,
-    ) -> Result<(Self, usize), RDFStoreError> {
+    ) -> Result<(Self, usize), ekg_error::Error> {
         let c_cursor = cursor.inner;
         let multiplicity = Self::open(cursor.inner)?;
         let arity = Self::arity(c_cursor)?;
@@ -45,7 +42,7 @@ impl<'a> OpenedCursor<'a> {
         Ok((opened_cursor, multiplicity))
     }
 
-    fn open(c_cursor: *mut CCursor) -> Result<usize, RDFStoreError> {
+    fn open(c_cursor: *mut CCursor) -> Result<usize, ekg_error::Error> {
         let skip_to_offset = 0_usize;
         let mut multiplicity = 0_usize;
         database_call!(
@@ -61,7 +58,7 @@ impl<'a> OpenedCursor<'a> {
 
     /// Returns the arity (i.e., the number of columns) of the answers that the
     /// cursor computes.
-    fn arity(c_cursor: *mut CCursor) -> Result<usize, RDFStoreError> {
+    fn arity(c_cursor: *mut CCursor) -> Result<usize, ekg_error::Error> {
         let mut arity = 0_usize;
         database_call!(
             "getting the arity",
@@ -72,7 +69,7 @@ impl<'a> OpenedCursor<'a> {
 
     /// TODO: Check why this panics when called after previous call returned
     /// zero
-    pub fn advance(&mut self) -> Result<usize, RDFStoreError> {
+    pub fn advance(&mut self) -> Result<usize, ekg_error::Error> {
         let mut multiplicity = 0_usize;
         database_call!(
             "advancing the cursor",
@@ -86,19 +83,19 @@ impl<'a> OpenedCursor<'a> {
         Ok(multiplicity)
     }
 
-    pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>
-    where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
+    pub fn update_and_commit<T, U>(&mut self, f: T) -> Result<U, ekg_error::Error>
+        where T: FnOnce(&mut OpenedCursor) -> Result<U, ekg_error::Error> {
         Transaction::begin_read_write(&self.cursor.connection)?.update_and_commit(|_tx| f(self))
     }
 
-    pub fn execute_and_rollback<T, U>(&mut self, f: T) -> Result<U, RDFStoreError>
-    where T: FnOnce(&mut OpenedCursor) -> Result<U, RDFStoreError> {
+    pub fn execute_and_rollback<T, U>(&mut self, f: T) -> Result<U, ekg_error::Error>
+        where T: FnOnce(&mut OpenedCursor) -> Result<U, ekg_error::Error> {
         Transaction::begin_read_only(&self.cursor.connection)?.execute_and_rollback(|_tx| f(self))
     }
 
     /// Get the variable name used in the executed SPARQL statement representing
     /// the given column in the output.
-    pub fn get_answer_variable_name(&self, index: usize) -> Result<String, RDFStoreError> {
+    pub fn get_answer_variable_name(&self, index: usize) -> Result<String, ekg_error::Error> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "getting a variable name",

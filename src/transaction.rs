@@ -11,8 +11,8 @@ use {
             CDataStoreConnection_rollbackTransaction,
             CTransactionType,
         },
-    },
-    rdf_store_rs::RDFStoreError,
+    }
+    ,
     std::{
         fmt::{Display, Formatter},
         sync::{Arc, atomic::AtomicBool},
@@ -31,7 +31,7 @@ impl Drop for Transaction {
     fn drop(&mut self) {
         if self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             tracing::debug!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Ended {self:}"
@@ -50,11 +50,11 @@ impl Transaction {
     fn begin(
         connection: &Arc<DataStoreConnection>,
         tx_type: CTransactionType,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         assert!(!connection.inner.is_null());
         let number = Self::get_number();
         tracing::trace!(
-            target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+            target: ekg_namespace::consts::LOG_TARGET_DATABASE,
             txno = number,
             conn = connection.number,
             "Starting {}",
@@ -71,7 +71,7 @@ impl Transaction {
             tx_type,
         });
         tracing::debug!(
-            target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+            target: ekg_namespace::consts::LOG_TARGET_DATABASE,
             txno = tx.number,
             conn = tx.connection.number,
             "Started {tx:}",
@@ -106,7 +106,7 @@ impl Transaction {
 
     pub fn begin_read_only(
         connection: &Arc<DataStoreConnection>,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         Self::begin(
             connection,
             CTransactionType::TRANSACTION_TYPE_READ_ONLY,
@@ -115,7 +115,7 @@ impl Transaction {
 
     pub fn begin_read_write(
         connection: &Arc<DataStoreConnection>,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         Self::begin(
             connection,
             CTransactionType::TRANSACTION_TYPE_READ_WRITE,
@@ -125,9 +125,9 @@ impl Transaction {
     pub fn begin_read_write_do<T, F>(
         connection: &Arc<DataStoreConnection>,
         f: F,
-    ) -> Result<T, RDFStoreError>
+    ) -> Result<T, ekg_error::Error>
         where
-            F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError>,
+            F: FnOnce(Arc<Transaction>) -> Result<T, ekg_error::Error>,
     {
         let tx = Self::begin_read_write(connection)?;
         let result = f(tx.clone());
@@ -135,32 +135,32 @@ impl Transaction {
         result
     }
 
-    pub fn commit(self: &Arc<Self>) -> Result<(), RDFStoreError> {
+    pub fn commit(self: &Arc<Self>) -> Result<(), ekg_error::Error> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             tracing::trace!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 "Committing {self:}"
             );
             database_call!(CDataStoreConnection_commitTransaction(
                 self.connection.inner
             ))?;
             tracing::trace!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 "Committed {self:}",
             );
         }
         Ok(())
     }
 
-    pub fn rollback(self: &Arc<Self>) -> Result<(), RDFStoreError> {
+    pub fn rollback(self: &Arc<Self>) -> Result<(), ekg_error::Error> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
             tracing::trace!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolling back {self:}"
@@ -169,7 +169,7 @@ impl Transaction {
                 self.connection.inner
             ))?;
             tracing::debug!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolled back {self:}",
@@ -180,13 +180,13 @@ impl Transaction {
 
     /// A duplicate of `rollback()` that takes a `&mut Transaction` rather than
     /// an `Arc<Transaction>`, only to be used by `drop()`
-    fn _rollback(&mut self) -> Result<(), RDFStoreError> {
+    fn _rollback(&mut self) -> Result<(), ekg_error::Error> {
         if !self.committed.load(std::sync::atomic::Ordering::Relaxed) {
             self.committed
                 .store(true, std::sync::atomic::Ordering::Relaxed);
             assert!(!self.connection.inner.is_null());
             tracing::trace!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolling back {self:}"
@@ -195,7 +195,7 @@ impl Transaction {
                 self.connection.inner
             ))?;
             tracing::debug!(
-                target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                 txno = self.number,
                 conn = self.connection.number,
                 "Rolled back {self:}",
@@ -204,7 +204,7 @@ impl Transaction {
         Ok(())
     }
 
-    pub fn update_and_commit<T, E: From<RDFStoreError>, F>(self: &Arc<Self>, f: F) -> Result<T, E>
+    pub fn update_and_commit<T, E: From<ekg_error::Error>, F>(self: &Arc<Self>, f: F) -> Result<T, E>
         where F: FnOnce(Arc<Transaction>) -> Result<T, E> {
         let result = f(self.clone());
         if result.is_ok() {
@@ -215,13 +215,13 @@ impl Transaction {
         result
     }
 
-    pub fn execute_and_rollback<T, F>(self: &Arc<Self>, f: F) -> Result<T, RDFStoreError>
-        where F: FnOnce(Arc<Transaction>) -> Result<T, RDFStoreError> {
+    pub fn execute_and_rollback<T, F>(self: &Arc<Self>, f: F) -> Result<T, ekg_error::Error>
+        where F: FnOnce(Arc<Transaction>) -> Result<T, ekg_error::Error> {
         let result = f(self.clone());
         match &result {
             Err(err) => {
                 tracing::error!(
-                    target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                    target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                     txno = self.number,
                     conn = self.connection.number,
                     "Error occurred during {self:}: {err}",
@@ -229,7 +229,7 @@ impl Transaction {
             }
             Ok(..) => {
                 tracing::debug!(
-                    target: rdf_store_rs::consts::LOG_TARGET_DATABASE,
+                    target: ekg_namespace::consts::LOG_TARGET_DATABASE,
                     txno = self.number,
                     conn = self.connection.number,
                     "{self:} was successful (but rolling it back anyway)",

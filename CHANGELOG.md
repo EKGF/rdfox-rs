@@ -1,16 +1,25 @@
 # Changelog
-All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
+
+All notable changes to this project will be documented in this file.
+See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+
 ## [0.1.13](https://github.com/EKGF/rdfox-rs/compare/0.1.12..0.1.13) - 2024-01-26
+
 #### Refactoring
-- **(docs)** fixing clang issue with docs build - ([8151180](https://github.com/EKGF/rdfox-rs/commit/8151180e6d116c74430c2761d6ad369741630be5)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(docs)** fixing clang issue with docs
+  build - ([8151180](https://github.com/EKGF/rdfox-rs/commit/8151180e6d116c74430c2761d6ad369741630be5)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.12](https://github.com/EKGF/rdfox-rs/compare/0.1.11..0.1.12) - 2024-01-26
+
 #### Features
-- upgraded to RDFOx 7.0 (still supporting 6.3b as well) - ([9b6fdd2](https://github.com/EKGF/rdfox-rs/commit/9b6fdd2dd881a886fd2dd0f14ed7b0d42bfed421)) - [@jgeluk](https://github.com/jgeluk)
+
+- upgraded to RDFOx 7.0 (still supporting 6.3b as
+  well) - ([9b6fdd2](https://github.com/EKGF/rdfox-rs/commit/9b6fdd2dd881a886fd2dd0f14ed7b0d42bfed421)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
@@ -19,273 +28,500 @@ All notable changes to this project will be documented in this file. See [conven
 - - -
 
 ## [0.1.10](https://github.com/EKGF/rdfox-rs/compare/0.1.9..0.1.10) - 2024-01-23
+
 #### Features
-- upgraded to RDFOx 6.3b and now also supports aarch64 - ([7f0109b](https://github.com/EKGF/rdfox-rs/commit/7f0109b6563a0ef0c733b8b8090adfe785cce917)) - [@jgeluk](https://github.com/jgeluk)
+
+- upgraded to RDFOx 6.3b and now also supports
+  aarch64 - ([7f0109b](https://github.com/EKGF/rdfox-rs/commit/7f0109b6563a0ef0c733b8b8090adfe785cce917)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.9](https://github.com/EKGF/rdfox-rs/compare/0.1.8..0.1.9) - 2023-08-27
+
 #### Miscellaneous Chores
-- **(ci)** upgraded to rdf-store-rs 0.0.9 - ([7d773fb](https://github.com/EKGF/rdfox-rs/commit/7d773fbb42d290d399392b0c698ba8e4b1f9962c)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing github actions build job - ([80384ee](https://github.com/EKGF/rdfox-rs/commit/80384ee117483acce5757c475b3372b761a5019e)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(ci)** upgraded to rdf-store-rs
+  0.0.9 - ([7d773fb](https://github.com/EKGF/rdfox-rs/commit/7d773fbb42d290d399392b0c698ba8e4b1f9962c)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing github actions build
+  job - ([80384ee](https://github.com/EKGF/rdfox-rs/commit/80384ee117483acce5757c475b3372b761a5019e)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.8](https://github.com/EKGF/rdfox-rs/compare/0.1.7..0.1.8) - 2023-08-27
+
 #### Features
-- **(rdfox-6-3a)** Support for RDFox 6.3a and minor fixes - ([470f51a](https://github.com/EKGF/rdfox-rs/commit/470f51ac7fa6dad3aa460bffec92d361ab12009e)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(rdfox-6-3a)** Support for RDFox 6.3a and minor
+  fixes - ([470f51a](https://github.com/EKGF/rdfox-rs/commit/470f51ac7fa6dad3aa460bffec92d361ab12009e)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Miscellaneous Chores
-- **(lint)** implemented clippy advice - ([773eee0](https://github.com/EKGF/rdfox-rs/commit/773eee073d05d0c9d514dee94a7fa6d06b40e620)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(lint)** implemented clippy
+  advice - ([773eee0](https://github.com/EKGF/rdfox-rs/commit/773eee073d05d0c9d514dee94a7fa6d06b40e620)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.7](https://github.com/EKGF/rdfox-rs/compare/0.1.6..0.1.7) - 2023-08-05
+
 #### Features
-- **(rdfox-6-3)** Better support for RDFox 6.3 - ([9811f6e](https://github.com/EKGF/rdfox-rs/commit/9811f6e378d26797239ed76d1a5686b94b742323)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(rdfox-6-3)** Better support for RDFox
+  6.3 - ([9811f6e](https://github.com/EKGF/rdfox-rs/commit/9811f6e378d26797239ed76d1a5686b94b742323)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.6](https://github.com/EKGF/rdfox-rs/compare/0.1.5..0.1.6) - 2023-08-05
+
 #### Features
-- **(license)** RDFOX_LICENCE_CONTENT env var works now even when it contains literal '\n' strings - ([94327b5](https://github.com/EKGF/rdfox-rs/commit/94327b5629b6e461e3fd207f0ef442dabca53cc5)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(license)** RDFOX_LICENCE_CONTENT env var works now even when it contains literal '\n'
+  strings - ([94327b5](https://github.com/EKGF/rdfox-rs/commit/94327b5629b6e461e3fd207f0ef442dabca53cc5)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.5](https://github.com/EKGF/rdfox-rs/compare/0.1.4..0.1.5) - 2023-08-05
+
 #### Refactoring
-- **(license)** license-content param still unstable - ([9f6795f](https://github.com/EKGF/rdfox-rs/commit/9f6795f2d2bc060b451903abad91aeeacdae92d8)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(license)** license-content param still
+  unstable - ([9f6795f](https://github.com/EKGF/rdfox-rs/commit/9f6795f2d2bc060b451903abad91aeeacdae92d8)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.4](https://github.com/EKGF/rdfox-rs/compare/0.1.3..0.1.4) - 2023-08-04
+
 #### Refactoring
-- **(license)** Added line-feed to license content to avoid missing license field - ([bec396d](https://github.com/EKGF/rdfox-rs/commit/bec396dc148e13aa44cfac39a97e84d0fe2cfef2)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(license)** Added line-feed to license content to avoid missing license
+  field - ([bec396d](https://github.com/EKGF/rdfox-rs/commit/bec396dc148e13aa44cfac39a97e84d0fe2cfef2)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.3](https://github.com/EKGF/rdfox-rs/compare/0.1.2..0.1.3) - 2023-08-04
+
 #### Features
-- **(license)** Added ability to set server parameters with RDFox license content - ([db1fec3](https://github.com/EKGF/rdfox-rs/commit/db1fec3334006ec3b2aa7498b946df9f51fcd9f8)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(license)** Added ability to set server parameters with RDFox license
+  content - ([db1fec3](https://github.com/EKGF/rdfox-rs/commit/db1fec3334006ec3b2aa7498b946df9f51fcd9f8)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.2](https://github.com/EKGF/rdfox-rs/compare/0.1.1..0.1.2) - 2023-08-04
+
 #### Features
-- **(license)** Checks environment variable RDFOX_LICENCE_CONTENT - ([ac8f836](https://github.com/EKGF/rdfox-rs/commit/ac8f8369e816eb4db821fa041c8393438aae8784)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(license)** Checks environment variable
+  RDFOX_LICENCE_CONTENT - ([ac8f836](https://github.com/EKGF/rdfox-rs/commit/ac8f8369e816eb4db821fa041c8393438aae8784)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.1](https://github.com/EKGF/rdfox-rs/compare/0.1.0..0.1.1) - 2023-08-02
+
 #### Continuous Integration
-- **(build.rs)** better detection of clang - ([a31446c](https://github.com/EKGF/rdfox-rs/commit/a31446c46731c2ae50d1434af1a12ee0a5c424f5)) - [@jgeluk](https://github.com/jgeluk)
-- **(build.rs)** better detection of clang - ([d5671a7](https://github.com/EKGF/rdfox-rs/commit/d5671a709c8a14f6a740ff245954c6a8c175c255)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(build.rs)** better detection of
+  clang - ([a31446c](https://github.com/EKGF/rdfox-rs/commit/a31446c46731c2ae50d1434af1a12ee0a5c424f5)) - [@jgeluk](https://github.com/jgeluk)
+- **(build.rs)** better detection of
+  clang - ([d5671a7](https://github.com/EKGF/rdfox-rs/commit/d5671a709c8a14f6a740ff245954c6a8c175c255)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.1.0](https://github.com/EKGF/rdfox-rs/compare/0.0.9..0.1.0) - 2023-08-02
+
 #### Miscellaneous Chores
-- **(version)** upgrade to rdfox version 6.3 - ([ab057fa](https://github.com/EKGF/rdfox-rs/commit/ab057fa709bb6088536a376264721adafdea4ce8)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(version)** upgrade to rdfox version
+  6.3 - ([ab057fa](https://github.com/EKGF/rdfox-rs/commit/ab057fa709bb6088536a376264721adafdea4ce8)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.9](https://github.com/EKGF/rdfox-rs/compare/0.0.8..0.0.9) - 2023-05-24
+
 #### Continuous Integration
-- **(build)** fix windows prepare LLVM issue - ([46f0fd8](https://github.com/EKGF/rdfox-rs/commit/46f0fd8a47d1304215db5668491ba6214491479d)) - [@jgeluk](https://github.com/jgeluk)
-- **(build)** fix issue with rdfox version number - ([7dbae48](https://github.com/EKGF/rdfox-rs/commit/7dbae48d1934246e9f741b5d3f15d1cc26bcaf74)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(build)** fix windows prepare LLVM
+  issue - ([46f0fd8](https://github.com/EKGF/rdfox-rs/commit/46f0fd8a47d1304215db5668491ba6214491479d)) - [@jgeluk](https://github.com/jgeluk)
+- **(build)** fix issue with rdfox version
+  number - ([7dbae48](https://github.com/EKGF/rdfox-rs/commit/7dbae48d1934246e9f741b5d3f15d1cc26bcaf74)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Refactoring
-- **(prefix)** renamed `Prefix` to `Namespace` - ([b3b74ea](https://github.com/EKGF/rdfox-rs/commit/b3b74ea31cb14837e306f923cc3cd99c2ba05a91)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(prefix)** renamed `Prefix`
+  to `Namespace` - ([b3b74ea](https://github.com/EKGF/rdfox-rs/commit/b3b74ea31cb14837e306f923cc3cd99c2ba05a91)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.8](https://github.com/EKGF/rdfox-rs/compare/0.0.7..0.0.8) - 2023-05-19
+
 #### Documentation
-- updated docs - ([6aa70c5](https://github.com/EKGF/rdfox-rs/commit/6aa70c597c8a082e0f75387b7ad68c9212aef7b8)) - [@jgeluk](https://github.com/jgeluk)
-- attempt to fix llvm-config issue on docs.rs build - ([1f09c17](https://github.com/EKGF/rdfox-rs/commit/1f09c17e852b2be8792001699859aaadee87f06d)) - [@jgeluk](https://github.com/jgeluk)
+
+- updated
+  docs - ([6aa70c5](https://github.com/EKGF/rdfox-rs/commit/6aa70c597c8a082e0f75387b7ad68c9212aef7b8)) - [@jgeluk](https://github.com/jgeluk)
+- attempt to fix llvm-config issue on docs.rs
+  build - ([1f09c17](https://github.com/EKGF/rdfox-rs/commit/1f09c17e852b2be8792001699859aaadee87f06d)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.7](https://github.com/EKGF/rdfox-rs/compare/0.0.6..0.0.7) - 2023-05-19
+
 #### Documentation
-- some more info - ([3420a46](https://github.com/EKGF/rdfox-rs/commit/3420a46d9b52cc07daad766a6b6df4771ea63855)) - [@jgeluk](https://github.com/jgeluk)
+
+- some more
+  info - ([3420a46](https://github.com/EKGF/rdfox-rs/commit/3420a46d9b52cc07daad766a6b6df4771ea63855)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Refactoring
-- minor changes - ([b6d92be](https://github.com/EKGF/rdfox-rs/commit/b6d92bebf2baa5a1b08b0ba6b3d36ac44c4f4ad4)) - [@jgeluk](https://github.com/jgeluk)
+
+- minor
+  changes - ([b6d92be](https://github.com/EKGF/rdfox-rs/commit/b6d92bebf2baa5a1b08b0ba6b3d36ac44c4f4ad4)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.6](https://github.com/EKGF/rdfox-rs/compare/0.0.5..0.0.6) - 2023-05-16
+
 #### Refactoring
-- minor changes - ([7b757ba](https://github.com/EKGF/rdfox-rs/commit/7b757babc836ae046dba78217040da6a36c29e64)) - [@jgeluk](https://github.com/jgeluk)
+
+- minor
+  changes - ([7b757ba](https://github.com/EKGF/rdfox-rs/commit/7b757babc836ae046dba78217040da6a36c29e64)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.5](https://github.com/EKGF/rdfox-rs/compare/0.0.4..0.0.5) - 2023-05-16
+
 #### Continuous Integration
-- **(cog)** fix cocogitto config - ([56fc40f](https://github.com/EKGF/rdfox-rs/commit/56fc40f3d9459ff7658610e9de5597ff146ed7e6)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(cog)** fix cocogitto
+  config - ([56fc40f](https://github.com/EKGF/rdfox-rs/commit/56fc40f3d9459ff7658610e9de5597ff146ed7e6)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Refactoring
-- minor changes - ([3c36e98](https://github.com/EKGF/rdfox-rs/commit/3c36e98c939834ad52cf9d73d6042d200ce7343d)) - [@jgeluk](https://github.com/jgeluk)
+
+- minor
+  changes - ([3c36e98](https://github.com/EKGF/rdfox-rs/commit/3c36e98c939834ad52cf9d73d6042d200ce7343d)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.4](https://github.com/EKGF/rdfox-rs/compare/0.0.3..0.0.4) - 2023-05-16
+
 #### Continuous Integration
-- **(docs)** some details - ([aa77a56](https://github.com/EKGF/rdfox-rs/commit/aa77a56ded6a785c36968680b9185cd4b1bfd0c7)) - [@jgeluk](https://github.com/jgeluk)
-- **(docs)** fixing docs job - ([26124b1](https://github.com/EKGF/rdfox-rs/commit/26124b195838220eadefa5d517d9327e1a3dfa46)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** changed package name to rdfox-rs - ([bb2b214](https://github.com/EKGF/rdfox-rs/commit/bb2b214f74cbb40cf02de30e5781e9a03757435c)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** changed package name to rdfox-rs - ([b0fefda](https://github.com/EKGF/rdfox-rs/commit/b0fefda14f589b346ff26deb3db4cebbbea5b33d)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(docs)** some
+  details - ([aa77a56](https://github.com/EKGF/rdfox-rs/commit/aa77a56ded6a785c36968680b9185cd4b1bfd0c7)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs
+  job - ([26124b1](https://github.com/EKGF/rdfox-rs/commit/26124b195838220eadefa5d517d9327e1a3dfa46)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to
+  rdfox-rs - ([bb2b214](https://github.com/EKGF/rdfox-rs/commit/bb2b214f74cbb40cf02de30e5781e9a03757435c)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to
+  rdfox-rs - ([b0fefda](https://github.com/EKGF/rdfox-rs/commit/b0fefda14f589b346ff26deb3db4cebbbea5b33d)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Documentation
-- Updated README.md - ([3dfb4a4](https://github.com/EKGF/rdfox-rs/commit/3dfb4a4a6db1bf19e2ff88b9da1d79ad41c9719d)) - [@jgeluk](https://github.com/jgeluk)
+
+- Updated
+  README.md - ([3dfb4a4](https://github.com/EKGF/rdfox-rs/commit/3dfb4a4a6db1bf19e2ff88b9da1d79ad41c9719d)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Features
-- supports RDFox 6.2 now - ([1d23e9c](https://github.com/EKGF/rdfox-rs/commit/1d23e9c4f8e68e1d88e34c25d88e4ea5fa4bbf0a)) - [@jgeluk](https://github.com/jgeluk)
+
+- supports RDFox 6.2
+  now - ([1d23e9c](https://github.com/EKGF/rdfox-rs/commit/1d23e9c4f8e68e1d88e34c25d88e4ea5fa4bbf0a)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Miscellaneous Chores
-- **(lint)** implemented clippy advice - ([ecdda6f](https://github.com/EKGF/rdfox-rs/commit/ecdda6f2b2966d66f5d189264d8f58cda13d2973)) - [@jgeluk](https://github.com/jgeluk)
-- **(version)** 0.0.3 - ([8a59e1d](https://github.com/EKGF/rdfox-rs/commit/8a59e1dab7da97744d9062a6fe774edaaca3960f)) - [@jgeluk](https://github.com/jgeluk)
-- **(version)** 0.0.2 - ([a57dab1](https://github.com/EKGF/rdfox-rs/commit/a57dab1b0d5c63cbc451b5e1ec24a139c7321f3f)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(lint)** implemented clippy
+  advice - ([ecdda6f](https://github.com/EKGF/rdfox-rs/commit/ecdda6f2b2966d66f5d189264d8f58cda13d2973)) - [@jgeluk](https://github.com/jgeluk)
+- **(version)**
+  0.0.3 - ([8a59e1d](https://github.com/EKGF/rdfox-rs/commit/8a59e1dab7da97744d9062a6fe774edaaca3960f)) - [@jgeluk](https://github.com/jgeluk)
+- **(version)**
+  0.0.2 - ([a57dab1](https://github.com/EKGF/rdfox-rs/commit/a57dab1b0d5c63cbc451b5e1ec24a139c7321f3f)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Refactoring
-- some details - ([cd6ec4a](https://github.com/EKGF/rdfox-rs/commit/cd6ec4a5ff5ba32da25244b4adacb59787cabb72)) - [@jgeluk](https://github.com/jgeluk)
+
+- some
+  details - ([cd6ec4a](https://github.com/EKGF/rdfox-rs/commit/cd6ec4a5ff5ba32da25244b4adacb59787cabb72)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.3](https://github.com/EKGF/rdfox-rs/compare/0.0.2..0.0.3) - 2023-05-16
+
 #### Miscellaneous Chores
-- **(lint)** implemented clippy advice - ([0bce486](https://github.com/EKGF/rdfox-rs/commit/0bce4862ba064044886fab623b83981ca810f44d)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(lint)** implemented clippy
+  advice - ([0bce486](https://github.com/EKGF/rdfox-rs/commit/0bce4862ba064044886fab623b83981ca810f44d)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.2](https://github.com/EKGF/rdfox-rs/compare/0.0.1..0.0.2) - 2023-05-15
+
 #### Continuous Integration
-- **(docs)** some details - ([4bf4e4f](https://github.com/EKGF/rdfox-rs/commit/4bf4e4facb0d140d0e0c5b2f22787c1e8941c45a)) - [@jgeluk](https://github.com/jgeluk)
-- **(docs)** fixing docs job - ([93a26fd](https://github.com/EKGF/rdfox-rs/commit/93a26fd1877eb2cc71d9dbc8e0574cd7bba8427e)) - [@jgeluk](https://github.com/jgeluk)
-- **(docs)** fixing docs job - ([89c72ae](https://github.com/EKGF/rdfox-rs/commit/89c72ae36e53452cc96b165e1558d75d6835f35b)) - [@jgeluk](https://github.com/jgeluk)
-- **(docs)** fixing docs job - ([b13c9a7](https://github.com/EKGF/rdfox-rs/commit/b13c9a7e2dff7b6836091cc8fb7b822c49b11b19)) - [@jgeluk](https://github.com/jgeluk)
-- **(docs)** fixing docs job - ([ed3178b](https://github.com/EKGF/rdfox-rs/commit/ed3178b2ba454bd1d806e958726782d5a24978f3)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** changed package name to rdfox-rs - ([2889b3d](https://github.com/EKGF/rdfox-rs/commit/2889b3dfed0c0da5e612d424bfcc54aa3b4f6c96)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** changed package name to rdfox-rs - ([88e7b9b](https://github.com/EKGF/rdfox-rs/commit/88e7b9b55c577c6583b75c3217787d989d68e30a)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(docs)** some
+  details - ([4bf4e4f](https://github.com/EKGF/rdfox-rs/commit/4bf4e4facb0d140d0e0c5b2f22787c1e8941c45a)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs
+  job - ([93a26fd](https://github.com/EKGF/rdfox-rs/commit/93a26fd1877eb2cc71d9dbc8e0574cd7bba8427e)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs
+  job - ([89c72ae](https://github.com/EKGF/rdfox-rs/commit/89c72ae36e53452cc96b165e1558d75d6835f35b)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs
+  job - ([b13c9a7](https://github.com/EKGF/rdfox-rs/commit/b13c9a7e2dff7b6836091cc8fb7b822c49b11b19)) - [@jgeluk](https://github.com/jgeluk)
+- **(docs)** fixing docs
+  job - ([ed3178b](https://github.com/EKGF/rdfox-rs/commit/ed3178b2ba454bd1d806e958726782d5a24978f3)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to
+  rdfox-rs - ([2889b3d](https://github.com/EKGF/rdfox-rs/commit/2889b3dfed0c0da5e612d424bfcc54aa3b4f6c96)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed package name to
+  rdfox-rs - ([88e7b9b](https://github.com/EKGF/rdfox-rs/commit/88e7b9b55c577c6583b75c3217787d989d68e30a)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Documentation
-- Updated README.md - ([4f58d61](https://github.com/EKGF/rdfox-rs/commit/4f58d61ec8fd705e4702b245b6a2733eac5cda78)) - [@jgeluk](https://github.com/jgeluk)
+
+- Updated
+  README.md - ([4f58d61](https://github.com/EKGF/rdfox-rs/commit/4f58d61ec8fd705e4702b245b6a2733eac5cda78)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Features
-- supports RDFox 6.2 now - ([6a6de53](https://github.com/EKGF/rdfox-rs/commit/6a6de53ec1c06dff2a16266dd351b18c2e6ac9c0)) - [@jgeluk](https://github.com/jgeluk)
+
+- supports RDFox 6.2
+  now - ([6a6de53](https://github.com/EKGF/rdfox-rs/commit/6a6de53ec1c06dff2a16266dd351b18c2e6ac9c0)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Refactoring
-- some details - ([c2e926d](https://github.com/EKGF/rdfox-rs/commit/c2e926d425883cb3d503ec1295856b7ad0d49318)) - [@jgeluk](https://github.com/jgeluk)
+
+- some
+  details - ([c2e926d](https://github.com/EKGF/rdfox-rs/commit/c2e926d425883cb3d503ec1295856b7ad0d49318)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 
 ## [0.0.1](https://github.com/EKGF/rdfox-rs/compare/5517fc710805ed8c92579c6c7f9310a123dbe447..0.0.1) - 2023-05-04
+
 #### Bug Fixes
-- **(cursor)** fixed issue with argument indexes - ([2b17f24](https://github.com/EKGF/rdfox-rs/commit/2b17f2441a27cbd6f5ecd0f317ac2f334aa898fa)) - [@jgeluk](https://github.com/jgeluk)
-- **(linux)** linux build/test works - ([b4f731f](https://github.com/EKGF/rdfox-rs/commit/b4f731f0b4c1498086734735588f004ebf8adda5)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(cursor)** fixed issue with argument
+  indexes - ([2b17f24](https://github.com/EKGF/rdfox-rs/commit/2b17f2441a27cbd6f5ecd0f317ac2f334aa898fa)) - [@jgeluk](https://github.com/jgeluk)
+- **(linux)** linux build/test
+  works - ([b4f731f](https://github.com/EKGF/rdfox-rs/commit/b4f731f0b4c1498086734735588f004ebf8adda5)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Continuous Integration
-- **(build)** saving zip file two directories up - ([9224014](https://github.com/EKGF/rdfox-rs/commit/92240145d2b5e48fd13027a817f36aec63596087)) - [@jgeluk](https://github.com/jgeluk)
-- **(gh)** added github actions workflows - ([e373d02](https://github.com/EKGF/rdfox-rs/commit/e373d024a4622c982dd0373f09f461d8c5f74dfe)) - [@jgeluk](https://github.com/jgeluk)
-- **(gh)** added github actions workflows - ([a0606ec](https://github.com/EKGF/rdfox-rs/commit/a0606ec558924eed936b55939a7f075178449e7c)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** changed version numbering to not follow rdfox version numbering - ([d62c312](https://github.com/EKGF/rdfox-rs/commit/d62c3125fb52c0885341c52d69bf629f2ffd1dab)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** publishing on crates.io - ([4d06a5b](https://github.com/EKGF/rdfox-rs/commit/4d06a5bc77bee4449b9110f18744000c50fc55d5)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** publishing on crates.io - ([bbc5f43](https://github.com/EKGF/rdfox-rs/commit/bbc5f43e619c4b4c78ed8a6812126911ffc63b2d)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** publishing on crates.io - ([1ed1236](https://github.com/EKGF/rdfox-rs/commit/1ed123681dd684ea38df27fe1205307938b5ebc9)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** publishing on crates.io - ([7ff0769](https://github.com/EKGF/rdfox-rs/commit/7ff07697b90eeff07a1d393d90d9c725587bd6f2)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** publishing on crates.io - ([0b8a793](https://github.com/EKGF/rdfox-rs/commit/0b8a7935d710e98b8e6f1a423daeb56faae0870d)) - [@jgeluk](https://github.com/jgeluk)
-- **(publish)** publishing on crates.io - ([11785e5](https://github.com/EKGF/rdfox-rs/commit/11785e57247f8a25e82fb090021977d37b65403e)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(build)** saving zip file two directories
+  up - ([9224014](https://github.com/EKGF/rdfox-rs/commit/92240145d2b5e48fd13027a817f36aec63596087)) - [@jgeluk](https://github.com/jgeluk)
+- **(gh)** added github actions
+  workflows - ([e373d02](https://github.com/EKGF/rdfox-rs/commit/e373d024a4622c982dd0373f09f461d8c5f74dfe)) - [@jgeluk](https://github.com/jgeluk)
+- **(gh)** added github actions
+  workflows - ([a0606ec](https://github.com/EKGF/rdfox-rs/commit/a0606ec558924eed936b55939a7f075178449e7c)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** changed version numbering to not follow rdfox version
+  numbering - ([d62c312](https://github.com/EKGF/rdfox-rs/commit/d62c3125fb52c0885341c52d69bf629f2ffd1dab)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** publishing on
+  crates.io - ([4d06a5b](https://github.com/EKGF/rdfox-rs/commit/4d06a5bc77bee4449b9110f18744000c50fc55d5)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** publishing on
+  crates.io - ([bbc5f43](https://github.com/EKGF/rdfox-rs/commit/bbc5f43e619c4b4c78ed8a6812126911ffc63b2d)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** publishing on
+  crates.io - ([1ed1236](https://github.com/EKGF/rdfox-rs/commit/1ed123681dd684ea38df27fe1205307938b5ebc9)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** publishing on
+  crates.io - ([7ff0769](https://github.com/EKGF/rdfox-rs/commit/7ff07697b90eeff07a1d393d90d9c725587bd6f2)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** publishing on
+  crates.io - ([0b8a793](https://github.com/EKGF/rdfox-rs/commit/0b8a7935d710e98b8e6f1a423daeb56faae0870d)) - [@jgeluk](https://github.com/jgeluk)
+- **(publish)** publishing on
+  crates.io - ([11785e5](https://github.com/EKGF/rdfox-rs/commit/11785e57247f8a25e82fb090021977d37b65403e)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Documentation
-- **(api)** removed some comments - ([27c967b](https://github.com/EKGF/rdfox-rs/commit/27c967b3e8edb36e4b17f5f888952e43c6551ed7)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(api)** removed some
+  comments - ([27c967b](https://github.com/EKGF/rdfox-rs/commit/27c967b3e8edb36e4b17f5f888952e43c6551ed7)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Features
-- **(axioms)** minor changes - ([c2dbeb7](https://github.com/EKGF/rdfox-rs/commit/c2dbeb7ca92f8431beaf313122c56ef1c9d97b83)) - [@jgeluk](https://github.com/jgeluk)
-- **(base-iri)** better support for base-iri especially in cursors - ([04521bf](https://github.com/EKGF/rdfox-rs/commit/04521bf0e4713fcd32bf768ba901d5c9d1ab861b)) - [@jgeluk](https://github.com/jgeluk)
-- **(base-iri)** better support for base-iri especially in cursors - ([3d637f3](https://github.com/EKGF/rdfox-rs/commit/3d637f32bbb5fa9edce918d776b98311ba343834)) - [@jgeluk](https://github.com/jgeluk)
-- **(class)** added plural label - ([eeb24a9](https://github.com/EKGF/rdfox-rs/commit/eeb24a906cbaa2eef247a73c8637d53df5553100)) - [@jgeluk](https://github.com/jgeluk)
-- **(concurrency)** Prefixes object is now `Send`. Many other small improvements. - ([d5760b6](https://github.com/EKGF/rdfox-rs/commit/d5760b683b0e4acc5f11382fab1b07d61a8d523c)) - [@jgeluk](https://github.com/jgeluk)
-- **(counts)** supporting fact-domain-specific counts - ([014da11](https://github.com/EKGF/rdfox-rs/commit/014da116b9be3ef5e82360cc5d27d356108ba5c3)) - [@jgeluk](https://github.com/jgeluk)
-- **(cursor)** added CCursor_getAnswerVariableName - ([edfe3eb](https://github.com/EKGF/rdfox-rs/commit/edfe3eb0afdfb91b2f851c28709319a49b9375ea)) - [@jgeluk](https://github.com/jgeluk)
-- **(cursor)** quick fix: increased string-read buffer size from 1024 to 102400. Needs to be done smarter later. - ([5974ca7](https://github.com/EKGF/rdfox-rs/commit/5974ca7d82686f07fa0f24e90bd138d0f09aa82d)) - [@jgeluk](https://github.com/jgeluk)
-- **(general)** added constants `NS_RDFOX` and `DEFAULT_GRAPH` - ([8d1f799](https://github.com/EKGF/rdfox-rs/commit/8d1f7995a0a0ce0d0b9ac2361ed34f2054c434a5)) - [@jgeluk](https://github.com/jgeluk)
-- **(graph-connection)** added `GraphConnection` - ([57af38b](https://github.com/EKGF/rdfox-rs/commit/57af38b11d4029fa973881a223fd51a2a1e6cc8a)) - [@jgeluk](https://github.com/jgeluk)
-- **(importaxioms)** add import_axioms_from_triples method - ([6e47332](https://github.com/EKGF/rdfox-rs/commit/6e47332c89ea0c8090efde04b981dd0d6163562b)) - [@mbarbieri77](https://github.com/mbarbieri77)
-- **(importaxioms)** add import_axioms_from_triples method - ([2e3c86d](https://github.com/EKGF/rdfox-rs/commit/2e3c86d3b03db4b50aaba06585219dcdd687a931)) - [@mbarbieri77](https://github.com/mbarbieri77)
-- **(logging)** better logging - ([e37049d](https://github.com/EKGF/rdfox-rs/commit/e37049de60d5a9754cd2c09b5ecd4ee80ab95cc1)) - [@jgeluk](https://github.com/jgeluk)
-- **(logging)** better logging - ([97290c4](https://github.com/EKGF/rdfox-rs/commit/97290c4cf8ca23f8e74f2f8e499c04934e5c3933)) - [@jgeluk](https://github.com/jgeluk)
-- **(logging)** better logging - ([0221492](https://github.com/EKGF/rdfox-rs/commit/0221492f407f5043350f71dad1d1e974a3da17d7)) - [@jgeluk](https://github.com/jgeluk)
-- **(minor)** various minor features - ([21b7275](https://github.com/EKGF/rdfox-rs/commit/21b7275bb52e0d6ad055639d8bc86d7ed9a66a6b)) - [@jgeluk](https://github.com/jgeluk)
-- **(minor)** various minor features - ([d532d25](https://github.com/EKGF/rdfox-rs/commit/d532d25efb57e9e4d665473dd29064decb0adde6)) - [@jgeluk](https://github.com/jgeluk)
-- **(minor)** various minor features - ([f4e29fe](https://github.com/EKGF/rdfox-rs/commit/f4e29feeac2590c6901e65c532cd46c33bd7d7b3)) - [@jgeluk](https://github.com/jgeluk)
-- **(pre-baked-queries)** Better count functions - ([0563d3b](https://github.com/EKGF/rdfox-rs/commit/0563d3b88bc6599b43a83d7ceb8e9514510e0695)) - [@jgeluk](https://github.com/jgeluk)
-- **(prefix)** made hashmap of `Prefixes` public - ([0d848a0](https://github.com/EKGF/rdfox-rs/commit/0d848a0032c15b2cf1782f92fe027b0aec002dc7)) - [@jgeluk](https://github.com/jgeluk)
-- **(prefix)** better handling of prefixes - ([353faea](https://github.com/EKGF/rdfox-rs/commit/353faea97a528ba2416fee26cc349d22685551c3)) - [@jgeluk](https://github.com/jgeluk)
-- **(prefixes)** minor changes - ([6650577](https://github.com/EKGF/rdfox-rs/commit/6650577c0eab9c5f38e295008a8a73674ab88827)) - [@jgeluk](https://github.com/jgeluk)
-- **(query)** changed default graph in queries to `rdfox:DefaultTriples` - ([dcfe4e6](https://github.com/EKGF/rdfox-rs/commit/dcfe4e639f430b1e6b1273a77657b5a625f2c56c)) - [@jgeluk](https://github.com/jgeluk)
-- **(query)** changed default graph in queries to `rdfox:DefaultTriples` - ([b65a069](https://github.com/EKGF/rdfox-rs/commit/b65a069b600f3ad2b3fe1949e8ee7fb2cb491a38)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** added class `Predicate` - ([8664c36](https://github.com/EKGF/rdfox-rs/commit/8664c36ecaa1b013d97884b0388e0b317d518670)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** using non-mutable transactions more and dropping server now - ([ec7c8b8](https://github.com/EKGF/rdfox-rs/commit/ec7c8b891815bdf4e5a74c8e3af1afb67ac92aa4)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** support for datastore params - ([e5ff713](https://github.com/EKGF/rdfox-rs/commit/e5ff71320778ed8e3f5e68d8797f54bde9b819a5)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** minor new features - ([738f7bd](https://github.com/EKGF/rdfox-rs/commit/738f7bd76da77cd20f1e23275eb453fb016ea05c)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** can now hash and compare lexical values - ([6b558fe](https://github.com/EKGF/rdfox-rs/commit/6b558fec05afeaddb6a67745bbd5ee8bd9305bc7)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** made resource values in cursor row optional - ([a139303](https://github.com/EKGF/rdfox-rs/commit/a13930360c080acc7fc64a81c13a954ccc1072e9)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** wrapped calls to rdfox into a macro - ([f2ad651](https://github.com/EKGF/rdfox-rs/commit/f2ad651baddf4d0c31aa2e56599830ffd6aac6a8)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** some refactoring - ([8775070](https://github.com/EKGF/rdfox-rs/commit/877507034629c948b20047cce7a4804202c4caa1)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** streaming works - ([f30716b](https://github.com/EKGF/rdfox-rs/commit/f30716bbee8180b66f09acd8721f172187b0cf27)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** cursor-queries work now - ([7aa574e](https://github.com/EKGF/rdfox-rs/commit/7aa574e637f5da9b4c5c491f7c875631f5740617)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** less info-level logging - ([645973f](https://github.com/EKGF/rdfox-rs/commit/645973f8913006b7c790523740dcee89dbc4fac2)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** better support for getting values from cursor row - ([21f01bc](https://github.com/EKGF/rdfox-rs/commit/21f01bc1e77c4fdc8162345cf86817bf947756a3)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** supporting `evaluate_to_buffer` now - ([99d22ea](https://github.com/EKGF/rdfox-rs/commit/99d22ead97afada7dad5e357a87ddddd118dedd9)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** many additional API calls implemented - ([b41ab57](https://github.com/EKGF/rdfox-rs/commit/b41ab5708f473d0e55b081c9dcf952d563d8ade4)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** refactor - ([5b01e99](https://github.com/EKGF/rdfox-rs/commit/5b01e990b011273033804c6e83f96ab08bd06e3a)) - [@mbarbieri77](https://github.com/mbarbieri77)
-- **(rdfox)** refactor - ([594f54e](https://github.com/EKGF/rdfox-rs/commit/594f54e6b6ec695ca0ea9112f7ee3af47c923c2a)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** fixed bug in build.rs - ([c51e47d](https://github.com/EKGF/rdfox-rs/commit/c51e47dd02520173af98945d5cf47b2b27cc1e5c)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** added generic "count number of individuals with type" - ([912b515](https://github.com/EKGF/rdfox-rs/commit/912b5158f4f5ca8cfdf81146c1d63180f03d9174)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** first push - ([2f87fcb](https://github.com/EKGF/rdfox-rs/commit/2f87fcbdda46d5fa4b374eeb79f0d9485aa3a235)) - [@jgeluk](https://github.com/jgeluk)
-- **(sparql)** minor changes, tests work again - ([398af5f](https://github.com/EKGF/rdfox-rs/commit/398af5fdd1d08ece377346721041564f4caf2b33)) - [@jgeluk](https://github.com/jgeluk)
-- **(sparql)** updated line numbering of SPARQL - ([887efde](https://github.com/EKGF/rdfox-rs/commit/887efde43c1c2028ddfc05136f6b7fbcc1265c29)) - [@jgeluk](https://github.com/jgeluk)
-- **(sparql)** added line numbers to log of a SPARQL statement - ([e4adeb0](https://github.com/EKGF/rdfox-rs/commit/e4adeb0209ef21a5267f5b1405a495b36799063a)) - [@jgeluk](https://github.com/jgeluk)
-- **(sparql)** added line numbers to log of a SPARQL statement - ([92b3b9b](https://github.com/EKGF/rdfox-rs/commit/92b3b9b4733c71947469874a7db51572aee38de5)) - [@jgeluk](https://github.com/jgeluk)
-- **(static)** static link library works now - ([598e83d](https://github.com/EKGF/rdfox-rs/commit/598e83dc9fca9cb72e3f5a297f646006928974a9)) - [@jgeluk](https://github.com/jgeluk)
-- **(static)** some progress in making static linking work - ([dd681da](https://github.com/EKGF/rdfox-rs/commit/dd681da44caf00ec6cabb276f611be171e86c467)) - [@jgeluk](https://github.com/jgeluk)
-- **(static)** some progress in making static linking work - ([48bac58](https://github.com/EKGF/rdfox-rs/commit/48bac58f3381fa0cd2f33396bff8436eb3d593d3)) - [@jgeluk](https://github.com/jgeluk)
-- **(static)** enabled static lib `libRDFox.a` - ([1bcd313](https://github.com/EKGF/rdfox-rs/commit/1bcd3139ee74a0b5a03203148e9cd3839893f325)) - [@jgeluk](https://github.com/jgeluk)
-- **(transaction)** Added more detail around Transaction and Cursor - ([a972e38](https://github.com/EKGF/rdfox-rs/commit/a972e388c3fb7e913dc0ecbb6e04d5e6c34cd774)) - [@jgeluk](https://github.com/jgeluk)
-- **(version)** added simple conversion from our Error type to nom's Error type - ([edea7ec](https://github.com/EKGF/rdfox-rs/commit/edea7eca8c661406372df299a1590a446129fe01)) - [@jgeluk](https://github.com/jgeluk)
-- **(version)** ServerConnection::get_version() - ([54687ec](https://github.com/EKGF/rdfox-rs/commit/54687ece0dd932d44303a7fa660ad323f34c32f9)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(axioms)** minor
+  changes - ([c2dbeb7](https://github.com/EKGF/rdfox-rs/commit/c2dbeb7ca92f8431beaf313122c56ef1c9d97b83)) - [@jgeluk](https://github.com/jgeluk)
+- **(base-iri)** better support for base-iri especially in
+  cursors - ([04521bf](https://github.com/EKGF/rdfox-rs/commit/04521bf0e4713fcd32bf768ba901d5c9d1ab861b)) - [@jgeluk](https://github.com/jgeluk)
+- **(base-iri)** better support for base-iri especially in
+  cursors - ([3d637f3](https://github.com/EKGF/rdfox-rs/commit/3d637f32bbb5fa9edce918d776b98311ba343834)) - [@jgeluk](https://github.com/jgeluk)
+- **(class)** added plural
+  label - ([eeb24a9](https://github.com/EKGF/rdfox-rs/commit/eeb24a906cbaa2eef247a73c8637d53df5553100)) - [@jgeluk](https://github.com/jgeluk)
+- **(concurrency)** Prefixes object is now `Send`. Many other small
+  improvements. - ([d5760b6](https://github.com/EKGF/rdfox-rs/commit/d5760b683b0e4acc5f11382fab1b07d61a8d523c)) - [@jgeluk](https://github.com/jgeluk)
+- **(counts)** supporting fact-domain-specific
+  counts - ([014da11](https://github.com/EKGF/rdfox-rs/commit/014da116b9be3ef5e82360cc5d27d356108ba5c3)) - [@jgeluk](https://github.com/jgeluk)
+- **(cursor)** added
+  CCursor_getAnswerVariableName - ([edfe3eb](https://github.com/EKGF/rdfox-rs/commit/edfe3eb0afdfb91b2f851c28709319a49b9375ea)) - [@jgeluk](https://github.com/jgeluk)
+- **(cursor)** quick fix: increased string-read buffer size from 1024 to 102400. Needs to be done smarter
+  later. - ([5974ca7](https://github.com/EKGF/rdfox-rs/commit/5974ca7d82686f07fa0f24e90bd138d0f09aa82d)) - [@jgeluk](https://github.com/jgeluk)
+- **(general)** added constants `NS_RDFOX`
+  and `DEFAULT_GRAPH` - ([8d1f799](https://github.com/EKGF/rdfox-rs/commit/8d1f7995a0a0ce0d0b9ac2361ed34f2054c434a5)) - [@jgeluk](https://github.com/jgeluk)
+- **(graph-connection)**
+  added `GraphConnection` - ([57af38b](https://github.com/EKGF/rdfox-rs/commit/57af38b11d4029fa973881a223fd51a2a1e6cc8a)) - [@jgeluk](https://github.com/jgeluk)
+- **(importaxioms)** add import_axioms_from_triples
+  method - ([6e47332](https://github.com/EKGF/rdfox-rs/commit/6e47332c89ea0c8090efde04b981dd0d6163562b)) - [@mbarbieri77](https://github.com/mbarbieri77)
+- **(importaxioms)** add import_axioms_from_triples
+  method - ([2e3c86d](https://github.com/EKGF/rdfox-rs/commit/2e3c86d3b03db4b50aaba06585219dcdd687a931)) - [@mbarbieri77](https://github.com/mbarbieri77)
+- **(logging)** better
+  logging - ([e37049d](https://github.com/EKGF/rdfox-rs/commit/e37049de60d5a9754cd2c09b5ecd4ee80ab95cc1)) - [@jgeluk](https://github.com/jgeluk)
+- **(logging)** better
+  logging - ([97290c4](https://github.com/EKGF/rdfox-rs/commit/97290c4cf8ca23f8e74f2f8e499c04934e5c3933)) - [@jgeluk](https://github.com/jgeluk)
+- **(logging)** better
+  logging - ([0221492](https://github.com/EKGF/rdfox-rs/commit/0221492f407f5043350f71dad1d1e974a3da17d7)) - [@jgeluk](https://github.com/jgeluk)
+- **(minor)** various minor
+  features - ([21b7275](https://github.com/EKGF/rdfox-rs/commit/21b7275bb52e0d6ad055639d8bc86d7ed9a66a6b)) - [@jgeluk](https://github.com/jgeluk)
+- **(minor)** various minor
+  features - ([d532d25](https://github.com/EKGF/rdfox-rs/commit/d532d25efb57e9e4d665473dd29064decb0adde6)) - [@jgeluk](https://github.com/jgeluk)
+- **(minor)** various minor
+  features - ([f4e29fe](https://github.com/EKGF/rdfox-rs/commit/f4e29feeac2590c6901e65c532cd46c33bd7d7b3)) - [@jgeluk](https://github.com/jgeluk)
+- **(pre-baked-queries)** Better count
+  functions - ([0563d3b](https://github.com/EKGF/rdfox-rs/commit/0563d3b88bc6599b43a83d7ceb8e9514510e0695)) - [@jgeluk](https://github.com/jgeluk)
+- **(prefix)** made hashmap of `Prefixes`
+  public - ([0d848a0](https://github.com/EKGF/rdfox-rs/commit/0d848a0032c15b2cf1782f92fe027b0aec002dc7)) - [@jgeluk](https://github.com/jgeluk)
+- **(prefix)** better handling of
+  prefixes - ([353faea](https://github.com/EKGF/rdfox-rs/commit/353faea97a528ba2416fee26cc349d22685551c3)) - [@jgeluk](https://github.com/jgeluk)
+- **(prefixes)** minor
+  changes - ([6650577](https://github.com/EKGF/rdfox-rs/commit/6650577c0eab9c5f38e295008a8a73674ab88827)) - [@jgeluk](https://github.com/jgeluk)
+- **(query)** changed default graph in queries
+  to `rdfox:DefaultTriples` - ([dcfe4e6](https://github.com/EKGF/rdfox-rs/commit/dcfe4e639f430b1e6b1273a77657b5a625f2c56c)) - [@jgeluk](https://github.com/jgeluk)
+- **(query)** changed default graph in queries
+  to `rdfox:DefaultTriples` - ([b65a069](https://github.com/EKGF/rdfox-rs/commit/b65a069b600f3ad2b3fe1949e8ee7fb2cb491a38)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** added
+  class `Predicate` - ([8664c36](https://github.com/EKGF/rdfox-rs/commit/8664c36ecaa1b013d97884b0388e0b317d518670)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** using non-mutable transactions more and dropping server
+  now - ([ec7c8b8](https://github.com/EKGF/rdfox-rs/commit/ec7c8b891815bdf4e5a74c8e3af1afb67ac92aa4)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** support for datastore
+  params - ([e5ff713](https://github.com/EKGF/rdfox-rs/commit/e5ff71320778ed8e3f5e68d8797f54bde9b819a5)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** minor new
+  features - ([738f7bd](https://github.com/EKGF/rdfox-rs/commit/738f7bd76da77cd20f1e23275eb453fb016ea05c)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** can now hash and compare lexical
+  values - ([6b558fe](https://github.com/EKGF/rdfox-rs/commit/6b558fec05afeaddb6a67745bbd5ee8bd9305bc7)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** made resource values in cursor row
+  optional - ([a139303](https://github.com/EKGF/rdfox-rs/commit/a13930360c080acc7fc64a81c13a954ccc1072e9)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** wrapped calls to rdfox into a
+  macro - ([f2ad651](https://github.com/EKGF/rdfox-rs/commit/f2ad651baddf4d0c31aa2e56599830ffd6aac6a8)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** some
+  refactoring - ([8775070](https://github.com/EKGF/rdfox-rs/commit/877507034629c948b20047cce7a4804202c4caa1)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** streaming
+  works - ([f30716b](https://github.com/EKGF/rdfox-rs/commit/f30716bbee8180b66f09acd8721f172187b0cf27)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** cursor-queries work
+  now - ([7aa574e](https://github.com/EKGF/rdfox-rs/commit/7aa574e637f5da9b4c5c491f7c875631f5740617)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** less info-level
+  logging - ([645973f](https://github.com/EKGF/rdfox-rs/commit/645973f8913006b7c790523740dcee89dbc4fac2)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** better support for getting values from cursor
+  row - ([21f01bc](https://github.com/EKGF/rdfox-rs/commit/21f01bc1e77c4fdc8162345cf86817bf947756a3)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** supporting `evaluate_to_buffer`
+  now - ([99d22ea](https://github.com/EKGF/rdfox-rs/commit/99d22ead97afada7dad5e357a87ddddd118dedd9)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** many additional API calls
+  implemented - ([b41ab57](https://github.com/EKGF/rdfox-rs/commit/b41ab5708f473d0e55b081c9dcf952d563d8ade4)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)**
+  refactor - ([5b01e99](https://github.com/EKGF/rdfox-rs/commit/5b01e990b011273033804c6e83f96ab08bd06e3a)) - [@mbarbieri77](https://github.com/mbarbieri77)
+- **(rdfox)**
+  refactor - ([594f54e](https://github.com/EKGF/rdfox-rs/commit/594f54e6b6ec695ca0ea9112f7ee3af47c923c2a)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** fixed bug in
+  build.rs - ([c51e47d](https://github.com/EKGF/rdfox-rs/commit/c51e47dd02520173af98945d5cf47b2b27cc1e5c)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** added generic "count number of individuals with
+  type" - ([912b515](https://github.com/EKGF/rdfox-rs/commit/912b5158f4f5ca8cfdf81146c1d63180f03d9174)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** first
+  push - ([2f87fcb](https://github.com/EKGF/rdfox-rs/commit/2f87fcbdda46d5fa4b374eeb79f0d9485aa3a235)) - [@jgeluk](https://github.com/jgeluk)
+- **(sparql)** minor changes, tests work
+  again - ([398af5f](https://github.com/EKGF/rdfox-rs/commit/398af5fdd1d08ece377346721041564f4caf2b33)) - [@jgeluk](https://github.com/jgeluk)
+- **(sparql)** updated line numbering of
+  SPARQL - ([887efde](https://github.com/EKGF/rdfox-rs/commit/887efde43c1c2028ddfc05136f6b7fbcc1265c29)) - [@jgeluk](https://github.com/jgeluk)
+- **(sparql)** added line numbers to log of a SPARQL
+  statement - ([e4adeb0](https://github.com/EKGF/rdfox-rs/commit/e4adeb0209ef21a5267f5b1405a495b36799063a)) - [@jgeluk](https://github.com/jgeluk)
+- **(sparql)** added line numbers to log of a SPARQL
+  statement - ([92b3b9b](https://github.com/EKGF/rdfox-rs/commit/92b3b9b4733c71947469874a7db51572aee38de5)) - [@jgeluk](https://github.com/jgeluk)
+- **(static)** static link library works
+  now - ([598e83d](https://github.com/EKGF/rdfox-rs/commit/598e83dc9fca9cb72e3f5a297f646006928974a9)) - [@jgeluk](https://github.com/jgeluk)
+- **(static)** some progress in making static linking
+  work - ([dd681da](https://github.com/EKGF/rdfox-rs/commit/dd681da44caf00ec6cabb276f611be171e86c467)) - [@jgeluk](https://github.com/jgeluk)
+- **(static)** some progress in making static linking
+  work - ([48bac58](https://github.com/EKGF/rdfox-rs/commit/48bac58f3381fa0cd2f33396bff8436eb3d593d3)) - [@jgeluk](https://github.com/jgeluk)
+- **(static)** enabled static
+  lib `libRDFox.a` - ([1bcd313](https://github.com/EKGF/rdfox-rs/commit/1bcd3139ee74a0b5a03203148e9cd3839893f325)) - [@jgeluk](https://github.com/jgeluk)
+- **(transaction)** Added more detail around Transaction and
+  Cursor - ([a972e38](https://github.com/EKGF/rdfox-rs/commit/a972e388c3fb7e913dc0ecbb6e04d5e6c34cd774)) - [@jgeluk](https://github.com/jgeluk)
+- **(version)** added simple conversion from our Error type to nom's Error
+  type - ([edea7ec](https://github.com/EKGF/rdfox-rs/commit/edea7eca8c661406372df299a1590a446129fe01)) - [@jgeluk](https://github.com/jgeluk)
+- **(version)** ServerConnection::
+  get_version() - ([54687ec](https://github.com/EKGF/rdfox-rs/commit/54687ece0dd932d44303a7fa660ad323f34c32f9)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Miscellaneous Chores
-- **(all)** various updates - ([d66923d](https://github.com/EKGF/rdfox-rs/commit/d66923d4f5f7d58851375caa6efb19e131b22e7d)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** Minor changes - ([9746a79](https://github.com/EKGF/rdfox-rs/commit/9746a792ff6cd6a84ff9b0f52de4bc2bbbf75b7a)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing windows build - ([6945ef1](https://github.com/EKGF/rdfox-rs/commit/6945ef1c4dce72985c57c156921809dda4612b9a)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing windows build - ([77e2fbc](https://github.com/EKGF/rdfox-rs/commit/77e2fbcdb8ce00d3ca299dbf541f6b9aa80b7f89)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing windows build - ([8ff6019](https://github.com/EKGF/rdfox-rs/commit/8ff6019e0243bec0f516cea626a952ab65e117f1)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing windows build - ([942d1cc](https://github.com/EKGF/rdfox-rs/commit/942d1cc616229edf30724ddd9e06d5da6a2851a1)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing windows build - ([248f680](https://github.com/EKGF/rdfox-rs/commit/248f6804bdc38064f30eefe70b023a36b6dc9fe8)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing windows build - ([2b61e74](https://github.com/EKGF/rdfox-rs/commit/2b61e7455faf29ebbe25cb6b3dfe5129ca4ed59d)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing macos build - ([b2dcf2e](https://github.com/EKGF/rdfox-rs/commit/b2dcf2edd4dc6474119f0073e8363d33a8c82dd2)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing macos build - ([225e629](https://github.com/EKGF/rdfox-rs/commit/225e6292c82be76b3280eb54c6730edfefbe0100)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** fixing macos build - ([951cd23](https://github.com/EKGF/rdfox-rs/commit/951cd233f7045e5b682ec563d783d9649cfed4c2)) - [@jgeluk](https://github.com/jgeluk)
-- **(ci)** updated github actions workflows - ([d28e308](https://github.com/EKGF/rdfox-rs/commit/d28e308a2ff782d915fb512b5547870248f0b9f8)) - [@jgeluk](https://github.com/jgeluk)
-- **(dev)** added rustfmt and cog config files - ([dde7841](https://github.com/EKGF/rdfox-rs/commit/dde78419114960b033e1f9aca03c750507a5da5c)) - [@jgeluk](https://github.com/jgeluk)
-- **(fmt)** workaround fix for linux - ([de2d7b0](https://github.com/EKGF/rdfox-rs/commit/de2d7b0a6653d655fb84cb7cf7e2c54390208b3b)) - [@jgeluk](https://github.com/jgeluk)
-- **(fmt)** reformatted - ([1f439d0](https://github.com/EKGF/rdfox-rs/commit/1f439d0b20346f74adf02ef39d87df77ceaf6e67)) - [@jgeluk](https://github.com/jgeluk)
-- **(merge)** merged - ([b7e62fb](https://github.com/EKGF/rdfox-rs/commit/b7e62fbf4209a31068657343b3609e438f7a1af9)) - [@jgeluk](https://github.com/jgeluk)
-- **(merge)** merged with other repo - ([547827b](https://github.com/EKGF/rdfox-rs/commit/547827b36fe9fcc3cdfc4cde9e3097fbdc8d08de)) - [@jgeluk](https://github.com/jgeluk)
-- **(readme)** updated README.md - ([a468060](https://github.com/EKGF/rdfox-rs/commit/a468060e79df51e9d007e4ed61a948997635662a)) - [@jgeluk](https://github.com/jgeluk)
-- **(test)** reproducing `OPTIONAL` issue - ([128b59a](https://github.com/EKGF/rdfox-rs/commit/128b59a7de866c02b3d95f87ac4ff11c84371bf9)) - [@jgeluk](https://github.com/jgeluk)
-- **(test)** better tests - ([2bd045e](https://github.com/EKGF/rdfox-rs/commit/2bd045e42b223ff5ae130817e145ad215f084ab3)) - [@jgeluk](https://github.com/jgeluk)
-- **(upgrade)** removed debug log lines - ([65ce76f](https://github.com/EKGF/rdfox-rs/commit/65ce76fef4c725202c17ed3a25881789c48ab56d)) - [@jgeluk](https://github.com/jgeluk)
-- **(upgrade)** supporting RDFox 5.7 - ([8ff9220](https://github.com/EKGF/rdfox-rs/commit/8ff92204a235dcecdd5826cd60ff3669d917dd11)) - [@jgeluk](https://github.com/jgeluk)
-- minor changes - ([079bd74](https://github.com/EKGF/rdfox-rs/commit/079bd744c44b5115e328f35b4e9006184918dcea)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(all)** various
+  updates - ([d66923d](https://github.com/EKGF/rdfox-rs/commit/d66923d4f5f7d58851375caa6efb19e131b22e7d)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** Minor
+  changes - ([9746a79](https://github.com/EKGF/rdfox-rs/commit/9746a792ff6cd6a84ff9b0f52de4bc2bbbf75b7a)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing windows
+  build - ([6945ef1](https://github.com/EKGF/rdfox-rs/commit/6945ef1c4dce72985c57c156921809dda4612b9a)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing windows
+  build - ([77e2fbc](https://github.com/EKGF/rdfox-rs/commit/77e2fbcdb8ce00d3ca299dbf541f6b9aa80b7f89)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing windows
+  build - ([8ff6019](https://github.com/EKGF/rdfox-rs/commit/8ff6019e0243bec0f516cea626a952ab65e117f1)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing windows
+  build - ([942d1cc](https://github.com/EKGF/rdfox-rs/commit/942d1cc616229edf30724ddd9e06d5da6a2851a1)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing windows
+  build - ([248f680](https://github.com/EKGF/rdfox-rs/commit/248f6804bdc38064f30eefe70b023a36b6dc9fe8)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing windows
+  build - ([2b61e74](https://github.com/EKGF/rdfox-rs/commit/2b61e7455faf29ebbe25cb6b3dfe5129ca4ed59d)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing macos
+  build - ([b2dcf2e](https://github.com/EKGF/rdfox-rs/commit/b2dcf2edd4dc6474119f0073e8363d33a8c82dd2)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing macos
+  build - ([225e629](https://github.com/EKGF/rdfox-rs/commit/225e6292c82be76b3280eb54c6730edfefbe0100)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** fixing macos
+  build - ([951cd23](https://github.com/EKGF/rdfox-rs/commit/951cd233f7045e5b682ec563d783d9649cfed4c2)) - [@jgeluk](https://github.com/jgeluk)
+- **(ci)** updated github actions
+  workflows - ([d28e308](https://github.com/EKGF/rdfox-rs/commit/d28e308a2ff782d915fb512b5547870248f0b9f8)) - [@jgeluk](https://github.com/jgeluk)
+- **(dev)** added rustfmt and cog config
+  files - ([dde7841](https://github.com/EKGF/rdfox-rs/commit/dde78419114960b033e1f9aca03c750507a5da5c)) - [@jgeluk](https://github.com/jgeluk)
+- **(fmt)** workaround fix for
+  linux - ([de2d7b0](https://github.com/EKGF/rdfox-rs/commit/de2d7b0a6653d655fb84cb7cf7e2c54390208b3b)) - [@jgeluk](https://github.com/jgeluk)
+- **(fmt)**
+  reformatted - ([1f439d0](https://github.com/EKGF/rdfox-rs/commit/1f439d0b20346f74adf02ef39d87df77ceaf6e67)) - [@jgeluk](https://github.com/jgeluk)
+- **(merge)**
+  merged - ([b7e62fb](https://github.com/EKGF/rdfox-rs/commit/b7e62fbf4209a31068657343b3609e438f7a1af9)) - [@jgeluk](https://github.com/jgeluk)
+- **(merge)** merged with other
+  repo - ([547827b](https://github.com/EKGF/rdfox-rs/commit/547827b36fe9fcc3cdfc4cde9e3097fbdc8d08de)) - [@jgeluk](https://github.com/jgeluk)
+- **(readme)** updated
+  README.md - ([a468060](https://github.com/EKGF/rdfox-rs/commit/a468060e79df51e9d007e4ed61a948997635662a)) - [@jgeluk](https://github.com/jgeluk)
+- **(test)** reproducing `OPTIONAL`
+  issue - ([128b59a](https://github.com/EKGF/rdfox-rs/commit/128b59a7de866c02b3d95f87ac4ff11c84371bf9)) - [@jgeluk](https://github.com/jgeluk)
+- **(test)** better
+  tests - ([2bd045e](https://github.com/EKGF/rdfox-rs/commit/2bd045e42b223ff5ae130817e145ad215f084ab3)) - [@jgeluk](https://github.com/jgeluk)
+- **(upgrade)** removed debug log
+  lines - ([65ce76f](https://github.com/EKGF/rdfox-rs/commit/65ce76fef4c725202c17ed3a25881789c48ab56d)) - [@jgeluk](https://github.com/jgeluk)
+- **(upgrade)** supporting RDFox
+  5.7 - ([8ff9220](https://github.com/EKGF/rdfox-rs/commit/8ff92204a235dcecdd5826cd60ff3669d917dd11)) - [@jgeluk](https://github.com/jgeluk)
+- minor
+  changes - ([079bd74](https://github.com/EKGF/rdfox-rs/commit/079bd744c44b5115e328f35b4e9006184918dcea)) - [@jgeluk](https://github.com/jgeluk)
+
 #### Refactoring
-- **(all)** minor changes - ([4ad2256](https://github.com/EKGF/rdfox-rs/commit/4ad2256b602d2746aeab872c72eaa2a5d6632c3e)) - [@jgeluk](https://github.com/jgeluk)
-- **(all)** renamed `LexicalValue` to `Literal` - ([32b383c](https://github.com/EKGF/rdfox-rs/commit/32b383c62de8a8a53baabe91e28c8f800f099569)) - [@jgeluk](https://github.com/jgeluk)
-- **(all)** moved `Class` to `ekgf/rdf-store-rs` repo - ([c67e2be](https://github.com/EKGF/rdfox-rs/commit/c67e2bebd8e3d03a24dec5ecf672fb99b5be536e)) - [@jgeluk](https://github.com/jgeluk)
-- **(all)** minor changes - ([5d5a254](https://github.com/EKGF/rdfox-rs/commit/5d5a254d0ad318c0d811293afd5172b89408330d)) - [@jgeluk](https://github.com/jgeluk)
-- **(all)** renamed `Error` to `RDFStoreError` - ([ae79ec0](https://github.com/EKGF/rdfox-rs/commit/ae79ec0790ede8495c8385f5e0438e4fda572428)) - [@jgeluk](https://github.com/jgeluk)
-- **(all)** moved non-rdfox-specific stuff to `ekgf/rdf-store-rs` - ([99e557a](https://github.com/EKGF/rdfox-rs/commit/99e557a18d9680f63c27db5b06712a1086d1cb9e)) - [@jgeluk](https://github.com/jgeluk)
-- **(async)** big refactor, preparing for more async operation - ([a5f3304](https://github.com/EKGF/rdfox-rs/commit/a5f330451a17cbdd44117b73479c87d4ee21f5cf)) - [@jgeluk](https://github.com/jgeluk)
-- **(lexval)** better handing of `xsd:dateTime` - ([be2905e](https://github.com/EKGF/rdfox-rs/commit/be2905e75dee038d2515b6d567a9d3dbf00ee968)) - [@jgeluk](https://github.com/jgeluk)
-- **(lexval)** added defaults - ([00e9b43](https://github.com/EKGF/rdfox-rs/commit/00e9b4347ec8404f47c2947db0873f364b3948b6)) - [@jgeluk](https://github.com/jgeluk)
-- **(logging)** quieter logging - ([768d248](https://github.com/EKGF/rdfox-rs/commit/768d248f678bf7f5d7a1ef37ec8fa871ed71c25c)) - [@jgeluk](https://github.com/jgeluk)
-- **(prefixes)** copying prefixes by value now - ([8dce60e](https://github.com/EKGF/rdfox-rs/commit/8dce60e4d410b573bad76bdc926f778ceb08afbc)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdf)** added class `rdf::Term` - ([0557746](https://github.com/EKGF/rdfox-rs/commit/0557746828d745f3ce340f190b82654bf433b8b0)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdf)** created module `rdf` and moved some source files into that - ([b5b9ae1](https://github.com/EKGF/rdfox-rs/commit/b5b9ae1e306a3346cffa89695dc6a1bd6252e592)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** many refactorings - ([611c6c7](https://github.com/EKGF/rdfox-rs/commit/611c6c7acf3fb0786234e25e11b58fe41a43498a)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** required to use tx now - ([97bc2e8](https://github.com/EKGF/rdfox-rs/commit/97bc2e8f8ee9333d2595881646cd97c8915f7881)) - [@jgeluk](https://github.com/jgeluk)
-- **(rdfox)** many refactorings - ([d8b6fe1](https://github.com/EKGF/rdfox-rs/commit/d8b6fe171d495826059c3a1515a03737f9c7d691)) - [@jgeluk](https://github.com/jgeluk)
-- **(server)** refactoring the way we deal with the Server class - ([90a8e86](https://github.com/EKGF/rdfox-rs/commit/90a8e86199674b81bb65d87abfda474be9d244ad)) - [@jgeluk](https://github.com/jgeluk)
-- **(sparql)** minor optimizations - ([19456fc](https://github.com/EKGF/rdfox-rs/commit/19456fc811a875abb3f78c28434e38860332470d)) - [@jgeluk](https://github.com/jgeluk)
-- **(tracing)** some more detailed logging - ([ce38471](https://github.com/EKGF/rdfox-rs/commit/ce38471c4a882cdbe555687e7a0b4673cecb0795)) - [@jgeluk](https://github.com/jgeluk)
-- **(tracing)** replaced logging with tracing - ([0fede56](https://github.com/EKGF/rdfox-rs/commit/0fede56f318c86470cb2bffe44442ac6be301d9d)) - [@jgeluk](https://github.com/jgeluk)
+
+- **(all)** minor
+  changes - ([4ad2256](https://github.com/EKGF/rdfox-rs/commit/4ad2256b602d2746aeab872c72eaa2a5d6632c3e)) - [@jgeluk](https://github.com/jgeluk)
+- **(all)** renamed `LexicalValue`
+  to `Literal` - ([32b383c](https://github.com/EKGF/rdfox-rs/commit/32b383c62de8a8a53baabe91e28c8f800f099569)) - [@jgeluk](https://github.com/jgeluk)
+- **(all)** moved `Class` to `ekgf/rdf-store-rs`
+  repo - ([c67e2be](https://github.com/EKGF/rdfox-rs/commit/c67e2bebd8e3d03a24dec5ecf672fb99b5be536e)) - [@jgeluk](https://github.com/jgeluk)
+- **(all)** minor
+  changes - ([5d5a254](https://github.com/EKGF/rdfox-rs/commit/5d5a254d0ad318c0d811293afd5172b89408330d)) - [@jgeluk](https://github.com/jgeluk)
+- **(all)** renamed `Error`
+  to `ekg_error::Error` - ([ae79ec0](https://github.com/EKGF/rdfox-rs/commit/ae79ec0790ede8495c8385f5e0438e4fda572428)) - [@jgeluk](https://github.com/jgeluk)
+- **(all)** moved non-rdfox-specific stuff
+  to `ekgf/rdf-store-rs` - ([99e557a](https://github.com/EKGF/rdfox-rs/commit/99e557a18d9680f63c27db5b06712a1086d1cb9e)) - [@jgeluk](https://github.com/jgeluk)
+- **(async)** big refactor, preparing for more async
+  operation - ([a5f3304](https://github.com/EKGF/rdfox-rs/commit/a5f330451a17cbdd44117b73479c87d4ee21f5cf)) - [@jgeluk](https://github.com/jgeluk)
+- **(lexval)** better handing
+  of `xsd:dateTime` - ([be2905e](https://github.com/EKGF/rdfox-rs/commit/be2905e75dee038d2515b6d567a9d3dbf00ee968)) - [@jgeluk](https://github.com/jgeluk)
+- **(lexval)** added
+  defaults - ([00e9b43](https://github.com/EKGF/rdfox-rs/commit/00e9b4347ec8404f47c2947db0873f364b3948b6)) - [@jgeluk](https://github.com/jgeluk)
+- **(logging)** quieter
+  logging - ([768d248](https://github.com/EKGF/rdfox-rs/commit/768d248f678bf7f5d7a1ef37ec8fa871ed71c25c)) - [@jgeluk](https://github.com/jgeluk)
+- **(prefixes)** copying prefixes by value
+  now - ([8dce60e](https://github.com/EKGF/rdfox-rs/commit/8dce60e4d410b573bad76bdc926f778ceb08afbc)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdf)** added
+  class `rdf::Term` - ([0557746](https://github.com/EKGF/rdfox-rs/commit/0557746828d745f3ce340f190b82654bf433b8b0)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdf)** created module `rdf` and moved some source files into
+  that - ([b5b9ae1](https://github.com/EKGF/rdfox-rs/commit/b5b9ae1e306a3346cffa89695dc6a1bd6252e592)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** many
+  refactorings - ([611c6c7](https://github.com/EKGF/rdfox-rs/commit/611c6c7acf3fb0786234e25e11b58fe41a43498a)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** required to use tx
+  now - ([97bc2e8](https://github.com/EKGF/rdfox-rs/commit/97bc2e8f8ee9333d2595881646cd97c8915f7881)) - [@jgeluk](https://github.com/jgeluk)
+- **(rdfox)** many
+  refactorings - ([d8b6fe1](https://github.com/EKGF/rdfox-rs/commit/d8b6fe171d495826059c3a1515a03737f9c7d691)) - [@jgeluk](https://github.com/jgeluk)
+- **(server)** refactoring the way we deal with the Server
+  class - ([90a8e86](https://github.com/EKGF/rdfox-rs/commit/90a8e86199674b81bb65d87abfda474be9d244ad)) - [@jgeluk](https://github.com/jgeluk)
+- **(sparql)** minor
+  optimizations - ([19456fc](https://github.com/EKGF/rdfox-rs/commit/19456fc811a875abb3f78c28434e38860332470d)) - [@jgeluk](https://github.com/jgeluk)
+- **(tracing)** some more detailed
+  logging - ([ce38471](https://github.com/EKGF/rdfox-rs/commit/ce38471c4a882cdbe555687e7a0b4673cecb0795)) - [@jgeluk](https://github.com/jgeluk)
+- **(tracing)** replaced logging with
+  tracing - ([0fede56](https://github.com/EKGF/rdfox-rs/commit/0fede56f318c86470cb2bffe44442ac6be301d9d)) - [@jgeluk](https://github.com/jgeluk)
 
 - - -
 

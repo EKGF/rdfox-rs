@@ -1,6 +1,8 @@
 use {
     crate::{
         database_call,
+        DataStore,
+        DataStoreConnection,
         rdfox_api::{
             CServerConnection,
             CServerConnection_createDataStore,
@@ -12,12 +14,10 @@ use {
             CServerConnection_newDataStoreConnection,
             CServerConnection_setNumberOfThreads,
         },
-        DataStore,
-        DataStoreConnection,
         RoleCreds,
         Server,
     },
-    rdf_store_rs::consts::LOG_TARGET_DATABASE,
+    ekg_namespace::consts::LOG_TARGET_DATABASE,
     std::{
         ffi::{CStr, CString},
         ptr,
@@ -30,8 +30,8 @@ use {
 pub struct ServerConnection {
     #[allow(dead_code)]
     role_creds: RoleCreds,
-    server:     Arc<Server>,
-    inner:      *mut CServerConnection,
+    server: Arc<Server>,
+    inner: *mut CServerConnection,
 }
 
 unsafe impl Sync for ServerConnection {}
@@ -84,7 +84,7 @@ impl ServerConnection {
     ///     CServerConnection* serverConnection,
     ///     const char** version
     /// );
-    pub fn get_version(&self) -> Result<String, rdf_store_rs::RDFStoreError> {
+    pub fn get_version(&self) -> Result<String, ekg_error::Error> {
         let mut c_buf: *const std::os::raw::c_char = ptr::null();
         database_call!(
             "Getting the version",
@@ -94,7 +94,7 @@ impl ServerConnection {
         Ok(c_version.to_str().unwrap().to_owned())
     }
 
-    pub fn get_number_of_threads(&self) -> Result<u32, rdf_store_rs::RDFStoreError> {
+    pub fn get_number_of_threads(&self) -> Result<u32, ekg_error::Error> {
         let mut number_of_threads = 0_usize;
         database_call!(
             format!(
@@ -115,7 +115,7 @@ impl ServerConnection {
     pub fn set_number_of_threads(
         &self,
         number_of_threads: usize,
-    ) -> Result<(), rdf_store_rs::RDFStoreError> {
+    ) -> Result<(), ekg_error::Error> {
         assert!(!self.inner.is_null());
         let msg = format!(
             "Setting the number of threads to {}",
@@ -127,7 +127,7 @@ impl ServerConnection {
         )
     }
 
-    pub fn get_memory_use(&self) -> Result<(usize, usize), rdf_store_rs::RDFStoreError> {
+    pub fn get_memory_use(&self) -> Result<(usize, usize), ekg_error::Error> {
         let mut max_used_bytes = 0_usize;
         let mut available_bytes = 0_usize;
         database_call!(CServerConnection_getMemoryUse(
@@ -141,7 +141,7 @@ impl ServerConnection {
     pub fn delete_data_store(
         &self,
         data_store: &DataStore,
-    ) -> Result<(), rdf_store_rs::RDFStoreError> {
+    ) -> Result<(), ekg_error::Error> {
         assert!(!self.inner.is_null());
         let msg = format!("Deleting {data_store}");
         let c_name = CString::new(data_store.name.as_str()).unwrap();
@@ -154,7 +154,7 @@ impl ServerConnection {
     pub fn create_data_store(
         &self,
         data_store: &DataStore,
-    ) -> Result<(), rdf_store_rs::RDFStoreError> {
+    ) -> Result<(), ekg_error::Error> {
         tracing::trace!(
             target: LOG_TARGET_DATABASE,
             "Creating {data_store:}"
@@ -179,7 +179,7 @@ impl ServerConnection {
     pub fn connect_to_data_store(
         self: &Arc<Self>,
         data_store: &Arc<DataStore>,
-    ) -> Result<Arc<DataStoreConnection>, rdf_store_rs::RDFStoreError> {
+    ) -> Result<Arc<DataStoreConnection>, ekg_error::Error> {
         tracing::debug!(
             target: LOG_TARGET_DATABASE,
             "Connecting to {}",

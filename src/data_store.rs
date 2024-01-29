@@ -1,12 +1,12 @@
 use {
     crate::{
         connectable_data_store::ConnectableDataStore,
-        server_connection::ServerConnection,
         Parameters,
+        server_connection::ServerConnection,
     },
     owo_colors::OwoColorize,
-    r2d2::Pool,
-    rdf_store_rs::RDFStoreError,
+    r2d2::Pool
+    ,
     std::{
         fmt::{Display, Formatter},
         sync::Arc,
@@ -18,7 +18,7 @@ use {
 /// See <https://docs.oxfordsemantic.tech/data-stores.html>
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct DataStore {
-    pub name:       String,
+    pub name: String,
     pub parameters: Parameters,
 }
 
@@ -32,14 +32,14 @@ impl DataStore {
     pub fn declare_with_parameters(
         name: &str,
         parameters: Parameters,
-    ) -> Result<Arc<Self>, RDFStoreError> {
+    ) -> Result<Arc<Self>, ekg_error::Error> {
         Ok(Arc::new(Self {
             name: name.to_string(),
             parameters,
         }))
     }
 
-    pub fn create(self, server_connection: &Arc<ServerConnection>) -> Result<(), RDFStoreError> {
+    pub fn create(self, server_connection: &Arc<ServerConnection>) -> Result<(), ekg_error::Error> {
         server_connection.create_data_store(&self).map(|_| ())
     }
 
@@ -48,7 +48,7 @@ impl DataStore {
         server_connection: &Arc<ServerConnection>,
         create: bool,
         release_on_return_to_pool: bool,
-    ) -> Result<Pool<ConnectableDataStore>, RDFStoreError> {
+    ) -> Result<Pool<ConnectableDataStore>, ekg_error::Error> {
         if create {
             server_connection.create_data_store(self)?;
         }

@@ -1,3 +1,5 @@
+use ekg_namespace::PREFIX_CONCEPT;
+
 // Copyright (c) 2018-2023, agnos.ai UK Ltd, all rights reserved.
 //---------------------------------------------------------------
 // We're using `#[test_log::test]` tests in this file which allows
@@ -8,15 +10,14 @@
 //
 // TODO: Add test for "import axioms" (add test ontology)
 use {
-    indoc::formatdoc,
-    iref::Iri,
-    rdf_store_rs::{
+    ekg_namespace::{
         consts::{APPLICATION_N_QUADS, PREFIX_SKOS},
         Graph,
         Literal,
         Namespace,
-        RDFStoreError,
     },
+    indoc::formatdoc,
+    iref::Iri,
     rdfox_rs::{
         DataStore,
         DataStoreConnection,
@@ -35,7 +36,7 @@ use {
     std::{ops::Deref, sync::Arc},
 };
 
-fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
+fn test_define_data_store() -> Result<Arc<DataStore>, ekg_error::Error> {
     tracing::info!("test_define_data_store");
     #[cfg(feature = "rdfox-7-0")]
         let data_store_params = Parameters::empty()?
@@ -47,7 +48,7 @@ fn test_define_data_store() -> Result<Arc<DataStore>, RDFStoreError> {
     DataStore::declare_with_parameters("example", data_store_params)
 }
 
-fn test_create_server() -> Result<Arc<Server>, RDFStoreError> {
+fn test_create_server() -> Result<Arc<Server>, ekg_error::Error> {
     tracing::info!("test_create_server");
     #[cfg(feature = "rdfox-7-0")]
         let server_params = Parameters::empty()?.persist_datastore(PersistenceMode::Off)?;
@@ -64,7 +65,7 @@ fn test_create_server() -> Result<Arc<Server>, RDFStoreError> {
 
 fn test_create_server_connection(
     server: Arc<Server>,
-) -> Result<Arc<ServerConnection>, RDFStoreError> {
+) -> Result<Arc<ServerConnection>, ekg_error::Error> {
     tracing::info!("test_create_server_connection");
 
     let server_connection = server.connection_with_default_role()?;
@@ -92,7 +93,7 @@ fn test_create_server_connection(
 fn test_create_data_store_connection(
     server_connection: &Arc<ServerConnection>,
     data_store: &Arc<DataStore>,
-) -> Result<Arc<DataStoreConnection>, RDFStoreError> {
+) -> Result<Arc<DataStoreConnection>, ekg_error::Error> {
     tracing::info!("test_create_data_store");
 
     server_connection.create_data_store(data_store)?;
@@ -102,12 +103,12 @@ fn test_create_data_store_connection(
 fn test_create_graph(
     ds_connection: &Arc<DataStoreConnection>,
     name: &str,
-) -> Result<Arc<GraphConnection>, RDFStoreError> {
+) -> Result<Arc<GraphConnection>, ekg_error::Error> {
     tracing::info!("test_create_graph");
-    let graph_base_iri = Namespace::declare(
+    let graph_base_iri = Namespace::declare_iref_iri(
         "graph:",
         Iri::new("https://whatever.kom/graph/").unwrap(),
-    );
+    )?;
     let test_graph = Graph::declare(graph_base_iri, name);
 
     if name == "test" {
@@ -129,7 +130,7 @@ fn test_create_graph(
 fn test_count_some_stuff_in_the_store(
     tx: &Arc<Transaction>,
     ds_connection: &Arc<DataStoreConnection>,
-) -> Result<(), RDFStoreError> {
+) -> Result<(), ekg_error::Error> {
     tracing::info!("test_count_some_stuff_in_the_store");
     let count = ds_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
@@ -142,7 +143,7 @@ fn test_count_some_stuff_in_the_store(
 fn test_count_some_stuff_in_the_graph(
     tx: &Arc<Transaction>,
     graph_connection: &GraphConnection,
-) -> Result<(), RDFStoreError> {
+) -> Result<(), ekg_error::Error> {
     tracing::info!("test_count_some_stuff_in_the_graph");
     let count = graph_connection.get_triples_count(tx, FactDomain::ALL);
     assert!(count.is_ok());
@@ -155,7 +156,7 @@ fn test_count_some_stuff_in_the_graph(
 fn test_cursor_with_lexical_value(
     tx: &Arc<Transaction>,
     graph_connection: &Arc<GraphConnection>,
-) -> Result<(), RDFStoreError> {
+) -> Result<(), ekg_error::Error> {
     tracing::info!("test_cursor_with_lexical_value");
     let graph = graph_connection.graph.as_display_iri();
     let prefixes = Namespaces::empty()?;
@@ -184,7 +185,7 @@ fn test_cursor_with_lexical_value(
             let value = row.lexical_value(term_index)?;
             tracing::info!("{value:?}");
         }
-        Result::<(), RDFStoreError>::Ok(())
+        Result::<(), ekg_error::Error>::Ok(())
     })?;
     tracing::info!("Number of rows processed: {count}");
     Ok(())
@@ -194,7 +195,7 @@ fn test_cursor_with_lexical_value(
 fn test_run_query_to_nquads_buffer(
     _tx: &Arc<Transaction>, // TODO: consider passing tx to evaluate_to_stream()
     ds_connection: &Arc<DataStoreConnection>,
-) -> Result<(), RDFStoreError> {
+) -> Result<(), ekg_error::Error> {
     tracing::info!("test_run_query_to_nquads_buffer");
     let nquads_query = Statement::nquads_query(&Namespaces::empty()?)?;
     let writer = std::io::stdout();
@@ -211,11 +212,9 @@ fn test_run_query_to_nquads_buffer(
 pub fn get_concept(
     concept_id: &Literal,
     graph_connection: &Arc<GraphConnection>,
-) -> Result<Statement, RDFStoreError> {
-    let prefix_concept =
-        Namespace::declare_from_str("concept:", "https://ekgf.org/ontology/concept/");
+) -> Result<Statement, ekg_error::Error> {
     let prefixes = Namespaces::default_namespaces()?
-        .add_namespace(&prefix_concept)?
+        .add_namespace(&PREFIX_CONCEPT)?
         .add_namespace(&PREFIX_SKOS)?;
 
     let graph = graph_connection.graph.as_display_iri();
@@ -255,7 +254,7 @@ pub fn get_concept(
 fn test_query_concepts(
     tx: &Arc<Transaction>, // TODO: consider passing tx to evaluate_to_stream()
     graph_connection: &Arc<GraphConnection>,
-) -> Result<(), RDFStoreError> {
+) -> Result<(), ekg_error::Error> {
     let concept_id = Literal::new_iri_reference_from_str(
         "https://placeholder.kg/id/concept-legal-person-legal-name-iri",
     )?;
@@ -271,15 +270,16 @@ fn test_query_concepts(
         //     tracing::error!("{concept_id} is missing column
         // {term_index}:\n{statement:}"); }
         // }
-        Ok::<(), RDFStoreError>(())
+        Ok::<(), ekg_error::Error>(())
     })?;
     assert!(count > 0);
 
     Ok(())
 }
 
+/// Run the test with `RUST_LOG=info cargo test -- --nocapture` if you'd like to see what's going on.
 #[test_log::test]
-fn load_rdfox() -> Result<(), RDFStoreError> {
+fn load_rdfox() -> Result<(), ekg_error::Error> {
     eprintln!("running test load_rdfox:");
     tracing::info!("load_rdfox test start");
     let server = test_create_server()?;
